@@ -12,6 +12,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  refreshTenant: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,12 +73,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .from("tenants")
           .select("id")
           .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
         
         if (tenantData) {
           setTenantId(tenantData.id);
         }
       }
+    }
+  };
+
+  const refreshTenant = async () => {
+    if (user) {
+      await loadUserRole(user.id);
     }
   };
 
@@ -113,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, userRole, tenantId, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, userRole, tenantId, signIn, signUp, signOut, refreshTenant }}>
       {children}
     </AuthContext.Provider>
   );

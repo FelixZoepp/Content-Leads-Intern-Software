@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
 interface ProfileSetupProps {
@@ -18,6 +19,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     linkedinUrl: "",
   });
   const { toast } = useToast();
+  const { refreshTenant } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +29,25 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Nicht authentifiziert");
 
+      // Check if tenant already exists
+      const { data: existingTenant } = await supabase
+        .from("tenants")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (existingTenant) {
+        // Tenant exists, just refresh and navigate
+        await refreshTenant();
+        toast({
+          title: "Profil geladen",
+          description: "Dein Dashboard wird geöffnet...",
+        });
+        onComplete();
+        return;
+      }
+
+      // Create new tenant
       const { data, error } = await supabase
         .from("tenants")
         .insert({
@@ -40,12 +61,18 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
 
       if (error) throw error;
 
+      // Refresh tenant data in auth context
+      await refreshTenant();
+
       toast({
         title: "Profil erstellt",
         description: "Dein Dashboard wird geladen...",
       });
 
-      onComplete();
+      // Small delay to ensure tenant is set
+      setTimeout(() => {
+        onComplete();
+      }, 500);
     } catch (error: any) {
       toast({
         title: "Fehler",

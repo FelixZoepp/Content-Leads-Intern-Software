@@ -24,11 +24,13 @@ export default function ClientDashboard() {
   const [showEntryForm, setShowEntryForm] = useState(false);
 
   useEffect(() => {
-    if (user && !tenantId) {
-      // No tenant assigned, check if one exists
-      checkTenant();
-    } else if (tenantId) {
-      loadDashboardData();
+    if (user) {
+      if (tenantId) {
+        loadDashboardData();
+      } else {
+        // No tenant assigned, check if one exists
+        checkTenant();
+      }
     }
   }, [tenantId, user]);
 
