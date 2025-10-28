@@ -89,7 +89,7 @@ export default function ClientDashboard() {
     setLoading(false);
   };
 
-  const handleSync = async () => {
+  const handleSync = async (isDryRun = false) => {
     if (!tenant?.sheet_url) {
       toast({
         title: "Kein Sheet verbunden",
@@ -102,17 +102,37 @@ export default function ClientDashboard() {
     setSyncing(true);
     try {
       const { data, error } = await supabase.functions.invoke("sync-sheet", {
-        body: { tenantId },
+        body: { tenantId, dryRun: isDryRun },
       });
 
       if (error) throw error;
 
-      toast({
-        title: "Sync erfolgreich",
-        description: `${data.rowsProcessed} Zeilen aktualisiert`,
-      });
+      if (data.error) {
+        // Structured error from edge function
+        toast({
+          title: data.error,
+          description: data.userAction || data.message,
+          variant: "destructive",
+        });
+        
+        // Log detailed error info
+        console.error("Sync error details:", data);
+        return;
+      }
 
-      loadDashboardData();
+      if (isDryRun) {
+        toast({
+          title: "Vorschau erfolgreich",
+          description: data.message,
+        });
+        console.log("Dry run preview:", data.preview);
+      } else {
+        toast({
+          title: "Sync erfolgreich",
+          description: data.message || `${data.rowsProcessed} Zeilen aktualisiert`,
+        });
+        loadDashboardData();
+      }
     } catch (error: any) {
       toast({
         title: "Sync fehlgeschlagen",
@@ -141,7 +161,10 @@ export default function ClientDashboard() {
               <p className="text-sm text-muted-foreground">{tenant.company_name}</p>
             </div>
             <div className="flex items-center gap-4">
-              <Button onClick={handleSync} disabled={syncing}>
+              <Button variant="outline" onClick={() => handleSync(true)} disabled={syncing}>
+                Vorschau
+              </Button>
+              <Button onClick={() => handleSync(false)} disabled={syncing}>
                 <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
                 Aktualisieren
               </Button>
@@ -170,7 +193,10 @@ export default function ClientDashboard() {
                 Letzter Sync: {new Date(tenant.last_sync_at).toLocaleString('de-DE')}
               </p>
             )}
-            <Button onClick={handleSync} disabled={syncing}>
+            <Button variant="outline" onClick={() => handleSync(true)} disabled={syncing}>
+              Vorschau
+            </Button>
+            <Button onClick={() => handleSync(false)} disabled={syncing}>
               <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
               Aktualisieren
             </Button>
