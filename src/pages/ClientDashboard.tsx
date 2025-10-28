@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +12,7 @@ import { AIBriefing } from "@/components/client/AIBriefing";
 import { CSATSurvey } from "@/components/client/CSATSurvey";
 
 export default function ClientDashboard() {
+  const navigate = useNavigate();
   const { user, tenantId } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -20,10 +22,30 @@ export default function ClientDashboard() {
   const [healthScore, setHealthScore] = useState<any>(null);
 
   useEffect(() => {
-    if (tenantId) {
+    if (user && !tenantId) {
+      // No tenant assigned, check if one exists
+      checkTenant();
+    } else if (tenantId) {
       loadDashboardData();
     }
-  }, [tenantId]);
+  }, [tenantId, user]);
+
+  const checkTenant = async () => {
+    try {
+      const { data } = await supabase
+        .from("tenants")
+        .select("id")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+
+      if (!data) {
+        // No tenant exists, redirect to onboarding
+        navigate("/onboarding");
+      }
+    } catch (error) {
+      console.error("Error checking tenant:", error);
+    }
+  };
 
   const loadDashboardData = async () => {
     setLoading(true);
