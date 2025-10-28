@@ -14,6 +14,149 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_summaries: {
+        Row: {
+          created_at: string | null
+          id: number
+          scope: string | null
+          summary_text: string
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          scope?: string | null
+          summary_text: string
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          scope?: string | null
+          summary_text?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_summaries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alerts: {
+        Row: {
+          created_at: string | null
+          id: number
+          message: string
+          resolved_at: string | null
+          severity: string | null
+          tenant_id: string
+          type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          message: string
+          resolved_at?: string | null
+          severity?: string | null
+          tenant_id: string
+          type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          message?: string
+          resolved_at?: string | null
+          severity?: string | null
+          tenant_id?: string
+          type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      csat_responses: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          csat_1_5: number | null
+          id: number
+          nps_0_10: number | null
+          respondent_email: string | null
+          tenant_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          csat_1_5?: number | null
+          id?: number
+          nps_0_10?: number | null
+          respondent_email?: string | null
+          tenant_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          csat_1_5?: number | null
+          id?: number
+          nps_0_10?: number | null
+          respondent_email?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "csat_responses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      health_scores: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: number
+          rationale_text: string | null
+          score: number
+          tenant_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: number
+          rationale_text?: string | null
+          score: number
+          tenant_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: number
+          rationale_text?: string | null
+          score?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_scores_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kpi_entries: {
         Row: {
           appointments_scheduled: number | null
@@ -65,6 +208,68 @@ export type Database = {
         }
         Relationships: []
       }
+      metrics_snapshot: {
+        Row: {
+          appointments: number | null
+          comments: number | null
+          created_at: string | null
+          deals: number | null
+          id: number
+          impressions: number | null
+          leads_qualified: number | null
+          leads_total: number | null
+          likes: number | null
+          new_followers: number | null
+          period_date: string
+          period_type: string | null
+          posts: number | null
+          revenue: number | null
+          tenant_id: string
+        }
+        Insert: {
+          appointments?: number | null
+          comments?: number | null
+          created_at?: string | null
+          deals?: number | null
+          id?: number
+          impressions?: number | null
+          leads_qualified?: number | null
+          leads_total?: number | null
+          likes?: number | null
+          new_followers?: number | null
+          period_date: string
+          period_type?: string | null
+          posts?: number | null
+          revenue?: number | null
+          tenant_id: string
+        }
+        Update: {
+          appointments?: number | null
+          comments?: number | null
+          created_at?: string | null
+          deals?: number | null
+          id?: number
+          impressions?: number | null
+          leads_qualified?: number | null
+          leads_total?: number | null
+          likes?: number | null
+          new_followers?: number | null
+          period_date?: string
+          period_type?: string | null
+          posts?: number | null
+          revenue?: number | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metrics_snapshot_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           company_name: string | null
@@ -98,15 +303,84 @@ export type Database = {
         }
         Relationships: []
       }
+      tenants: {
+        Row: {
+          company_name: string
+          contact_name: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          linkedin_url: string | null
+          sheet_mapping: Json | null
+          sheet_url: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          contact_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          linkedin_url?: string | null
+          sheet_mapping?: Json | null
+          sheet_url?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          contact_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          linkedin_url?: string | null
+          sheet_mapping?: Json | null
+          sheet_url?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -233,6 +507,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "client"],
+    },
   },
 } as const
