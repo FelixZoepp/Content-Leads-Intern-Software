@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { PortfolioOverview } from "@/components/admin/PortfolioOverview";
 import { AlertsPanel } from "@/components/admin/AlertsPanel";
 import { AdminAISummary } from "@/components/admin/AdminAISummary";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -86,8 +87,35 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="min-h-screen bg-background">
+        <header className="border-b bg-card">
+          <div className="container mx-auto px-4 py-4">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-48 mt-2" />
+          </div>
+        </header>
+        <main className="container mx-auto px-4 py-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-5 w-32" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-10 w-24" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-32 w-full" />
+            </CardContent>
+          </Card>
+        </main>
       </div>
     );
   }

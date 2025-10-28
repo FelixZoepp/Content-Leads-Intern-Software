@@ -10,6 +10,8 @@ import { ClientMetricsCards } from "@/components/client/ClientMetricsCards";
 import { ClientCharts } from "@/components/client/ClientCharts";
 import { AIBriefing } from "@/components/client/AIBriefing";
 import { CSATSurvey } from "@/components/client/CSATSurvey";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
+import { EmptyDashboard } from "@/components/dashboard/EmptyDashboard";
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
@@ -122,24 +124,34 @@ export default function ClientDashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (!tenant) {
+    return <EmptyDashboard onRefresh={() => navigate("/onboarding")} hasSheet={false} />;
+  }
+
+  if (metrics.length === 0) {
     return (
-      <div className="min-h-screen bg-background p-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Willkommen bei ContentLeads</CardTitle>
-            <CardDescription>
-              Bitte vervollständige dein Profil und verbinde dein Tracking-Sheet
-            </CardDescription>
-          </CardHeader>
-        </Card>
+      <div className="min-h-screen bg-background">
+        <header className="border-b bg-card">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">ContentLeads Dashboard</h1>
+              <p className="text-sm text-muted-foreground">{tenant.company_name}</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button onClick={handleSync} disabled={syncing}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
+                Aktualisieren
+              </Button>
+              <Button variant="outline" onClick={() => supabase.auth.signOut()}>
+                Abmelden
+              </Button>
+            </div>
+          </div>
+        </header>
+        <EmptyDashboard onRefresh={handleSync} hasSheet={!!tenant.sheet_url} />
       </div>
     );
   }
