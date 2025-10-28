@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
 interface ProfileSetupProps {
-  onComplete: (tenantId: string) => void;
+  onComplete: () => void;
 }
 
 export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
@@ -42,10 +42,10 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
 
       toast({
         title: "Profil erstellt",
-        description: "Weiter zum nächsten Schritt.",
+        description: "Dein Dashboard wird geladen...",
       });
 
-      onComplete(data.id);
+      onComplete();
     } catch (error: any) {
       toast({
         title: "Fehler",
