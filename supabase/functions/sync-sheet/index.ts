@@ -44,9 +44,40 @@ serve(async (req) => {
     }
 
     const csvText = await csvResponse.text();
-    const rows = csvText.split('\n').map(row => row.split(','));
+    console.log("CSV text length:", csvText.length);
+    console.log("CSV first 500 chars:", csvText.substring(0, 500));
     
-    if (rows.length < 2) throw new Error("Sheet is empty or has no data rows");
+    // Parse CSV properly (handle quoted fields)
+    const lines = csvText.split('\n').filter(line => line.trim());
+    console.log("Total lines found:", lines.length);
+    
+    if (lines.length < 2) {
+      throw new Error(`Sheet is empty or has no data rows. Found ${lines.length} lines.`);
+    }
+    
+    // Simple CSV parser that handles basic quoted fields
+    const parseCSVLine = (line: string): string[] => {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    };
+    
+    const rows = lines.map(line => parseCSVLine(line));
 
     const headers = rows[0].map(h => h.trim().toLowerCase());
     const mapping = tenant.sheet_mapping || {};
