@@ -16,6 +16,7 @@ import { TimeRangeSelector, type TimeRange } from "@/components/dashboard/TimeRa
 import { KPIInsights } from "@/components/dashboard/KPIInsights";
 import { MonthlyReportTable } from "@/components/dashboard/MonthlyReportTable";
 import { FulfillmentTracker } from "@/components/dashboard/FulfillmentTracker";
+import { FinancialTracker } from "@/components/dashboard/FinancialTracker";
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
@@ -179,6 +180,7 @@ export default function ClientDashboard() {
             <KPIInsights metrics={metrics} />
             <ClientCharts metrics={metrics} timeRange={timeRange} />
             <MonthlyReportTable tenantId={tenantId!} companyName={tenant.company_name} />
+            <FinancialTracker tenantId={tenantId!} />
             <FulfillmentTracker tenantId={tenantId!} />
             <AIBriefing tenantId={tenantId!} />
             <CSATSurvey tenantId={tenantId!} />
