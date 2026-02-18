@@ -19,6 +19,113 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    // Handle onboarding initial assessment
+    if (scope === "onboarding_initial") {
+      const { data: tenant } = await supabaseClient
+        .from("tenants")
+        .select("*")
+        .eq("id", tenantId)
+        .single();
+
+      if (!tenant) throw new Error("Tenant not found");
+
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+      const onboardingPrompt = `Analysiere folgendes Unternehmensprofil und erstelle eine klare Ausgangslage mit Handlungsempfehlungen.
+
+UNTERNEHMENSDATEN:
+- Firma: ${tenant.company_name}
+- Branche: ${tenant.industry || "Nicht angegeben"}
+- Teamgröße: ${tenant.team_size || "Nicht angegeben"}
+- Zielgruppe: ${tenant.target_audience || "Nicht angegeben"}
+- Monatsbudget: ${tenant.monthly_budget || 0}€
+
+LINKEDIN-STATUS:
+- Aktuelle Follower: ${tenant.linkedin_followers_current || 0}
+- Posting-Frequenz: ${tenant.posting_frequency || "Nicht angegeben"}
+- Erfahrungslevel: ${tenant.linkedin_experience || "Nicht angegeben"}
+
+AKTUELLE KENNZAHLEN:
+- Leads/Monat: ${tenant.current_leads_per_month || 0}
+- Monatsumsatz: ${tenant.current_revenue_monthly || 0}€
+- Conversion-Rate: ${tenant.current_conversion_rate || 0}%
+
+ZIELE:
+- Hauptziel: ${tenant.primary_goal || "Nicht angegeben"}
+- Ziel-Leads/Monat: ${tenant.goal_leads_monthly || 0}
+- Ziel-Umsatz/Monat: ${tenant.goal_revenue_monthly || 0}€
+- Zeitrahmen: ${tenant.goal_timeframe || "Nicht angegeben"}
+
+DEINE ANALYSE MUSS folgendes Format haben:
+
+## 📊 Ausgangslage
+Bewerte den aktuellen Stand in 3-4 Sätzen. Benenne klar Stärken und Schwächen.
+
+## 🚦 Status-Einordnung
+- 🔴 **Kritisch**: [Bereiche die sofort Aufmerksamkeit brauchen]
+- 🟡 **Ausbaufähig**: [Bereiche mit Optimierungspotenzial]
+- 🟢 **Solide Basis**: [Bereiche die gut aufgestellt sind]
+
+## 🎯 3-Schritte-Anleitung
+
+### Schritt 1: Sofort starten (Woche 1-2)
+[Konkrete, umsetzbare Maßnahme mit erwartetem Ergebnis]
+
+### Schritt 2: Aufbauen (Woche 3-4)
+[Nächste konkrete Maßnahme basierend auf den Daten]
+
+### Schritt 3: Skalieren (Monat 2-3)
+[Langfristige Strategie zum Erreichen der Ziele]
+
+## 📈 Realistische Prognose
+Basierend auf Branche, Budget und Ausgangslage: Was ist in ${tenant.goal_timeframe || "6 Monaten"} realistisch erreichbar?
+
+Sei direkt, ehrlich und faktenbasiert. Keine Floskeln. Max 350 Wörter.`;
+
+      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: "Du bist ein erfahrener LinkedIn-Marketing-Stratege. Du analysierst Unternehmensdaten und gibst klare, umsetzbare Empfehlungen auf Deutsch." },
+            { role: "user", content: onboardingPrompt },
+          ],
+        }),
+      });
+
+      if (aiResponse.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limit erreicht." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (aiResponse.status === 402) {
+        return new Response(JSON.stringify({ error: "AI-Credits aufgebraucht." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (!aiResponse.ok) throw new Error("AI Gateway Error");
+
+      const aiData = await aiResponse.json();
+      const summaryText = aiData.choices[0].message.content;
+
+      const { data: summary, error: summaryError } = await supabaseClient
+        .from("ai_summaries")
+        .insert({ tenant_id: tenantId, scope: "onboarding_initial", summary_text: summaryText })
+        .select()
+        .single();
+
+      if (summaryError) throw summaryError;
+
+      return new Response(JSON.stringify({ summary }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Get recent metrics
     const { data: metrics, error: metricsError } = await supabaseClient
       .from("metrics_snapshot")

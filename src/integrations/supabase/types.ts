@@ -551,40 +551,88 @@ export type Database = {
           company_name: string
           contact_name: string | null
           created_at: string | null
+          current_conversion_rate: number | null
+          current_leads_per_month: number | null
+          current_revenue_monthly: number | null
+          goal_leads_monthly: number | null
+          goal_revenue_monthly: number | null
+          goal_timeframe: string | null
           id: string
+          industry: string | null
           is_active: boolean | null
           last_sync_at: string | null
+          linkedin_experience: string | null
+          linkedin_followers_current: number | null
           linkedin_url: string | null
+          monthly_budget: number | null
+          onboarding_completed: boolean | null
+          posting_frequency: string | null
+          primary_goal: string | null
           sheet_mapping: Json | null
           sheet_url: string | null
+          target_audience: string | null
+          team_size: string | null
           updated_at: string | null
           user_id: string
+          website_url: string | null
         }
         Insert: {
           company_name: string
           contact_name?: string | null
           created_at?: string | null
+          current_conversion_rate?: number | null
+          current_leads_per_month?: number | null
+          current_revenue_monthly?: number | null
+          goal_leads_monthly?: number | null
+          goal_revenue_monthly?: number | null
+          goal_timeframe?: string | null
           id?: string
+          industry?: string | null
           is_active?: boolean | null
           last_sync_at?: string | null
+          linkedin_experience?: string | null
+          linkedin_followers_current?: number | null
           linkedin_url?: string | null
+          monthly_budget?: number | null
+          onboarding_completed?: boolean | null
+          posting_frequency?: string | null
+          primary_goal?: string | null
           sheet_mapping?: Json | null
           sheet_url?: string | null
+          target_audience?: string | null
+          team_size?: string | null
           updated_at?: string | null
           user_id: string
+          website_url?: string | null
         }
         Update: {
           company_name?: string
           contact_name?: string | null
           created_at?: string | null
+          current_conversion_rate?: number | null
+          current_leads_per_month?: number | null
+          current_revenue_monthly?: number | null
+          goal_leads_monthly?: number | null
+          goal_revenue_monthly?: number | null
+          goal_timeframe?: string | null
           id?: string
+          industry?: string | null
           is_active?: boolean | null
           last_sync_at?: string | null
+          linkedin_experience?: string | null
+          linkedin_followers_current?: number | null
           linkedin_url?: string | null
+          monthly_budget?: number | null
+          onboarding_completed?: boolean | null
+          posting_frequency?: string | null
+          primary_goal?: string | null
           sheet_mapping?: Json | null
           sheet_url?: string | null
+          target_audience?: string | null
+          team_size?: string | null
           updated_at?: string | null
           user_id?: string
+          website_url?: string | null
         }
         Relationships: []
       }
