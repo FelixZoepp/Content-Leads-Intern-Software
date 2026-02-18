@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { TrendingUp, TrendingDown, Users, Target, Phone, DollarSign, Package, AlertCircle } from "lucide-react";
+import { TenantDetailSheet } from "./TenantDetailSheet";
 
 interface Props {
   tenants: any[];
@@ -14,6 +15,7 @@ export function AdminPortfolioTabs({ tenants }: Props) {
   const [monthlyMetrics, setMonthlyMetrics] = useState<Record<string, any>>({});
   const [fulfillment, setFulfillment] = useState<Record<string, any>>({});
   const [financials, setFinancials] = useState<Record<string, any>>({});
+  const [selectedTenant, setSelectedTenant] = useState<any | null>(null);
 
   useEffect(() => {
     loadAllData();
@@ -131,7 +133,7 @@ export function AdminPortfolioTabs({ tenants }: Props) {
                     {tenants.map(t => {
                       const m = monthlyMetrics[t.id] || {};
                       return (
-                        <tr key={t.id} className="border-b hover:bg-muted/50">
+                        <tr key={t.id} className="border-b hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => setSelectedTenant(t)}>
                           <td className="p-2 font-medium">{t.company_name}</td>
                           <td className="p-2 text-right">{n(m.impressions).toLocaleString("de-DE")}</td>
                           <td className="p-2 text-right">{n(m.comments)}</td>
@@ -180,7 +182,7 @@ export function AdminPortfolioTabs({ tenants }: Props) {
                     {tenants.map(t => {
                       const m = monthlyMetrics[t.id] || {};
                       return (
-                        <tr key={t.id} className="border-b hover:bg-muted/50">
+                        <tr key={t.id} className="border-b hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => setSelectedTenant(t)}>
                           <td className="p-2 font-medium">{t.company_name}</td>
                           <td className="p-2 text-right">{n(m.calls_made)}</td>
                           <td className="p-2 text-right">{n(m.calls_reached)}</td>
@@ -240,7 +242,7 @@ export function AdminPortfolioTabs({ tenants }: Props) {
                         ? Math.round((f.milestones_completed / f.milestones_total) * 100) : 0;
 
                       return (
-                        <tr key={t.id} className="border-b hover:bg-muted/50">
+                        <tr key={t.id} className="border-b hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => setSelectedTenant(t)}>
                           <td className="p-2 font-medium">{t.company_name}</td>
                           <td className="p-2 text-center">
                             <StatusBadge status={f?.project_status} />
@@ -308,7 +310,7 @@ export function AdminPortfolioTabs({ tenants }: Props) {
                       const margin = cash > 0 ? ((cf / cash) * 100).toFixed(1) : "–";
 
                       return (
-                        <tr key={t.id} className="border-b hover:bg-muted/50">
+                        <tr key={t.id} className="border-b hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => setSelectedTenant(t)}>
                           <td className="p-2 font-medium">{t.company_name}</td>
                           <td className="p-2 text-right">{cash.toLocaleString("de-DE")}€</td>
                           <td className="p-2 text-right">{n(f?.revenue_recurring).toLocaleString("de-DE")}€</td>
@@ -362,6 +364,12 @@ export function AdminPortfolioTabs({ tenants }: Props) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <TenantDetailSheet
+        tenant={selectedTenant}
+        open={!!selectedTenant}
+        onClose={() => setSelectedTenant(null)}
+      />
     </div>
   );
 }
