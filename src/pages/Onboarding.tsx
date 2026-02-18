@@ -13,9 +13,9 @@ export default function Onboarding() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle>Willkommen bei ContentLeads</CardTitle>
+          <CardTitle className="text-xl">Willkommen bei ContentLeads</CardTitle>
           <CardDescription>
-            Erstelle dein Firmenprofil und starte mit deinem Dashboard
+            Erstelle dein Firmenprofil – basierend auf deinen Daten erstellen wir eine individuelle Erstanalyse mit konkreten Handlungsempfehlungen.
           </CardDescription>
         </CardHeader>
         <CardContent>
