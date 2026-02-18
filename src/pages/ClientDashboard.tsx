@@ -17,6 +17,7 @@ import { KPIInsights } from "@/components/dashboard/KPIInsights";
 import { MonthlyReportTable } from "@/components/dashboard/MonthlyReportTable";
 import { FulfillmentTracker } from "@/components/dashboard/FulfillmentTracker";
 import { FinancialTracker } from "@/components/dashboard/FinancialTracker";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ export default function ClientDashboard() {
   const [healthScore, setHealthScore] = useState<any>(null);
   const [showEntryForm, setShowEntryForm] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>("daily");
+  const [activeSection, setActiveSection] = useState("overview");
 
   useEffect(() => {
     if (user) {
@@ -101,7 +103,7 @@ export default function ClientDashboard() {
   if (!tenant) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md">
+        <Card className="max-w-md glass-card">
           <CardHeader>
             <CardTitle>Kein Tenant gefunden</CardTitle>
             <CardDescription>Bitte schließe das Onboarding ab</CardDescription>
@@ -114,27 +116,29 @@ export default function ClientDashboard() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">KPI Dashboard</h1>
-            <p className="text-sm text-muted-foreground">{tenant.company_name}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button onClick={() => setShowEntryForm(!showEntryForm)} size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              {showEntryForm ? "Schließen" : "Heute eintragen"}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => supabase.auth.signOut()}>
-              Abmelden
-            </Button>
-          </div>
-        </div>
-      </header>
+  const handleNavigate = (section: string) => {
+    setActiveSection(section);
+    const el = document.getElementById(`section-${section}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
+  return (
+    <DashboardLayout
+      activeSection={activeSection}
+      onNavigate={handleNavigate}
+      title="KPI Dashboard"
+      subtitle={tenant.company_name}
+    >
+      <div className="space-y-6 max-w-6xl">
+        {/* Entry form toggle */}
+        <div className="flex items-center justify-between">
+          <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+          <Button onClick={() => setShowEntryForm(!showEntryForm)} size="sm" className="rounded-xl">
+            <Plus className="h-4 w-4 mr-1" />
+            {showEntryForm ? "Schließen" : "Heute eintragen"}
+          </Button>
+        </div>
+
         {showEntryForm && (
           <KPIEntryForm
             tenantId={tenantId!}
@@ -146,7 +150,7 @@ export default function ClientDashboard() {
         )}
 
         {metrics.length === 0 && !showEntryForm ? (
-          <Card>
+          <Card className="glass-card">
             <CardHeader>
               <CardTitle>Willkommen! 👋</CardTitle>
               <CardDescription>Trage deine ersten KPIs ein, um dein Dashboard zu aktivieren.</CardDescription>
@@ -160,33 +164,51 @@ export default function ClientDashboard() {
           </Card>
         ) : (
           <>
-            <div className="flex items-center justify-between">
-              <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+            <div id="section-overview">
+              {healthScore && (
+                <Card className={`glass-card border-2 ${
+                  healthScore.color === "green" ? "border-success/40" :
+                  healthScore.color === "amber" ? "border-warning/40" : "border-destructive/40"
+                }`}>
+                  <CardHeader className="py-3">
+                    <CardTitle className="text-base">Health Score: {healthScore.score}/100</CardTitle>
+                    <CardDescription>{healthScore.rationale_text}</CardDescription>
+                  </CardHeader>
+                </Card>
+              )}
             </div>
 
-            {healthScore && (
-              <Card className={`border-2 ${
-                healthScore.color === "green" ? "border-green-500" :
-                healthScore.color === "amber" ? "border-yellow-500" : "border-red-500"
-              }`}>
-                <CardHeader className="py-3">
-                  <CardTitle className="text-base">Health Score: {healthScore.score}/100</CardTitle>
-                  <CardDescription>{healthScore.rationale_text}</CardDescription>
-                </CardHeader>
-              </Card>
-            )}
+            <div id="section-marketing">
+              <ClientMetricsCards metrics={metrics} timeRange={timeRange} />
+              <KPIInsights metrics={metrics} />
+            </div>
 
-            <ClientMetricsCards metrics={metrics} timeRange={timeRange} />
-            <KPIInsights metrics={metrics} />
-            <ClientCharts metrics={metrics} timeRange={timeRange} />
-            <MonthlyReportTable tenantId={tenantId!} companyName={tenant.company_name} />
-            <FinancialTracker tenantId={tenantId!} />
-            <FulfillmentTracker tenantId={tenantId!} />
-            <AIBriefing tenantId={tenantId!} />
-            <CSATSurvey tenantId={tenantId!} />
+            <div id="section-sales">
+              <ClientCharts metrics={metrics} timeRange={timeRange} />
+            </div>
+
+            <div id="section-reports">
+              <MonthlyReportTable tenantId={tenantId!} companyName={tenant.company_name} />
+            </div>
+
+            <div id="section-finance">
+              <FinancialTracker tenantId={tenantId!} />
+            </div>
+
+            <div id="section-fulfillment">
+              <FulfillmentTracker tenantId={tenantId!} />
+            </div>
+
+            <div id="section-ai">
+              <AIBriefing tenantId={tenantId!} />
+            </div>
+
+            <div id="section-csat">
+              <CSATSurvey tenantId={tenantId!} />
+            </div>
           </>
         )}
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
