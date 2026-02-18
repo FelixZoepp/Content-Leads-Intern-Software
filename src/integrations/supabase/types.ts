@@ -548,12 +548,20 @@ export type Database = {
       }
       tenants: {
         Row: {
+          ads_spend_monthly: number | null
+          closing_rate: number | null
           company_name: string
           contact_name: string | null
+          contract_duration: string | null
+          cost_per_appointment: number | null
+          cost_per_customer: number | null
+          cost_per_lead: number | null
           created_at: string | null
           current_conversion_rate: number | null
           current_leads_per_month: number | null
+          current_offer: string | null
           current_revenue_monthly: number | null
+          delivery_costs_monthly: number | null
           goal_leads_monthly: number | null
           goal_revenue_monthly: number | null
           goal_timeframe: string | null
@@ -564,25 +572,40 @@ export type Database = {
           linkedin_experience: string | null
           linkedin_followers_current: number | null
           linkedin_url: string | null
+          margin_percent: number | null
           monthly_budget: number | null
+          offer_price: number | null
           onboarding_completed: boolean | null
+          other_costs_monthly: number | null
+          personnel_costs_monthly: number | null
           posting_frequency: string | null
           primary_goal: string | null
+          revenue_onetime: number | null
+          revenue_recurring: number | null
           sheet_mapping: Json | null
           sheet_url: string | null
           target_audience: string | null
           team_size: string | null
+          tools_costs_monthly: number | null
           updated_at: string | null
           user_id: string
           website_url: string | null
         }
         Insert: {
+          ads_spend_monthly?: number | null
+          closing_rate?: number | null
           company_name: string
           contact_name?: string | null
+          contract_duration?: string | null
+          cost_per_appointment?: number | null
+          cost_per_customer?: number | null
+          cost_per_lead?: number | null
           created_at?: string | null
           current_conversion_rate?: number | null
           current_leads_per_month?: number | null
+          current_offer?: string | null
           current_revenue_monthly?: number | null
+          delivery_costs_monthly?: number | null
           goal_leads_monthly?: number | null
           goal_revenue_monthly?: number | null
           goal_timeframe?: string | null
@@ -593,25 +616,40 @@ export type Database = {
           linkedin_experience?: string | null
           linkedin_followers_current?: number | null
           linkedin_url?: string | null
+          margin_percent?: number | null
           monthly_budget?: number | null
+          offer_price?: number | null
           onboarding_completed?: boolean | null
+          other_costs_monthly?: number | null
+          personnel_costs_monthly?: number | null
           posting_frequency?: string | null
           primary_goal?: string | null
+          revenue_onetime?: number | null
+          revenue_recurring?: number | null
           sheet_mapping?: Json | null
           sheet_url?: string | null
           target_audience?: string | null
           team_size?: string | null
+          tools_costs_monthly?: number | null
           updated_at?: string | null
           user_id: string
           website_url?: string | null
         }
         Update: {
+          ads_spend_monthly?: number | null
+          closing_rate?: number | null
           company_name?: string
           contact_name?: string | null
+          contract_duration?: string | null
+          cost_per_appointment?: number | null
+          cost_per_customer?: number | null
+          cost_per_lead?: number | null
           created_at?: string | null
           current_conversion_rate?: number | null
           current_leads_per_month?: number | null
+          current_offer?: string | null
           current_revenue_monthly?: number | null
+          delivery_costs_monthly?: number | null
           goal_leads_monthly?: number | null
           goal_revenue_monthly?: number | null
           goal_timeframe?: string | null
@@ -622,14 +660,21 @@ export type Database = {
           linkedin_experience?: string | null
           linkedin_followers_current?: number | null
           linkedin_url?: string | null
+          margin_percent?: number | null
           monthly_budget?: number | null
+          offer_price?: number | null
           onboarding_completed?: boolean | null
+          other_costs_monthly?: number | null
+          personnel_costs_monthly?: number | null
           posting_frequency?: string | null
           primary_goal?: string | null
+          revenue_onetime?: number | null
+          revenue_recurring?: number | null
           sheet_mapping?: Json | null
           sheet_url?: string | null
           target_audience?: string | null
           team_size?: string | null
+          tools_costs_monthly?: number | null
           updated_at?: string | null
           user_id?: string
           website_url?: string | null
