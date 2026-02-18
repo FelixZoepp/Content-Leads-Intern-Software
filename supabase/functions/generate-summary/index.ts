@@ -32,24 +32,50 @@ serve(async (req) => {
       const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
       if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-      const onboardingPrompt = `Analysiere folgendes Unternehmensprofil und erstelle eine klare Ausgangslage mit Handlungsempfehlungen.
+      const totalCosts = (tenant.ads_spend_monthly || 0) + (tenant.tools_costs_monthly || 0) + (tenant.personnel_costs_monthly || 0) + (tenant.delivery_costs_monthly || 0) + (tenant.other_costs_monthly || 0);
+      const totalRevenue = (tenant.revenue_recurring || 0) + (tenant.revenue_onetime || 0);
+      const profit = totalRevenue - totalCosts;
+
+      const onboardingPrompt = `Analysiere folgendes Unternehmensprofil und erstelle eine detaillierte Ausgangslage mit Handlungsempfehlungen.
 
 UNTERNEHMENSDATEN:
 - Firma: ${tenant.company_name}
 - Branche: ${tenant.industry || "Nicht angegeben"}
 - Teamgröße: ${tenant.team_size || "Nicht angegeben"}
 - Zielgruppe: ${tenant.target_audience || "Nicht angegeben"}
-- Monatsbudget: ${tenant.monthly_budget || 0}€
 
 LINKEDIN-STATUS:
 - Aktuelle Follower: ${tenant.linkedin_followers_current || 0}
 - Posting-Frequenz: ${tenant.posting_frequency || "Nicht angegeben"}
 - Erfahrungslevel: ${tenant.linkedin_experience || "Nicht angegeben"}
 
-AKTUELLE KENNZAHLEN:
+AKTUELLES ANGEBOT:
+- Offer: ${tenant.current_offer || "Nicht angegeben"}
+- Angebotspreis: ${tenant.offer_price || 0}€
+- Vertragslaufzeit: ${tenant.contract_duration || "Nicht angegeben"}
+- Closing-Rate: ${tenant.closing_rate || 0}%
+
+MONATLICHE FINANZEN:
+- Einnahmen wiederkehrend: ${tenant.revenue_recurring || 0}€
+- Einnahmen einmalig: ${tenant.revenue_onetime || 0}€
+- Gesamtumsatz: ${totalRevenue}€
+- Ads/Werbung: ${tenant.ads_spend_monthly || 0}€
+- Tools & Software: ${tenant.tools_costs_monthly || 0}€
+- Personal: ${tenant.personnel_costs_monthly || 0}€
+- Delivery/Fulfillment: ${tenant.delivery_costs_monthly || 0}€
+- Sonstige Kosten: ${tenant.other_costs_monthly || 0}€
+- Gesamtkosten: ${totalCosts}€
+- Gewinn/Verlust: ${profit}€
+- Marge: ${tenant.margin_percent || 0}%
+
+KENNZAHLEN:
 - Leads/Monat: ${tenant.current_leads_per_month || 0}
 - Monatsumsatz: ${tenant.current_revenue_monthly || 0}€
 - Conversion-Rate: ${tenant.current_conversion_rate || 0}%
+- Kosten pro Lead: ${tenant.cost_per_lead || 0}€
+- Kosten pro Termin: ${tenant.cost_per_appointment || 0}€
+- Kosten pro Kunde: ${tenant.cost_per_customer || 0}€
+- Marketingbudget: ${tenant.monthly_budget || 0}€
 
 ZIELE:
 - Hauptziel: ${tenant.primary_goal || "Nicht angegeben"}
@@ -59,29 +85,29 @@ ZIELE:
 
 DEINE ANALYSE MUSS folgendes Format haben:
 
-## 📊 Ausgangslage
-Bewerte den aktuellen Stand in 3-4 Sätzen. Benenne klar Stärken und Schwächen.
+## 📊 Ausgangslage & Unit Economics
+Bewerte den finanziellen Stand: Umsatz, Kosten, Marge, Gewinn. Berechne und bewerte die Unit Economics (Cost per Lead, Cost per Customer, Customer Lifetime Value basierend auf Vertragslaufzeit × Preis). Benenne klar wo Geld verbrannt wird und wo Potenzial liegt.
 
 ## 🚦 Status-Einordnung
-- 🔴 **Kritisch**: [Bereiche die sofort Aufmerksamkeit brauchen]
-- 🟡 **Ausbaufähig**: [Bereiche mit Optimierungspotenzial]
-- 🟢 **Solide Basis**: [Bereiche die gut aufgestellt sind]
+- 🔴 **Kritisch**: [Bereiche mit sofortigem Handlungsbedarf – z.B. negative Marge, zu hohe Leadkosten]
+- 🟡 **Ausbaufähig**: [Bereiche mit Optimierungspotenzial – z.B. Closing-Rate, Delivery-Kosten]
+- 🟢 **Solide Basis**: [Bereiche die gut funktionieren]
 
 ## 🎯 3-Schritte-Anleitung
 
-### Schritt 1: Sofort starten (Woche 1-2)
-[Konkrete, umsetzbare Maßnahme mit erwartetem Ergebnis]
+### Schritt 1: Sofort umsetzen (Woche 1-2)
+[Konkrete Maßnahme mit erwartetem finanziellen Impact – z.B. "Closing-Rate von X% auf Y% steigern = Z€ mehr Umsatz"]
 
-### Schritt 2: Aufbauen (Woche 3-4)
-[Nächste konkrete Maßnahme basierend auf den Daten]
+### Schritt 2: Optimieren (Woche 3-4)
+[Kostenoptimierung oder Revenue-Hebel mit konkreten Zahlen]
 
 ### Schritt 3: Skalieren (Monat 2-3)
-[Langfristige Strategie zum Erreichen der Ziele]
+[Wachstumsstrategie basierend auf den Zieldaten]
 
 ## 📈 Realistische Prognose
-Basierend auf Branche, Budget und Ausgangslage: Was ist in ${tenant.goal_timeframe || "6 Monaten"} realistisch erreichbar?
+Basierend auf allen Daten: Was ist in ${tenant.goal_timeframe || "6 Monaten"} bei konsequenter Umsetzung realistisch? Nenne konkrete Zahlen für Leads, Umsatz und Marge.
 
-Sei direkt, ehrlich und faktenbasiert. Keine Floskeln. Max 350 Wörter.`;
+Sei direkt, ehrlich und faktenbasiert. Nutze die konkreten Zahlen. Max 500 Wörter.`;
 
       const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
