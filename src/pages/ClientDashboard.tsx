@@ -29,7 +29,7 @@ export default function ClientDashboard() {
   const [healthScore, setHealthScore] = useState<any>(null);
   const [showEntryForm, setShowEntryForm] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>("daily");
-  const [activeSection, setActiveSection] = useState("overview");
+  
 
   useEffect(() => {
     if (user) {
@@ -116,16 +116,11 @@ export default function ClientDashboard() {
     );
   }
 
-  const handleNavigate = (section: string) => {
-    setActiveSection(section);
-    const el = document.getElementById(`section-${section}`);
-    el?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const sectionIds = ["overview", "marketing", "sales", "reports", "finance", "fulfillment", "ai", "csat"];
 
   return (
     <DashboardLayout
-      activeSection={activeSection}
-      onNavigate={handleNavigate}
+      sectionIds={sectionIds}
       title="KPI Dashboard"
       subtitle={tenant.company_name}
     >
@@ -164,7 +159,7 @@ export default function ClientDashboard() {
           </Card>
         ) : (
           <>
-            <div id="section-overview">
+            <div data-section="overview">
               {healthScore && (
                 <Card className={`glass-card border-2 ${
                   healthScore.color === "green" ? "border-success/40" :
@@ -178,32 +173,32 @@ export default function ClientDashboard() {
               )}
             </div>
 
-            <div id="section-marketing">
+            <div data-section="marketing" className="space-y-6">
               <ClientMetricsCards metrics={metrics} timeRange={timeRange} />
               <KPIInsights metrics={metrics} />
             </div>
 
-            <div id="section-sales">
+            <div data-section="sales">
               <ClientCharts metrics={metrics} timeRange={timeRange} />
             </div>
 
-            <div id="section-reports">
+            <div data-section="reports">
               <MonthlyReportTable tenantId={tenantId!} companyName={tenant.company_name} />
             </div>
 
-            <div id="section-finance">
+            <div data-section="finance">
               <FinancialTracker tenantId={tenantId!} />
             </div>
 
-            <div id="section-fulfillment">
+            <div data-section="fulfillment">
               <FulfillmentTracker tenantId={tenantId!} />
             </div>
 
-            <div id="section-ai">
+            <div data-section="ai">
               <AIBriefing tenantId={tenantId!} />
             </div>
 
-            <div id="section-csat">
+            <div data-section="csat">
               <CSATSurvey tenantId={tenantId!} />
             </div>
           </>

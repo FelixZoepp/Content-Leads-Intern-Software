@@ -98,13 +98,15 @@ export function AppSidebar({ activeSection, onNavigate }: Props) {
                     isActive={activeSection === item.id}
                     onClick={() => onNavigate?.(item.id)}
                     tooltip={item.title}
-                    className={`mx-2 rounded-xl transition-all duration-200 ${
+                    className={`mx-2 rounded-xl transition-all duration-300 ease-out ${
                       activeSection === item.id
-                        ? "bg-primary/15 text-primary shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.08)]"
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                        ? "bg-primary/15 text-primary shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.08),0_0_12px_-3px_hsl(211_100%_55%/0.3)] scale-[1.02]"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 hover:scale-[1.01]"
                     }`}
                   >
-                    <item.icon className="h-[18px] w-[18px]" />
+                    <item.icon className={`h-[18px] w-[18px] transition-transform duration-300 ${
+                      activeSection === item.id ? "scale-110" : ""
+                    }`} />
                     <span className="text-[13px]">{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
