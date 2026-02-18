@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Target, Users, DollarSign, FileText, BarChart3, Percent, Phone, PhoneCall } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface Props {
   metrics: any[];
@@ -41,20 +42,29 @@ export function ClientMetricsCards({ metrics, timeRange = "daily" }: Props) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-      {cards.map((card) => (
-        <Card key={card.title} className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
-            <CardTitle className="text-xs font-medium text-muted-foreground">{card.title}</CardTitle>
-            <card.icon className="h-3.5 w-3.5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="px-4 pb-3">
-            <div className="text-xl font-bold">
-              {card.format === "currency" ? `${card.value.toFixed(0)}€` :
-               card.format === "percent" ? (card.value > 0 ? `${card.value.toFixed(1)}%` : "–") :
-               card.value}
-            </div>
-          </CardContent>
-        </Card>
+      {cards.map((card, i) => (
+        <motion.div
+          key={card.title}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] } }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Card className="h-full cursor-default">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
+              <CardTitle className="text-xs font-medium text-muted-foreground">{card.title}</CardTitle>
+              <card.icon className="h-3.5 w-3.5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="px-4 pb-3">
+              <div className="text-xl font-bold">
+                {card.format === "currency" ? `${card.value.toFixed(0)}€` :
+                 card.format === "percent" ? (card.value > 0 ? `${card.value.toFixed(1)}%` : "–") :
+                 card.value}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       ))}
     </div>
   );
