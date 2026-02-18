@@ -122,6 +122,77 @@ export type Database = {
           },
         ]
       }
+      financial_tracking: {
+        Row: {
+          avg_days_to_payment: number | null
+          cash_collected: number | null
+          costs_ads: number | null
+          costs_other: number | null
+          costs_personnel: number | null
+          costs_tools: number | null
+          created_at: string
+          id: string
+          invoices_open_amount: number | null
+          invoices_open_count: number | null
+          invoices_overdue_amount: number | null
+          invoices_overdue_count: number | null
+          notes: string | null
+          period_month: string
+          revenue_onetime: number | null
+          revenue_recurring: number | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          avg_days_to_payment?: number | null
+          cash_collected?: number | null
+          costs_ads?: number | null
+          costs_other?: number | null
+          costs_personnel?: number | null
+          costs_tools?: number | null
+          created_at?: string
+          id?: string
+          invoices_open_amount?: number | null
+          invoices_open_count?: number | null
+          invoices_overdue_amount?: number | null
+          invoices_overdue_count?: number | null
+          notes?: string | null
+          period_month: string
+          revenue_onetime?: number | null
+          revenue_recurring?: number | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          avg_days_to_payment?: number | null
+          cash_collected?: number | null
+          costs_ads?: number | null
+          costs_other?: number | null
+          costs_personnel?: number | null
+          costs_tools?: number | null
+          created_at?: string
+          id?: string
+          invoices_open_amount?: number | null
+          invoices_open_count?: number | null
+          invoices_overdue_amount?: number | null
+          invoices_overdue_count?: number | null
+          notes?: string | null
+          period_month?: string
+          revenue_onetime?: number | null
+          revenue_recurring?: number | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_tracking_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fulfillment_tracking: {
         Row: {
           churn_reason: string | null
