@@ -84,6 +84,50 @@ export type Database = {
           },
         ]
       }
+      benchmarks: {
+        Row: {
+          created_at: string
+          id: string
+          metric_key: string
+          metric_label: string
+          tenant_id: string
+          tier1_max: number
+          tier2_max: number
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_key: string
+          metric_label: string
+          tenant_id: string
+          tier1_max?: number
+          tier2_max?: number
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_key?: string
+          metric_label?: string
+          tenant_id?: string
+          tier1_max?: number
+          tier2_max?: number
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "benchmarks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       csat_responses: {
         Row: {
           comment: string | null
