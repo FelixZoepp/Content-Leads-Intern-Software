@@ -23,6 +23,7 @@ const defaultForm = {
   comments: 0,
   link_clicks: 0,
   followers_current: 0,
+  dms_sent: 0,
   leads_total: 0,
   leads_qualified: 0,
   appointments: 0,
@@ -73,6 +74,8 @@ export const KPIEntryForm = ({ tenantId, onEntryAdded }: KPIEntryFormProps) => {
     set(field, decimal ? (parseFloat(raw) || 0) : (parseInt(raw) || 0));
 
   // Calculated KPIs
+  const leadQualityRate = formData.leads_total > 0
+    ? ((formData.leads_qualified / formData.leads_total) * 100).toFixed(1) : "–";
   const reachRate = formData.calls_made > 0
     ? ((formData.calls_reached / formData.calls_made) * 100).toFixed(1) : "–";
   const interestRate = formData.calls_reached > 0
@@ -115,13 +118,14 @@ export const KPIEntryForm = ({ tenantId, onEntryAdded }: KPIEntryFormProps) => {
       settings_held: formData.settings_held,
       closings_planned: formData.closings_planned,
       closings_held: formData.closings_held,
-      closings: formData.closings_held, // legacy compat
+      closings: formData.closings_held,
       deals: formData.deals,
       revenue: formData.cash_collected,
       cash_collected: formData.cash_collected,
       deal_volume: formData.deal_volume,
       monthly_retainer: formData.monthly_retainer,
       words_spoken: formData.words_spoken,
+      dms_sent: formData.dms_sent,
     };
 
     const { error } = await supabase.from("metrics_snapshot").upsert(payload as any, {
@@ -223,6 +227,8 @@ export const KPIEntryForm = ({ tenantId, onEntryAdded }: KPIEntryFormProps) => {
                 onChange={(v) => setNum("comments", v)} />
               <NumField id="link_clicks" label="Link-Klicks" value={formData.link_clicks}
                 onChange={(v) => setNum("link_clicks", v)} info="Tägliche Link-Klicks" />
+              <NumField id="dms_sent" label="DMs rausgesendet" value={formData.dms_sent}
+                onChange={(v) => setNum("dms_sent", v)} info="Anzahl versendeter Direktnachrichten" />
               <NumField id="followers_current" label="Follower (aktuell)" value={formData.followers_current}
                 onChange={(v) => setNum("followers_current", v)}
                 info={lastEntry ? `Gestern: ${lastEntry.followers_current || 0}` : undefined} />
@@ -237,13 +243,18 @@ export const KPIEntryForm = ({ tenantId, onEntryAdded }: KPIEntryFormProps) => {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <NumField id="leads_total" label="Leads generiert" value={formData.leads_total}
                 onChange={(v) => setNum("leads_total", v)} />
-              <NumField id="leads_qualified" label="Qualifizierte Leads" value={formData.leads_qualified}
+              <NumField id="leads_qualified" label="Marketing Qualified Leads" value={formData.leads_qualified}
                 onChange={(v) => {
                   const val = parseInt(v) || 0;
                   set("leads_qualified", Math.min(val, formData.leads_total));
                 }}
-                info="Qualifiziert = Telefonnummer vorhanden & kein Mitbewerber" />
+                info="MQL = Telefonnummer vorhanden & kein Mitbewerber" />
             </div>
+            {formData.leads_total > 0 && (
+              <div className="flex gap-4 text-xs text-muted-foreground bg-muted/30 rounded px-3 py-2">
+                <span>MQL-Quote: <strong className="text-foreground">{leadQualityRate}%</strong></span>
+              </div>
+            )}
           </div>
 
           {/* Sales – Setting */}
@@ -318,6 +329,7 @@ export const KPIEntryForm = ({ tenantId, onEntryAdded }: KPIEntryFormProps) => {
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {[
+                { label: "MQL-Quote", value: leadQualityRate, suffix: "%" },
                 { label: "Erreichungsquote", value: reachRate, suffix: "%" },
                 { label: "Interesse-Rate", value: interestRate, suffix: "%" },
                 { label: "Setting Show-Rate", value: settingShowRate, suffix: "%" },

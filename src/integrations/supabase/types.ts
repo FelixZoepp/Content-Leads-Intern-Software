@@ -222,6 +222,7 @@ export type Database = {
           created_at: string | null
           deal_volume: number | null
           deals: number | null
+          dms_sent: number | null
           followers_current: number | null
           id: number
           impressions: number | null
@@ -255,6 +256,7 @@ export type Database = {
           created_at?: string | null
           deal_volume?: number | null
           deals?: number | null
+          dms_sent?: number | null
           followers_current?: number | null
           id?: number
           impressions?: number | null
@@ -288,6 +290,7 @@ export type Database = {
           created_at?: string | null
           deal_volume?: number | null
           deals?: number | null
+          dms_sent?: number | null
           followers_current?: number | null
           id?: number
           impressions?: number | null
@@ -437,12 +440,14 @@ export type Database = {
           created_at: string | null
           deal_volume: number | null
           deals: number | null
+          dms_sent: number | null
           followers_current: number | null
           followers_delta: number | null
           id: number | null
           impressions: number | null
           impressions_delta: number | null
           interest_rate: number | null
+          lead_quality_rate: number | null
           leads_per_closing: number | null
           leads_qualified: number | null
           leads_total: number | null
@@ -495,9 +500,11 @@ export type Database = {
           created_at: string | null
           deal_volume: number | null
           deals: number | null
+          dms_sent: number | null
           followers_current: number | null
           impressions: number | null
           interest_rate: number | null
+          lead_quality_rate: number | null
           leads_per_closing: number | null
           leads_qualified: number | null
           leads_total: number | null
@@ -546,9 +553,11 @@ export type Database = {
           created_at: string | null
           deal_volume: number | null
           deals: number | null
+          dms_sent: number | null
           followers_current: number | null
           impressions: number | null
           interest_rate: number | null
+          lead_quality_rate: number | null
           leads_per_closing: number | null
           leads_qualified: number | null
           leads_total: number | null
@@ -597,9 +606,11 @@ export type Database = {
           created_at: string | null
           deal_volume: number | null
           deals: number | null
+          dms_sent: number | null
           followers_current: number | null
           impressions: number | null
           interest_rate: number | null
+          lead_quality_rate: number | null
           leads_per_closing: number | null
           leads_qualified: number | null
           leads_total: number | null
