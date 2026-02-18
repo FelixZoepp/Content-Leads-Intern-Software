@@ -289,7 +289,7 @@ export const KPIEntryForm = ({ tenantId, onEntryAdded }: KPIEntryFormProps) => {
           {/* Sales – Closing */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-primary flex items-center gap-2">🤝 Sales – Closing</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               <NumField id="closings_planned" label="Closings geplant" value={formData.closings_planned}
                 onChange={(v) => setNum("closings_planned", v)} />
               <NumField id="closings_held" label="Closings stattgefunden" value={formData.closings_held}
@@ -299,6 +299,10 @@ export const KPIEntryForm = ({ tenantId, onEntryAdded }: KPIEntryFormProps) => {
                 }} />
               <NumField id="deals" label="Deals abgeschlossen" value={formData.deals}
                 onChange={(v) => setNum("deals", v)} />
+              <NumField id="cash_collected" label="Cash Collected" value={formData.cash_collected}
+                onChange={(v) => setNum("cash_collected", v, true)} decimal prefix="€" />
+              <NumField id="deal_volume" label="Auftragsvolumen" value={formData.deal_volume}
+                onChange={(v) => setNum("deal_volume", v, true)} decimal prefix="€" />
             </div>
             {formData.closings_planned > 0 && (
               <div className="flex gap-4 text-xs text-muted-foreground bg-muted/30 rounded px-3 py-2">
