@@ -112,8 +112,9 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Nicht authentifiziert");
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) throw new Error("Nicht authentifiziert – bitte neu einloggen");
 
       const { data: existingTenant } = await supabase
         .from("tenants")
