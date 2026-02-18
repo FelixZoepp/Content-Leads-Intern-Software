@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Target, Users, DollarSign, FileText, BarChart3, Percent } from "lucide-react";
+import { TrendingUp, TrendingDown, Target, Users, DollarSign, FileText, BarChart3, Percent, Phone, PhoneCall } from "lucide-react";
 
 interface Props {
   metrics: any[];
@@ -25,16 +25,16 @@ export function ClientMetricsCards({ metrics, timeRange = "daily" }: Props) {
   const cards = [
     { title: "Leads", value: sum("leads_total"), icon: Target, format: "number" },
     { title: "Qual. Leads", value: sum("leads_qualified"), icon: Target, format: "number" },
+    { title: "Anwahlen", value: sum("calls_made"), icon: Phone, format: "number" },
+    { title: "Erreicht", value: sum("calls_reached"), icon: PhoneCall, format: "number" },
     { title: "Termine", value: sum("appointments"), icon: Users, format: "number" },
+    { title: "Setting Show-Rate", value: avg("setting_show_rate"), icon: Percent, format: "percent" },
+    { title: "Closing Show-Rate", value: avg("closing_show_rate"), icon: Percent, format: "percent" },
+    { title: "Closing-Rate", value: avg("closing_rate"), icon: BarChart3, format: "percent" },
     { title: "Deals", value: sum("deals"), icon: TrendingUp, format: "number" },
     { title: "Cash Collected", value: sum("cash_collected") || sum("revenue"), icon: DollarSign, format: "currency" },
-    { title: "Deal-Volumen", value: sum("deal_volume"), icon: DollarSign, format: "currency" },
-    { title: "Show-Up-Rate", value: avg("show_up_rate"), icon: Percent, format: "percent" },
-    { title: "Closing-Rate", value: avg("closing_rate"), icon: BarChart3, format: "percent" },
     { title: "Umsatz/Lead", value: avg("revenue_per_lead"), icon: DollarSign, format: "currency" },
     { title: "Kosten/Lead", value: avg("cost_per_lead"), icon: DollarSign, format: "currency" },
-    { title: "Posts", value: sum("posts_count") || metrics.filter(m => m.post_url).length || sum("posts"), icon: FileText, format: "number" },
-    { title: "Follower", value: Math.max(...metrics.map(m => parseFloat(m.followers_current) || 0), 0), icon: Users, format: "number" },
   ];
 
   return (

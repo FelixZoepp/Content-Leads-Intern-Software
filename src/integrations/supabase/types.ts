@@ -211,8 +211,13 @@ export type Database = {
       metrics_snapshot: {
         Row: {
           appointments: number | null
+          calls_interested: number | null
+          calls_made: number | null
+          calls_reached: number | null
           cash_collected: number | null
           closings: number | null
+          closings_held: number | null
+          closings_planned: number | null
           comments: number | null
           created_at: string | null
           deal_volume: number | null
@@ -239,8 +244,13 @@ export type Database = {
         }
         Insert: {
           appointments?: number | null
+          calls_interested?: number | null
+          calls_made?: number | null
+          calls_reached?: number | null
           cash_collected?: number | null
           closings?: number | null
+          closings_held?: number | null
+          closings_planned?: number | null
           comments?: number | null
           created_at?: string | null
           deal_volume?: number | null
@@ -267,8 +277,13 @@ export type Database = {
         }
         Update: {
           appointments?: number | null
+          calls_interested?: number | null
+          calls_made?: number | null
+          calls_reached?: number | null
           cash_collected?: number | null
           closings?: number | null
+          closings_held?: number | null
+          closings_planned?: number | null
           comments?: number | null
           created_at?: string | null
           deal_volume?: number | null
@@ -404,9 +419,15 @@ export type Database = {
       v_metrics_daily: {
         Row: {
           appointments: number | null
+          calls_interested: number | null
+          calls_made: number | null
+          calls_reached: number | null
           cash_collected: number | null
           closing_rate: number | null
+          closing_show_rate: number | null
           closings: number | null
+          closings_held: number | null
+          closings_planned: number | null
           comments: number | null
           comments_delta: number | null
           cost_per_lead: number | null
@@ -421,6 +442,7 @@ export type Database = {
           id: number | null
           impressions: number | null
           impressions_delta: number | null
+          interest_rate: number | null
           leads_per_closing: number | null
           leads_qualified: number | null
           leads_total: number | null
@@ -434,11 +456,12 @@ export type Database = {
           post_type: string | null
           post_url: string | null
           posts: string | null
+          reach_rate: number | null
           revenue: number | null
           revenue_per_lead: number | null
+          setting_show_rate: number | null
           settings_held: number | null
           settings_planned: number | null
-          show_up_rate: number | null
           tenant_id: string | null
           words_spoken: number | null
         }
@@ -455,9 +478,15 @@ export type Database = {
       v_metrics_monthly: {
         Row: {
           appointments: number | null
+          calls_interested: number | null
+          calls_made: number | null
+          calls_reached: number | null
           cash_collected: number | null
           closing_rate: number | null
+          closing_show_rate: number | null
           closings: number | null
+          closings_held: number | null
+          closings_planned: number | null
           comments: number | null
           cost_per_lead: number | null
           cr_appt_to_deal: number | null
@@ -468,6 +497,7 @@ export type Database = {
           deals: number | null
           followers_current: number | null
           impressions: number | null
+          interest_rate: number | null
           leads_per_closing: number | null
           leads_qualified: number | null
           leads_total: number | null
@@ -477,11 +507,12 @@ export type Database = {
           period_end: string | null
           period_start: string | null
           posts_count: number | null
+          reach_rate: number | null
           revenue: number | null
           revenue_per_lead: number | null
+          setting_show_rate: number | null
           settings_held: number | null
           settings_planned: number | null
-          show_up_rate: number | null
           tenant_id: string | null
           words_spoken: number | null
         }
@@ -498,9 +529,15 @@ export type Database = {
       v_metrics_weekly: {
         Row: {
           appointments: number | null
+          calls_interested: number | null
+          calls_made: number | null
+          calls_reached: number | null
           cash_collected: number | null
           closing_rate: number | null
+          closing_show_rate: number | null
           closings: number | null
+          closings_held: number | null
+          closings_planned: number | null
           comments: number | null
           cost_per_lead: number | null
           cr_appt_to_deal: number | null
@@ -511,6 +548,7 @@ export type Database = {
           deals: number | null
           followers_current: number | null
           impressions: number | null
+          interest_rate: number | null
           leads_per_closing: number | null
           leads_qualified: number | null
           leads_total: number | null
@@ -520,11 +558,12 @@ export type Database = {
           period_end: string | null
           period_start: string | null
           posts_count: number | null
+          reach_rate: number | null
           revenue: number | null
           revenue_per_lead: number | null
+          setting_show_rate: number | null
           settings_held: number | null
           settings_planned: number | null
-          show_up_rate: number | null
           tenant_id: string | null
           words_spoken: number | null
         }
@@ -541,9 +580,15 @@ export type Database = {
       v_metrics_yearly: {
         Row: {
           appointments: number | null
+          calls_interested: number | null
+          calls_made: number | null
+          calls_reached: number | null
           cash_collected: number | null
           closing_rate: number | null
+          closing_show_rate: number | null
           closings: number | null
+          closings_held: number | null
+          closings_planned: number | null
           comments: number | null
           cost_per_lead: number | null
           cr_appt_to_deal: number | null
@@ -554,6 +599,7 @@ export type Database = {
           deals: number | null
           followers_current: number | null
           impressions: number | null
+          interest_rate: number | null
           leads_per_closing: number | null
           leads_qualified: number | null
           leads_total: number | null
@@ -563,11 +609,12 @@ export type Database = {
           period_end: string | null
           period_start: string | null
           posts_count: number | null
+          reach_rate: number | null
           revenue: number | null
           revenue_per_lead: number | null
+          setting_show_rate: number | null
           settings_held: number | null
           settings_planned: number | null
-          show_up_rate: number | null
           tenant_id: string | null
           words_spoken: number | null
         }

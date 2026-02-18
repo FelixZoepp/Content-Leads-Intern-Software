@@ -26,9 +26,13 @@ const defaultForm = {
   leads_total: 0,
   leads_qualified: 0,
   appointments: 0,
+  calls_made: 0,
+  calls_reached: 0,
+  calls_interested: 0,
   settings_planned: 0,
   settings_held: 0,
-  closings: 0,
+  closings_planned: 0,
+  closings_held: 0,
   deals: 0,
   cash_collected: 0,
   deal_volume: 0,
@@ -69,14 +73,18 @@ export const KPIEntryForm = ({ tenantId, onEntryAdded }: KPIEntryFormProps) => {
     set(field, decimal ? (parseFloat(raw) || 0) : (parseInt(raw) || 0));
 
   // Calculated KPIs
-  const showUpRate = formData.settings_planned > 0
+  const reachRate = formData.calls_made > 0
+    ? ((formData.calls_reached / formData.calls_made) * 100).toFixed(1) : "–";
+  const interestRate = formData.calls_reached > 0
+    ? ((formData.calls_interested / formData.calls_reached) * 100).toFixed(1) : "–";
+  const settingShowRate = formData.settings_planned > 0
     ? ((formData.settings_held / formData.settings_planned) * 100).toFixed(1) : "–";
-  const closingRate = formData.closings > 0
-    ? ((formData.deals / formData.closings) * 100).toFixed(1) : "–";
+  const closingShowRate = formData.closings_planned > 0
+    ? ((formData.closings_held / formData.closings_planned) * 100).toFixed(1) : "–";
+  const closingRate = formData.closings_held > 0
+    ? ((formData.deals / formData.closings_held) * 100).toFixed(1) : "–";
   const revenuePerLead = formData.leads_total > 0
     ? (formData.cash_collected / formData.leads_total).toFixed(2) : "–";
-  const leadsPerClosing = formData.closings > 0
-    ? (formData.leads_total / formData.closings).toFixed(1) : "–";
   const costPerLead = formData.leads_total > 0 && formData.monthly_retainer > 0
     ? (formData.monthly_retainer / formData.leads_total).toFixed(2) : "–";
 
@@ -100,9 +108,14 @@ export const KPIEntryForm = ({ tenantId, onEntryAdded }: KPIEntryFormProps) => {
       leads_total: formData.leads_total,
       leads_qualified: formData.leads_qualified,
       appointments: formData.appointments,
+      calls_made: formData.calls_made,
+      calls_reached: formData.calls_reached,
+      calls_interested: formData.calls_interested,
       settings_planned: formData.settings_planned,
       settings_held: formData.settings_held,
-      closings: formData.closings,
+      closings_planned: formData.closings_planned,
+      closings_held: formData.closings_held,
+      closings: formData.closings_held, // legacy compat
       deals: formData.deals,
       revenue: formData.cash_collected,
       cash_collected: formData.cash_collected,
@@ -233,11 +246,17 @@ export const KPIEntryForm = ({ tenantId, onEntryAdded }: KPIEntryFormProps) => {
             </div>
           </div>
 
-          {/* Sales Funnel */}
+          {/* Sales – Setting */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-primary flex items-center gap-2">📞 Sales Funnel</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <NumField id="appointments" label="Termine gebucht" value={formData.appointments}
+            <h3 className="text-sm font-semibold text-primary flex items-center gap-2">📞 Sales – Setting</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              <NumField id="calls_made" label="Anwahlen gemacht" value={formData.calls_made}
+                onChange={(v) => setNum("calls_made", v)} />
+              <NumField id="calls_reached" label="Erreicht" value={formData.calls_reached}
+                onChange={(v) => setNum("calls_reached", v)} />
+              <NumField id="calls_interested" label="Interessiert" value={formData.calls_interested}
+                onChange={(v) => setNum("calls_interested", v)} />
+              <NumField id="appointments" label="Termine gelegt" value={formData.appointments}
                 onChange={(v) => setNum("appointments", v)} />
               <NumField id="settings_planned" label="Settings geplant" value={formData.settings_planned}
                 onChange={(v) => setNum("settings_planned", v)} />
@@ -246,11 +265,36 @@ export const KPIEntryForm = ({ tenantId, onEntryAdded }: KPIEntryFormProps) => {
                   const val = parseInt(v) || 0;
                   set("settings_held", Math.min(val, formData.settings_planned));
                 }} />
-              <NumField id="closings" label="Closings durchgeführt" value={formData.closings}
-                onChange={(v) => setNum("closings", v)} />
+            </div>
+            {formData.settings_planned > 0 && (
+              <div className="flex gap-4 text-xs text-muted-foreground bg-muted/30 rounded px-3 py-2">
+                <span>Erreichungsquote: <strong className="text-foreground">{reachRate}%</strong></span>
+                <span>Interesse-Rate: <strong className="text-foreground">{interestRate}%</strong></span>
+                <span>Setting Show-Rate: <strong className="text-foreground">{settingShowRate}%</strong></span>
+              </div>
+            )}
+          </div>
+
+          {/* Sales – Closing */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-primary flex items-center gap-2">🤝 Sales – Closing</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <NumField id="closings_planned" label="Closings geplant" value={formData.closings_planned}
+                onChange={(v) => setNum("closings_planned", v)} />
+              <NumField id="closings_held" label="Closings stattgefunden" value={formData.closings_held}
+                onChange={(v) => {
+                  const val = parseInt(v) || 0;
+                  set("closings_held", Math.min(val, formData.closings_planned));
+                }} />
               <NumField id="deals" label="Deals abgeschlossen" value={formData.deals}
                 onChange={(v) => setNum("deals", v)} />
             </div>
+            {formData.closings_planned > 0 && (
+              <div className="flex gap-4 text-xs text-muted-foreground bg-muted/30 rounded px-3 py-2">
+                <span>Closing Show-Rate: <strong className="text-foreground">{closingShowRate}%</strong></span>
+                <span>Closing-Rate: <strong className="text-foreground">{closingRate}%</strong></span>
+              </div>
+            )}
           </div>
 
           {/* Finance */}
@@ -272,12 +316,14 @@ export const KPIEntryForm = ({ tenantId, onEntryAdded }: KPIEntryFormProps) => {
             <h3 className="text-sm font-semibold flex items-center gap-2">
               <TrendingUp className="h-4 w-4" /> Berechnete Kennzahlen (live)
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {[
-                { label: "Show-Up-Rate", value: showUpRate, suffix: "%" },
+                { label: "Erreichungsquote", value: reachRate, suffix: "%" },
+                { label: "Interesse-Rate", value: interestRate, suffix: "%" },
+                { label: "Setting Show-Rate", value: settingShowRate, suffix: "%" },
+                { label: "Closing Show-Rate", value: closingShowRate, suffix: "%" },
                 { label: "Closing-Rate", value: closingRate, suffix: "%" },
                 { label: "Umsatz/Lead", value: revenuePerLead, suffix: " €" },
-                { label: "Leads/Closing", value: leadsPerClosing, suffix: "" },
                 { label: "Kosten/Lead", value: costPerLead, suffix: " €" },
               ].map(kpi => (
                 <div key={kpi.label} className="bg-background rounded-md p-3 text-center">
