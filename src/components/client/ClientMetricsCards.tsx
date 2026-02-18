@@ -23,8 +23,12 @@ export function ClientMetricsCards({ metrics, timeRange = "daily" }: Props) {
   };
 
   const cards = [
+    { title: "Impressionen", value: sum("impressions"), icon: BarChart3, format: "number" },
+    { title: "Kommentare", value: sum("comments"), icon: FileText, format: "number" },
+    { title: "DMs gesendet", value: sum("dms_sent"), icon: FileText, format: "number" },
     { title: "Leads", value: sum("leads_total"), icon: Target, format: "number" },
-    { title: "Qual. Leads", value: sum("leads_qualified"), icon: Target, format: "number" },
+    { title: "MQL", value: sum("leads_qualified"), icon: Target, format: "number" },
+    { title: "MQL-Quote", value: avg("lead_quality_rate"), icon: Percent, format: "percent" },
     { title: "Anwahlen", value: sum("calls_made"), icon: Phone, format: "number" },
     { title: "Erreicht", value: sum("calls_reached"), icon: PhoneCall, format: "number" },
     { title: "Termine", value: sum("appointments"), icon: Users, format: "number" },
@@ -33,8 +37,6 @@ export function ClientMetricsCards({ metrics, timeRange = "daily" }: Props) {
     { title: "Closing-Rate", value: avg("closing_rate"), icon: BarChart3, format: "percent" },
     { title: "Deals", value: sum("deals"), icon: TrendingUp, format: "number" },
     { title: "Cash Collected", value: sum("cash_collected") || sum("revenue"), icon: DollarSign, format: "currency" },
-    { title: "Umsatz/Lead", value: avg("revenue_per_lead"), icon: DollarSign, format: "currency" },
-    { title: "Kosten/Lead", value: avg("cost_per_lead"), icon: DollarSign, format: "currency" },
   ];
 
   return (
