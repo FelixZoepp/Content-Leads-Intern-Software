@@ -122,6 +122,83 @@ export type Database = {
           },
         ]
       }
+      fulfillment_tracking: {
+        Row: {
+          churn_reason: string | null
+          contract_end: string | null
+          contract_renewed: boolean | null
+          contract_start: string | null
+          created_at: string
+          csat_score: number | null
+          deal_closed_at: string | null
+          id: string
+          milestones_completed: number | null
+          milestones_total: number | null
+          notes: string | null
+          nps_score: number | null
+          onboarding_completed_at: string | null
+          onboarding_started_at: string | null
+          project_actual_end: string | null
+          project_planned_end: string | null
+          project_start_date: string | null
+          project_status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          churn_reason?: string | null
+          contract_end?: string | null
+          contract_renewed?: boolean | null
+          contract_start?: string | null
+          created_at?: string
+          csat_score?: number | null
+          deal_closed_at?: string | null
+          id?: string
+          milestones_completed?: number | null
+          milestones_total?: number | null
+          notes?: string | null
+          nps_score?: number | null
+          onboarding_completed_at?: string | null
+          onboarding_started_at?: string | null
+          project_actual_end?: string | null
+          project_planned_end?: string | null
+          project_start_date?: string | null
+          project_status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          churn_reason?: string | null
+          contract_end?: string | null
+          contract_renewed?: boolean | null
+          contract_start?: string | null
+          created_at?: string
+          csat_score?: number | null
+          deal_closed_at?: string | null
+          id?: string
+          milestones_completed?: number | null
+          milestones_total?: number | null
+          notes?: string | null
+          nps_score?: number | null
+          onboarding_completed_at?: string | null
+          onboarding_started_at?: string | null
+          project_actual_end?: string | null
+          project_planned_end?: string | null
+          project_start_date?: string | null
+          project_status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fulfillment_tracking_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       health_scores: {
         Row: {
           color: string | null
