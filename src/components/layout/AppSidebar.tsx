@@ -50,6 +50,7 @@ const adminNav = [
   { title: "Finanzen", icon: DollarSign, id: "finance" },
   { title: "Alerts", icon: Bell, id: "alerts" },
   { title: "KI-Summary", icon: Brain, id: "ai-summary" },
+  { title: "CSAT/NPS", icon: MessageSquare, id: "csat" },
 ];
 
 interface Props {

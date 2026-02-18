@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertsPanel } from "@/components/admin/AlertsPanel";
 import { AdminAISummary } from "@/components/admin/AdminAISummary";
 import { AdminPortfolioTabs } from "@/components/admin/AdminPortfolioTabs";
+import { AdminCSATOverview } from "@/components/admin/AdminCSATOverview";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 export default function AdminDashboard() {
@@ -69,7 +70,7 @@ export default function AdminDashboard() {
     );
   }
 
-  const sectionIds = ["portfolio", "marketing", "sales", "fulfillment", "finance", "alerts", "ai-summary"];
+  const sectionIds = ["portfolio", "marketing", "sales", "fulfillment", "finance", "alerts", "ai-summary", "csat"];
 
   return (
     <DashboardLayout
@@ -88,6 +89,10 @@ export default function AdminDashboard() {
 
         <div data-section="ai-summary">
           <AdminAISummary />
+        </div>
+
+        <div data-section="csat">
+          <AdminCSATOverview tenants={tenants} />
         </div>
       </div>
     </DashboardLayout>
