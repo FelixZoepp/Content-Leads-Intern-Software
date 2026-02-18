@@ -25,14 +25,8 @@ function DashboardRouter() {
     );
   }
 
-  if (userRole === 'admin') {
-    return <AdminDashboard />;
-  }
-
-  if (userRole === 'client') {
-    return <ClientDashboard />;
-  }
-
+  if (userRole === "admin") return <AdminDashboard />;
+  if (userRole === "client") return <ClientDashboard />;
   return <Navigate to="/auth" replace />;
 }
 
@@ -46,23 +40,22 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
-            <Route 
-              path="/dashboard" 
+            <Route
+              path="/dashboard/*"
               element={
                 <ProtectedRoute>
                   <DashboardRouter />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/onboarding" 
+            <Route
+              path="/onboarding"
               element={
                 <ProtectedRoute>
                   <Onboarding />
                 </ProtectedRoute>
-              } 
+              }
             />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

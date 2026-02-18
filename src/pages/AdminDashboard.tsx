@@ -2,17 +2,53 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertsPanel } from "@/components/admin/AlertsPanel";
 import { AdminAISummary } from "@/components/admin/AdminAISummary";
 import { AdminPortfolioTabs } from "@/components/admin/AdminPortfolioTabs";
 import { AdminCSATOverview } from "@/components/admin/AdminCSATOverview";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Routes, Route } from "react-router-dom";
+
+function AdminAlertsPage({ alerts, loadAdminData }: { alerts: any[]; loadAdminData: () => void }) {
+  return (
+    <div className="space-y-6 max-w-6xl">
+      <h2 className="text-xl font-semibold text-foreground">Alerts</h2>
+      <AlertsPanel alerts={alerts} onResolve={loadAdminData} />
+    </div>
+  );
+}
+
+function AdminCSATPage({ tenants }: { tenants: any[] }) {
+  return (
+    <div className="space-y-6 max-w-6xl">
+      <h2 className="text-xl font-semibold text-foreground">CSAT / NPS Übersicht</h2>
+      <AdminCSATOverview tenants={tenants} />
+    </div>
+  );
+}
+
+function AdminAISummaryPage() {
+  return (
+    <div className="space-y-6 max-w-6xl">
+      <h2 className="text-xl font-semibold text-foreground">KI-Summary</h2>
+      <AdminAISummary />
+    </div>
+  );
+}
+
+function AdminOverviewPage({ tenants, alerts, loadAdminData }: { tenants: any[]; alerts: any[]; loadAdminData: () => void }) {
+  return (
+    <div className="space-y-6 max-w-6xl">
+      <AlertsPanel alerts={alerts} onResolve={loadAdminData} />
+      <AdminPortfolioTabs tenants={tenants} />
+      <AdminAISummary />
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [tenants, setTenants] = useState<any[]>([]);
@@ -25,10 +61,7 @@ export default function AdminDashboard() {
     try {
       const { data: tenantsData } = await supabase
         .from("tenants")
-        .select(`
-          *,
-          health_scores!health_scores_tenant_id_fkey(score, color, created_at)
-        `)
+        .select(`*, health_scores!health_scores_tenant_id_fkey(score, color, created_at)`)
         .eq("is_active", true)
         .order("company_name");
 
@@ -38,7 +71,6 @@ export default function AdminDashboard() {
         );
         return { ...tenant, latestHealth: sortedHealth?.[0] };
       }) || [];
-
       setTenants(processedTenants);
 
       const { data: alertsData } = await supabase
@@ -46,7 +78,6 @@ export default function AdminDashboard() {
         .select("*, tenants(company_name)")
         .is("resolved_at", null)
         .order("created_at", { ascending: false });
-
       setAlerts(alertsData || []);
     } catch (error) {
       console.error("Error loading admin data:", error);
@@ -64,37 +95,22 @@ export default function AdminDashboard() {
               <Card key={i} className="glass-card"><CardContent className="p-4"><Skeleton className="h-16 w-full" /></CardContent></Card>
             ))}
           </div>
-          <Card className="glass-card"><CardContent className="p-6"><Skeleton className="h-64 w-full" /></CardContent></Card>
         </div>
       </DashboardLayout>
     );
   }
 
-  const sectionIds = ["portfolio", "marketing", "sales", "fulfillment", "finance", "alerts", "ai-summary", "csat"];
-
   return (
     <DashboardLayout
-      sectionIds={sectionIds}
       title="Admin Dashboard"
       subtitle={`Portfolio-Gesamtübersicht · ${tenants.length} aktive Kunden`}
     >
-      <div className="space-y-6 max-w-6xl">
-        <div data-section="alerts">
-          <AlertsPanel alerts={alerts} onResolve={loadAdminData} />
-        </div>
-
-        <div data-section="portfolio">
-          <AdminPortfolioTabs tenants={tenants} />
-        </div>
-
-        <div data-section="ai-summary">
-          <AdminAISummary />
-        </div>
-
-        <div data-section="csat">
-          <AdminCSATOverview tenants={tenants} />
-        </div>
-      </div>
+      <Routes>
+        <Route index element={<AdminOverviewPage tenants={tenants} alerts={alerts} loadAdminData={loadAdminData} />} />
+        <Route path="alerts" element={<AdminAlertsPage alerts={alerts} loadAdminData={loadAdminData} />} />
+        <Route path="csat" element={<AdminCSATPage tenants={tenants} />} />
+        <Route path="ai-summary" element={<AdminAISummaryPage />} />
+      </Routes>
     </DashboardLayout>
   );
 }
