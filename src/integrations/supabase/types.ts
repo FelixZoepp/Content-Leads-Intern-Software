@@ -211,54 +211,87 @@ export type Database = {
       metrics_snapshot: {
         Row: {
           appointments: number | null
+          cash_collected: number | null
+          closings: number | null
           comments: number | null
           created_at: string | null
+          deal_volume: number | null
           deals: number | null
+          followers_current: number | null
           id: number
           impressions: number | null
           leads_qualified: number | null
           leads_total: number | null
           likes: number | null
+          link_clicks: number | null
+          monthly_retainer: number | null
           new_followers: number | null
           period_date: string
           period_type: string | null
-          posts: number | null
+          post_type: string | null
+          post_url: string | null
+          posts: string | null
           revenue: number | null
+          settings_held: number | null
+          settings_planned: number | null
           tenant_id: string
+          words_spoken: number | null
         }
         Insert: {
           appointments?: number | null
+          cash_collected?: number | null
+          closings?: number | null
           comments?: number | null
           created_at?: string | null
+          deal_volume?: number | null
           deals?: number | null
+          followers_current?: number | null
           id?: number
           impressions?: number | null
           leads_qualified?: number | null
           leads_total?: number | null
           likes?: number | null
+          link_clicks?: number | null
+          monthly_retainer?: number | null
           new_followers?: number | null
           period_date: string
           period_type?: string | null
-          posts?: number | null
+          post_type?: string | null
+          post_url?: string | null
+          posts?: string | null
           revenue?: number | null
+          settings_held?: number | null
+          settings_planned?: number | null
           tenant_id: string
+          words_spoken?: number | null
         }
         Update: {
           appointments?: number | null
+          cash_collected?: number | null
+          closings?: number | null
           comments?: number | null
           created_at?: string | null
+          deal_volume?: number | null
           deals?: number | null
+          followers_current?: number | null
           id?: number
           impressions?: number | null
           leads_qualified?: number | null
           leads_total?: number | null
           likes?: number | null
+          link_clicks?: number | null
+          monthly_retainer?: number | null
           new_followers?: number | null
           period_date?: string
           period_type?: string | null
-          posts?: number | null
+          post_type?: string | null
+          post_url?: string | null
+          posts?: string | null
           revenue?: number | null
+          settings_held?: number | null
+          settings_planned?: number | null
           tenant_id?: string
+          words_spoken?: number | null
         }
         Relationships: [
           {
@@ -368,7 +401,186 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_metrics_daily: {
+        Row: {
+          appointments: number | null
+          cash_collected: number | null
+          closing_rate: number | null
+          closings: number | null
+          comments: number | null
+          comments_delta: number | null
+          cost_per_lead: number | null
+          cr_appt_to_deal: number | null
+          cr_lead_to_appt: number | null
+          cr_lead_to_deal: number | null
+          created_at: string | null
+          deal_volume: number | null
+          deals: number | null
+          followers_current: number | null
+          followers_delta: number | null
+          id: number | null
+          impressions: number | null
+          impressions_delta: number | null
+          leads_per_closing: number | null
+          leads_qualified: number | null
+          leads_total: number | null
+          likes: number | null
+          likes_delta: number | null
+          link_clicks: number | null
+          monthly_retainer: number | null
+          new_followers: number | null
+          period_date: string | null
+          period_type: string | null
+          post_type: string | null
+          post_url: string | null
+          posts: string | null
+          revenue: number | null
+          revenue_per_lead: number | null
+          settings_held: number | null
+          settings_planned: number | null
+          show_up_rate: number | null
+          tenant_id: string | null
+          words_spoken: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metrics_snapshot_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_metrics_monthly: {
+        Row: {
+          appointments: number | null
+          cash_collected: number | null
+          closing_rate: number | null
+          closings: number | null
+          comments: number | null
+          cost_per_lead: number | null
+          cr_appt_to_deal: number | null
+          cr_lead_to_appt: number | null
+          cr_lead_to_deal: number | null
+          created_at: string | null
+          deal_volume: number | null
+          deals: number | null
+          followers_current: number | null
+          impressions: number | null
+          leads_per_closing: number | null
+          leads_qualified: number | null
+          leads_total: number | null
+          likes: number | null
+          link_clicks: number | null
+          monthly_retainer: number | null
+          period_end: string | null
+          period_start: string | null
+          posts_count: number | null
+          revenue: number | null
+          revenue_per_lead: number | null
+          settings_held: number | null
+          settings_planned: number | null
+          show_up_rate: number | null
+          tenant_id: string | null
+          words_spoken: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metrics_snapshot_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_metrics_weekly: {
+        Row: {
+          appointments: number | null
+          cash_collected: number | null
+          closing_rate: number | null
+          closings: number | null
+          comments: number | null
+          cost_per_lead: number | null
+          cr_appt_to_deal: number | null
+          cr_lead_to_appt: number | null
+          cr_lead_to_deal: number | null
+          created_at: string | null
+          deal_volume: number | null
+          deals: number | null
+          followers_current: number | null
+          impressions: number | null
+          leads_per_closing: number | null
+          leads_qualified: number | null
+          leads_total: number | null
+          likes: number | null
+          link_clicks: number | null
+          monthly_retainer: number | null
+          period_end: string | null
+          period_start: string | null
+          posts_count: number | null
+          revenue: number | null
+          revenue_per_lead: number | null
+          settings_held: number | null
+          settings_planned: number | null
+          show_up_rate: number | null
+          tenant_id: string | null
+          words_spoken: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metrics_snapshot_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_metrics_yearly: {
+        Row: {
+          appointments: number | null
+          cash_collected: number | null
+          closing_rate: number | null
+          closings: number | null
+          comments: number | null
+          cost_per_lead: number | null
+          cr_appt_to_deal: number | null
+          cr_lead_to_appt: number | null
+          cr_lead_to_deal: number | null
+          created_at: string | null
+          deal_volume: number | null
+          deals: number | null
+          followers_current: number | null
+          impressions: number | null
+          leads_per_closing: number | null
+          leads_qualified: number | null
+          leads_total: number | null
+          likes: number | null
+          link_clicks: number | null
+          monthly_retainer: number | null
+          period_end: string | null
+          period_start: string | null
+          posts_count: number | null
+          revenue: number | null
+          revenue_per_lead: number | null
+          settings_held: number | null
+          settings_planned: number | null
+          show_up_rate: number | null
+          tenant_id: string | null
+          words_spoken: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metrics_snapshot_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_role: {
