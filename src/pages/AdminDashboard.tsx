@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertsPanel } from "@/components/admin/AlertsPanel";
 import { AdminAISummary } from "@/components/admin/AdminAISummary";
 import { AdminPortfolioTabs } from "@/components/admin/AdminPortfolioTabs";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -55,44 +56,40 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <header className="border-b bg-card">
-          <div className="container mx-auto px-4 py-4">
-            <Skeleton className="h-8 w-64" />
-            <Skeleton className="h-4 w-48 mt-2" />
-          </div>
-        </header>
-        <main className="container mx-auto px-4 py-8 space-y-6">
+      <DashboardLayout title="Admin Dashboard" subtitle="Laden...">
+        <div className="space-y-6 max-w-6xl">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {[...Array(6)].map((_, i) => (
-              <Card key={i}><CardContent className="p-4"><Skeleton className="h-16 w-full" /></CardContent></Card>
+              <Card key={i} className="glass-card"><CardContent className="p-4"><Skeleton className="h-16 w-full" /></CardContent></Card>
             ))}
           </div>
-          <Card><CardContent className="p-6"><Skeleton className="h-64 w-full" /></CardContent></Card>
-        </main>
-      </div>
+          <Card className="glass-card"><CardContent className="p-6"><Skeleton className="h-64 w-full" /></CardContent></Card>
+        </div>
+      </DashboardLayout>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
-            <p className="text-sm text-muted-foreground">
-              Portfolio-Gesamtübersicht · {tenants.length} aktive Kunden
-            </p>
-          </div>
-          <Button variant="outline" onClick={() => supabase.auth.signOut()}>Abmelden</Button>
-        </div>
-      </header>
+  const sectionIds = ["portfolio", "marketing", "sales", "fulfillment", "finance", "alerts", "ai-summary"];
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
-        <AlertsPanel alerts={alerts} onResolve={loadAdminData} />
-        <AdminPortfolioTabs tenants={tenants} />
-        <AdminAISummary />
-      </main>
-    </div>
+  return (
+    <DashboardLayout
+      sectionIds={sectionIds}
+      title="Admin Dashboard"
+      subtitle={`Portfolio-Gesamtübersicht · ${tenants.length} aktive Kunden`}
+    >
+      <div className="space-y-6 max-w-6xl">
+        <div data-section="alerts">
+          <AlertsPanel alerts={alerts} onResolve={loadAdminData} />
+        </div>
+
+        <div data-section="portfolio">
+          <AdminPortfolioTabs tenants={tenants} />
+        </div>
+
+        <div data-section="ai-summary">
+          <AdminAISummary />
+        </div>
+      </div>
+    </DashboardLayout>
   );
 }
