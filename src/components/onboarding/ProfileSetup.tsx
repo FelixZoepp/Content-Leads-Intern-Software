@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Building2, Linkedin, BarChart3, Target, ChevronRight, ChevronLeft, Sparkles, DollarSign, ShoppingBag } from "lucide-react";
+import { Loader2, Building2, Linkedin, BarChart3, Target, ChevronRight, ChevronLeft, Sparkles, DollarSign, ShoppingBag, HelpCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 interface ProfileSetupProps {
@@ -27,6 +28,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [generatingAnalysis, setGeneratingAnalysis] = useState(false);
+  const [unknowns, setUnknowns] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     companyName: "",
     contactName: "",
@@ -53,7 +55,6 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     costPerLead: "",
     costPerAppointment: "",
     costPerCustomer: "",
-    marginPercent: "",
     currentLeadsPerMonth: "",
     currentConversionRate: "",
     goalLeadsMonthly: "",
@@ -68,10 +69,45 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const update = (key: string, value: string) =>
     setFormData((prev) => ({ ...prev, [key]: value }));
 
+  const toggleUnknown = (key: string) => {
+    setUnknowns((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+        setFormData((p) => ({ ...p, [key]: "" }));
+      }
+      return next;
+    });
+  };
+
+  // Auto-calculated values
+  const totalRevenue = useMemo(() => {
+    const rec = parseFloat(formData.revenueRecurring) || 0;
+    const one = parseFloat(formData.revenueOnetime) || 0;
+    return rec + one;
+  }, [formData.revenueRecurring, formData.revenueOnetime]);
+
+  const totalCosts = useMemo(() => {
+    const ads = parseFloat(formData.adsSpendMonthly) || 0;
+    const tools = parseFloat(formData.toolsCostsMonthly) || 0;
+    const personnel = parseFloat(formData.personnelCostsMonthly) || 0;
+    const delivery = parseFloat(formData.deliveryCostsMonthly) || 0;
+    const other = parseFloat(formData.otherCostsMonthly) || 0;
+    return ads + tools + personnel + delivery + other;
+  }, [formData.adsSpendMonthly, formData.toolsCostsMonthly, formData.personnelCostsMonthly, formData.deliveryCostsMonthly, formData.otherCostsMonthly]);
+
+  const profit = totalRevenue - totalCosts;
+  const marginPercent = totalRevenue > 0 ? ((profit / totalRevenue) * 100) : 0;
+
   const canNext = () => {
     if (step === 0) return formData.companyName.trim().length > 0;
     return true;
   };
+
+  const val = (key: string) => unknowns.has(key) ? null : (parseFloat((formData as any)[key]) || 0);
+  const valInt = (key: string) => unknowns.has(key) ? null : (parseInt((formData as any)[key]) || 0);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -96,45 +132,44 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         .insert({
           user_id: user.id,
           company_name: formData.companyName,
-          contact_name: formData.contactName,
-          industry: formData.industry,
-          team_size: formData.teamSize,
-          target_audience: formData.targetAudience,
+          contact_name: formData.contactName || null,
+          industry: formData.industry || null,
+          team_size: formData.teamSize || null,
+          target_audience: formData.targetAudience || null,
           website_url: formData.websiteUrl || null,
-          monthly_budget: parseFloat(formData.monthlyBudget) || 0,
+          monthly_budget: val("monthlyBudget"),
           linkedin_url: formData.linkedinUrl || null,
-          linkedin_followers_current: parseInt(formData.linkedinFollowersCurrent) || 0,
-          posting_frequency: formData.postingFrequency,
-          linkedin_experience: formData.linkedinExperience,
-          current_offer: formData.currentOffer,
-          offer_price: parseFloat(formData.offerPrice) || 0,
-          contract_duration: formData.contractDuration,
-          closing_rate: parseFloat(formData.closingRate) || 0,
-          revenue_recurring: parseFloat(formData.revenueRecurring) || 0,
-          revenue_onetime: parseFloat(formData.revenueOnetime) || 0,
-          current_revenue_monthly: parseFloat(formData.currentRevenueMonthly) || 0,
-          ads_spend_monthly: parseFloat(formData.adsSpendMonthly) || 0,
-          tools_costs_monthly: parseFloat(formData.toolsCostsMonthly) || 0,
-          personnel_costs_monthly: parseFloat(formData.personnelCostsMonthly) || 0,
-          delivery_costs_monthly: parseFloat(formData.deliveryCostsMonthly) || 0,
-          other_costs_monthly: parseFloat(formData.otherCostsMonthly) || 0,
-          cost_per_lead: parseFloat(formData.costPerLead) || 0,
-          cost_per_appointment: parseFloat(formData.costPerAppointment) || 0,
-          cost_per_customer: parseFloat(formData.costPerCustomer) || 0,
-          margin_percent: parseFloat(formData.marginPercent) || 0,
-          current_leads_per_month: parseInt(formData.currentLeadsPerMonth) || 0,
-          current_conversion_rate: parseFloat(formData.currentConversionRate) || 0,
-          goal_leads_monthly: parseInt(formData.goalLeadsMonthly) || 0,
-          goal_revenue_monthly: parseFloat(formData.goalRevenueMonthly) || 0,
-          goal_timeframe: formData.goalTimeframe,
-          primary_goal: formData.primaryGoal,
+          linkedin_followers_current: valInt("linkedinFollowersCurrent"),
+          posting_frequency: formData.postingFrequency || null,
+          linkedin_experience: formData.linkedinExperience || null,
+          current_offer: formData.currentOffer || null,
+          offer_price: val("offerPrice"),
+          contract_duration: formData.contractDuration || null,
+          closing_rate: val("closingRate"),
+          revenue_recurring: val("revenueRecurring"),
+          revenue_onetime: val("revenueOnetime"),
+          current_revenue_monthly: val("currentRevenueMonthly"),
+          ads_spend_monthly: val("adsSpendMonthly"),
+          tools_costs_monthly: val("toolsCostsMonthly"),
+          personnel_costs_monthly: val("personnelCostsMonthly"),
+          delivery_costs_monthly: val("deliveryCostsMonthly"),
+          other_costs_monthly: val("otherCostsMonthly"),
+          cost_per_lead: val("costPerLead"),
+          cost_per_appointment: val("costPerAppointment"),
+          cost_per_customer: val("costPerCustomer"),
+          margin_percent: totalRevenue > 0 ? Math.round(marginPercent * 10) / 10 : null,
+          current_leads_per_month: valInt("currentLeadsPerMonth"),
+          current_conversion_rate: val("currentConversionRate"),
+          goal_leads_monthly: valInt("goalLeadsMonthly"),
+          goal_revenue_monthly: val("goalRevenueMonthly"),
+          goal_timeframe: formData.goalTimeframe || null,
+          primary_goal: formData.primaryGoal || null,
           onboarding_completed: true,
         })
         .select()
         .single();
 
       if (error) throw error;
-
       await refreshTenant();
 
       setGeneratingAnalysis(true);
@@ -157,45 +192,77 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
 
   const progress = ((step + 1) / STEPS.length) * 100;
 
-  const fieldGroup = (label: string, key: string, placeholder: string, type = "text", suffix = "") => (
-    <div className="space-y-1.5">
-      <Label className="text-sm">{label}{suffix && <span className="text-muted-foreground ml-1">({suffix})</span>}</Label>
-      <Input type={type} value={(formData as any)[key]} onChange={(e) => update(key, e.target.value)} placeholder={placeholder} />
-    </div>
-  );
+  /** Number input with optional "Weiß ich nicht" checkbox */
+  const numField = (label: string, key: string, placeholder: string, unit = "") => {
+    const isUnknown = unknowns.has(key);
+    return (
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <Label className="text-sm">
+            {label}
+            {unit && <span className="text-muted-foreground ml-1 font-normal">({unit})</span>}
+          </Label>
+          <button
+            type="button"
+            onClick={() => toggleUnknown(key)}
+            className={`flex items-center gap-1 text-[11px] rounded-full px-2 py-0.5 transition-colors ${
+              isUnknown
+                ? "bg-primary/10 text-primary font-medium"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            }`}
+          >
+            <HelpCircle className="h-3 w-3" />
+            Weiß ich nicht
+          </button>
+        </div>
+        <Input
+          type="number"
+          step="any"
+          value={isUnknown ? "" : (formData as any)[key]}
+          onChange={(e) => update(key, e.target.value)}
+          placeholder={isUnknown ? "– wird übersprungen –" : placeholder}
+          disabled={isUnknown}
+          className={isUnknown ? "bg-muted/50 text-muted-foreground" : ""}
+        />
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
       {/* Step indicator */}
       <div className="space-y-3">
         <div className="flex justify-between">
-          {STEPS.map((s, i) => {
-            const Icon = s.icon;
-            return (
-              <button
-                key={i}
-                onClick={() => i < step && setStep(i)}
-                className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${
-                  i === step ? "text-primary" : i < step ? "text-primary/60 cursor-pointer hover:text-primary" : "text-muted-foreground"
-                }`}
-              >
-                <div className={`flex items-center justify-center h-6 w-6 rounded-full text-[10px] font-bold ${
-                  i <= step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                }`}>{i + 1}</div>
-                <span className="hidden sm:inline">{s.label}</span>
-              </button>
-            );
-          })}
+          {STEPS.map((s, i) => (
+            <button
+              key={i}
+              onClick={() => i < step && setStep(i)}
+              className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${
+                i === step ? "text-primary" : i < step ? "text-primary/60 cursor-pointer hover:text-primary" : "text-muted-foreground"
+              }`}
+            >
+              <div className={`flex items-center justify-center h-6 w-6 rounded-full text-[10px] font-bold ${
+                i <= step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              }`}>{i + 1}</div>
+              <span className="hidden sm:inline">{s.label}</span>
+            </button>
+          ))}
         </div>
         <Progress value={progress} className="h-1.5" />
       </div>
 
-      {/* Step 0: Firmenprofil */}
+      {/* Step 0: Firma */}
       {step === 0 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Firmenprofil</h3>
-          {fieldGroup("Firmenname *", "companyName", "ContentLeads GmbH")}
-          {fieldGroup("Ansprechpartner", "contactName", "Max Mustermann")}
+          <div className="space-y-1.5">
+            <Label className="text-sm">Firmenname *</Label>
+            <Input value={formData.companyName} onChange={(e) => update("companyName", e.target.value)} placeholder="ContentLeads GmbH" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm">Ansprechpartner</Label>
+            <Input value={formData.contactName} onChange={(e) => update("contactName", e.target.value)} placeholder="Max Mustermann" />
+          </div>
           <div className="space-y-1.5">
             <Label className="text-sm">Branche</Label>
             <Select value={formData.industry} onValueChange={(v) => update("industry", v)}>
@@ -219,11 +286,14 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
                 </SelectContent>
               </Select>
             </div>
-            {fieldGroup("Website", "websiteUrl", "https://www.example.com", "url")}
+            <div className="space-y-1.5">
+              <Label className="text-sm">Website</Label>
+              <Input type="url" value={formData.websiteUrl} onChange={(e) => update("websiteUrl", e.target.value)} placeholder="https://..." />
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">Zielgruppe</Label>
-            <Textarea value={formData.targetAudience} onChange={(e) => update("targetAudience", e.target.value)} placeholder="z.B. B2B-Entscheider in der DACH-Region, CEOs/CMOs von KMUs..." rows={2} />
+            <Textarea value={formData.targetAudience} onChange={(e) => update("targetAudience", e.target.value)} placeholder="z.B. B2B-Entscheider, CEOs/CMOs von KMUs in DACH..." rows={2} />
           </div>
         </div>
       )}
@@ -232,8 +302,11 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
       {step === 1 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">LinkedIn-Status</h3>
-          {fieldGroup("LinkedIn-Profil-URL", "linkedinUrl", "https://linkedin.com/in/...", "url")}
-          {fieldGroup("Aktuelle Follower", "linkedinFollowersCurrent", "500", "number")}
+          <div className="space-y-1.5">
+            <Label className="text-sm">LinkedIn-Profil-URL</Label>
+            <Input type="url" value={formData.linkedinUrl} onChange={(e) => update("linkedinUrl", e.target.value)} placeholder="https://linkedin.com/in/..." />
+          </div>
+          {numField("Aktuelle Follower", "linkedinFollowersCurrent", "500")}
           <div className="space-y-1.5">
             <Label className="text-sm">Posting-Frequenz</Label>
             <Select value={formData.postingFrequency} onValueChange={(v) => update("postingFrequency", v)}>
@@ -264,10 +337,10 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Aktuelles Angebot</h3>
           <div className="space-y-1.5">
-            <Label className="text-sm">Was verkaufst du? (Offer-Beschreibung)</Label>
-            <Textarea value={formData.currentOffer} onChange={(e) => update("currentOffer", e.target.value)} placeholder="z.B. LinkedIn-Marketing-Paket für B2B-Unternehmen inkl. Content-Erstellung, Lead-Generierung und Ads-Management..." rows={3} />
+            <Label className="text-sm">Was verkaufst du? (Offer)</Label>
+            <Textarea value={formData.currentOffer} onChange={(e) => update("currentOffer", e.target.value)} placeholder="z.B. LinkedIn-Marketing-Paket inkl. Content, Lead-Gen, Ads..." rows={3} />
           </div>
-          {fieldGroup("Angebotspreis", "offerPrice", "3000", "number", "€")}
+          {numField("Angebotspreis", "offerPrice", "3000", "€")}
           <div className="space-y-1.5">
             <Label className="text-sm">Vertragslaufzeit</Label>
             <Select value={formData.contractDuration} onValueChange={(v) => update("contractDuration", v)}>
@@ -279,7 +352,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
               </SelectContent>
             </Select>
           </div>
-          {fieldGroup("Closing-Rate", "closingRate", "25", "number", "%")}
+          {numField("Closing-Rate", "closingRate", "25", "%")}
         </div>
       )}
 
@@ -287,24 +360,60 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
       {step === 3 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Monatliche Finanzen</h3>
-          <div className="p-3 rounded-lg bg-muted/50 space-y-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Einnahmen</p>
+
+          {/* Einnahmen */}
+          <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">💰 Einnahmen</p>
             <div className="grid grid-cols-2 gap-3">
-              {fieldGroup("Wiederkehrend", "revenueRecurring", "10000", "number", "€/Monat")}
-              {fieldGroup("Einmalig", "revenueOnetime", "5000", "number", "€/Monat")}
+              {numField("Wiederkehrend", "revenueRecurring", "10000", "€/Monat")}
+              {numField("Einmalig", "revenueOnetime", "5000", "€/Monat")}
+            </div>
+            <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/40">
+              <span>Gesamt-Einnahmen</span>
+              <span className="text-primary">{totalRevenue.toLocaleString("de-DE")} €</span>
             </div>
           </div>
-          <div className="p-3 rounded-lg bg-muted/50 space-y-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Ausgaben</p>
+
+          {/* Ausgaben */}
+          <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📤 Ausgaben</p>
             <div className="grid grid-cols-2 gap-3">
-              {fieldGroup("Ads / Werbung", "adsSpendMonthly", "2000", "number", "€/Monat")}
-              {fieldGroup("Tools & Software", "toolsCostsMonthly", "500", "number", "€/Monat")}
-              {fieldGroup("Personal", "personnelCostsMonthly", "3000", "number", "€/Monat")}
-              {fieldGroup("Delivery / Fulfillment", "deliveryCostsMonthly", "1000", "number", "€/Monat")}
-              {fieldGroup("Sonstige Kosten", "otherCostsMonthly", "500", "number", "€/Monat")}
+              {numField("Ads / Werbung", "adsSpendMonthly", "2000", "€")}
+              {numField("Tools & Software", "toolsCostsMonthly", "500", "€")}
+              {numField("Personal", "personnelCostsMonthly", "3000", "€")}
+              {numField("Delivery / Fulfillment", "deliveryCostsMonthly", "1000", "€")}
+              {numField("Sonstige Kosten", "otherCostsMonthly", "500", "€")}
+            </div>
+            <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/40">
+              <span>Gesamt-Ausgaben</span>
+              <span className="text-destructive">{totalCosts.toLocaleString("de-DE")} €</span>
             </div>
           </div>
-          {fieldGroup("Marge", "marginPercent", "40", "number", "%")}
+
+          {/* Auto-berechnete Werte */}
+          <div className="p-3 rounded-lg border-2 border-primary/20 bg-primary/5 space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📊 Automatisch berechnet</p>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-xs text-muted-foreground">Gewinn/Verlust</p>
+                <p className={`text-lg font-bold ${profit >= 0 ? "text-green-600 dark:text-green-400" : "text-destructive"}`}>
+                  {profit >= 0 ? "+" : ""}{profit.toLocaleString("de-DE")} €
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Marge</p>
+                <p className={`text-lg font-bold ${marginPercent >= 30 ? "text-green-600 dark:text-green-400" : marginPercent >= 10 ? "text-yellow-600 dark:text-yellow-400" : "text-destructive"}`}>
+                  {marginPercent.toFixed(1)}%
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Kostenquote</p>
+                <p className="text-lg font-bold text-foreground">
+                  {totalRevenue > 0 ? ((totalCosts / totalRevenue) * 100).toFixed(1) : "0"}%
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -312,19 +421,25 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
       {step === 4 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Aktuelle Kennzahlen</h3>
-          <p className="text-sm text-muted-foreground">Diese Daten bilden deine Ausgangslage – Schätzwerte reichen.</p>
-          <div className="grid grid-cols-2 gap-4">
-            {fieldGroup("Leads / Monat", "currentLeadsPerMonth", "20", "number")}
-            {fieldGroup("Gesamtumsatz / Monat", "currentRevenueMonthly", "15000", "number", "€")}
+          <p className="text-sm text-muted-foreground">Schätzwerte reichen – oder klicke „Weiß ich nicht".</p>
+
+          <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📈 Performance</p>
+            <div className="grid grid-cols-2 gap-3">
+              {numField("Leads / Monat", "currentLeadsPerMonth", "20")}
+              {numField("Gesamtumsatz / Monat", "currentRevenueMonthly", "15000", "€")}
+              {numField("Conversion-Rate", "currentConversionRate", "2.5", "%")}
+              {numField("Marketingbudget", "monthlyBudget", "5000", "€")}
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            {fieldGroup("Conversion-Rate", "currentConversionRate", "2.5", "number", "%")}
-            {fieldGroup("Monatsbudget Marketing", "monthlyBudget", "5000", "number", "€")}
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {fieldGroup("Kosten / Lead", "costPerLead", "50", "number", "€")}
-            {fieldGroup("Kosten / Termin", "costPerAppointment", "150", "number", "€")}
-            {fieldGroup("Kosten / Kunde", "costPerCustomer", "500", "number", "€")}
+
+          <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">💲 Stückkosten</p>
+            <div className="grid grid-cols-3 gap-3">
+              {numField("Kosten / Lead", "costPerLead", "50", "€")}
+              {numField("Kosten / Termin", "costPerAppointment", "150", "€")}
+              {numField("Kosten / Kunde", "costPerCustomer", "500", "€")}
+            </div>
           </div>
         </div>
       )}
@@ -345,8 +460,8 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            {fieldGroup("Ziel-Leads / Monat", "goalLeadsMonthly", "50", "number")}
-            {fieldGroup("Ziel-Umsatz / Monat", "goalRevenueMonthly", "25000", "number", "€")}
+            {numField("Ziel-Leads / Monat", "goalLeadsMonthly", "50")}
+            {numField("Ziel-Umsatz / Monat", "goalRevenueMonthly", "25000", "€")}
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">Zeitrahmen</Label>
@@ -367,7 +482,6 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         <Button type="button" variant="outline" onClick={() => setStep((s) => s - 1)} disabled={step === 0 || loading}>
           <ChevronLeft className="mr-1 h-4 w-4" /> Zurück
         </Button>
-
         {step < STEPS.length - 1 ? (
           <Button type="button" onClick={() => setStep((s) => s + 1)} disabled={!canNext()}>
             Weiter <ChevronRight className="ml-1 h-4 w-4" />
