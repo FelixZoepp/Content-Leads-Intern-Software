@@ -14,6 +14,7 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { KPIEntryForm } from "@/components/dashboard/KPIEntryForm";
 import { TimeRangeSelector, type TimeRange } from "@/components/dashboard/TimeRangeSelector";
 import { KPIInsights } from "@/components/dashboard/KPIInsights";
+import { MonthlyReportTable } from "@/components/dashboard/MonthlyReportTable";
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
@@ -176,6 +177,7 @@ export default function ClientDashboard() {
             <ClientMetricsCards metrics={metrics} timeRange={timeRange} />
             <KPIInsights metrics={metrics} />
             <ClientCharts metrics={metrics} timeRange={timeRange} />
+            <MonthlyReportTable tenantId={tenantId!} companyName={tenant.company_name} />
             <AIBriefing tenantId={tenantId!} />
             <CSATSurvey tenantId={tenantId!} />
           </>
