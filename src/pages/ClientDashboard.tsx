@@ -12,6 +12,8 @@ import { AIBriefing } from "@/components/client/AIBriefing";
 import { CSATSurvey } from "@/components/client/CSATSurvey";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { KPIEntryForm } from "@/components/dashboard/KPIEntryForm";
+import { TimeRangeSelector, type TimeRange } from "@/components/dashboard/TimeRangeSelector";
+import { KPIInsights } from "@/components/dashboard/KPIInsights";
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
@@ -22,17 +24,17 @@ export default function ClientDashboard() {
   const [metrics, setMetrics] = useState<any[]>([]);
   const [healthScore, setHealthScore] = useState<any>(null);
   const [showEntryForm, setShowEntryForm] = useState(false);
+  const [timeRange, setTimeRange] = useState<TimeRange>("daily");
 
   useEffect(() => {
     if (user) {
       if (tenantId) {
         loadDashboardData();
       } else {
-        // No tenant assigned, check if one exists
         checkTenant();
       }
     }
-  }, [tenantId, user]);
+  }, [tenantId, user, timeRange]);
 
   const checkTenant = async () => {
     try {
@@ -41,20 +43,22 @@ export default function ClientDashboard() {
         .select("id")
         .eq("user_id", user!.id)
         .maybeSingle();
-
-      if (!data) {
-        // No tenant exists, redirect to onboarding
-        navigate("/onboarding");
-      }
+      if (!data) navigate("/onboarding");
     } catch (error) {
       console.error("Error checking tenant:", error);
     }
   };
 
+  const viewMap: Record<TimeRange, string> = {
+    daily: "v_metrics_daily",
+    weekly: "v_metrics_weekly",
+    monthly: "v_metrics_monthly",
+    yearly: "v_metrics_yearly",
+  };
+
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      // Load tenant
       const { data: tenantData } = await supabase
         .from("tenants")
         .select("*")
@@ -62,24 +66,18 @@ export default function ClientDashboard() {
         .single();
       setTenant(tenantData);
 
-      // Load recent KPI entries from the new table
-      const { data: kpiData } = await supabase
-        .from("kpi_entries" as any)
+      const viewName = viewMap[timeRange];
+      const dateCol = timeRange === "daily" ? "period_date" : "period_start";
+
+      const { data: metricsData } = await supabase
+        .from(viewName as any)
         .select("*")
         .eq("tenant_id", tenantId)
-        .order("entry_date", { ascending: false })
-        .limit(30);
-      
-      // Transform kpi_entries to match metrics_snapshot format for compatibility
-      const transformedMetrics = (kpiData || []).map((entry: any) => ({
-        ...entry,
-        period_date: entry.entry_date,
-        new_followers: entry.followers,
-      }));
-      
-      setMetrics(transformedMetrics);
+        .order(dateCol, { ascending: false })
+        .limit(timeRange === "daily" ? 30 : timeRange === "weekly" ? 12 : timeRange === "monthly" ? 12 : 5);
 
-      // Load latest health score
+      setMetrics(metricsData || []);
+
       const { data: healthData } = await supabase
         .from("health_scores")
         .select("*")
@@ -90,19 +88,12 @@ export default function ClientDashboard() {
       setHealthScore(healthData);
     } catch (error) {
       console.error("Error loading dashboard:", error);
-      toast({
-        title: "Fehler",
-        description: "Dashboard konnte nicht geladen werden",
-        variant: "destructive",
-      });
+      toast({ title: "Fehler", description: "Dashboard konnte nicht geladen werden", variant: "destructive" });
     }
     setLoading(false);
   };
 
-
-  if (loading) {
-    return <DashboardSkeleton />;
-  }
+  if (loading) return <DashboardSkeleton />;
 
   if (!tenant) {
     return (
@@ -110,14 +101,10 @@ export default function ClientDashboard() {
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Kein Tenant gefunden</CardTitle>
-            <CardDescription>
-              Bitte schließe das Onboarding ab
-            </CardDescription>
+            <CardDescription>Bitte schließe das Onboarding ab</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate("/onboarding")}>
-              Zum Onboarding
-            </Button>
+            <Button onClick={() => navigate("/onboarding")}>Zum Onboarding</Button>
           </CardContent>
         </Card>
       </div>
@@ -129,44 +116,39 @@ export default function ClientDashboard() {
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">ContentLeads Dashboard</h1>
+            <h1 className="text-2xl font-bold text-foreground">KPI Dashboard</h1>
             <p className="text-sm text-muted-foreground">{tenant.company_name}</p>
           </div>
-          <div className="flex items-center gap-4">
-            <Button onClick={() => setShowEntryForm(!showEntryForm)}>
-              <Plus className="h-4 w-4 mr-2" />
-              {showEntryForm ? "Formular schließen" : "Heute eintragen"}
+          <div className="flex items-center gap-3">
+            <Button onClick={() => setShowEntryForm(!showEntryForm)} size="sm">
+              <Plus className="h-4 w-4 mr-1" />
+              {showEntryForm ? "Schließen" : "Heute eintragen"}
             </Button>
-            <Button variant="outline" onClick={() => supabase.auth.signOut()}>
+            <Button variant="outline" size="sm" onClick={() => supabase.auth.signOut()}>
               Abmelden
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-8">
+      <main className="container mx-auto px-4 py-6 space-y-6">
         {showEntryForm && (
-          <KPIEntryForm 
-            tenantId={tenantId!} 
+          <KPIEntryForm
+            tenantId={tenantId!}
             onEntryAdded={() => {
               loadDashboardData();
               setShowEntryForm(false);
-            }} 
+            }}
           />
         )}
 
-        {metrics.length === 0 ? (
+        {metrics.length === 0 && !showEntryForm ? (
           <Card>
             <CardHeader>
-              <CardTitle>Willkommen bei ContentLeads!</CardTitle>
-              <CardDescription>
-                Trage deine ersten KPI-Daten ein, um dein Dashboard zu aktivieren.
-              </CardDescription>
+              <CardTitle>Willkommen! 👋</CardTitle>
+              <CardDescription>Trage deine ersten KPIs ein, um dein Dashboard zu aktivieren.</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">
-                Klicke auf "Heute eintragen", um deine täglichen Kennzahlen zu erfassen.
-              </p>
               <Button onClick={() => setShowEntryForm(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Erste Daten eintragen
@@ -175,21 +157,25 @@ export default function ClientDashboard() {
           </Card>
         ) : (
           <>
+            <div className="flex items-center justify-between">
+              <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+            </div>
+
             {healthScore && (
               <Card className={`border-2 ${
-                healthScore.color === 'green' ? 'border-green-500' : 
-                healthScore.color === 'amber' ? 'border-yellow-500' : 
-                'border-red-500'
+                healthScore.color === "green" ? "border-green-500" :
+                healthScore.color === "amber" ? "border-yellow-500" : "border-red-500"
               }`}>
-                <CardHeader>
-                  <CardTitle>Health Score: {healthScore.score}/100</CardTitle>
+                <CardHeader className="py-3">
+                  <CardTitle className="text-base">Health Score: {healthScore.score}/100</CardTitle>
                   <CardDescription>{healthScore.rationale_text}</CardDescription>
                 </CardHeader>
               </Card>
             )}
 
-            <ClientMetricsCards metrics={metrics} />
-            <ClientCharts metrics={metrics} />
+            <ClientMetricsCards metrics={metrics} timeRange={timeRange} />
+            <KPIInsights metrics={metrics} />
+            <ClientCharts metrics={metrics} timeRange={timeRange} />
             <AIBriefing tenantId={tenantId!} />
             <CSATSurvey tenantId={tenantId!} />
           </>
