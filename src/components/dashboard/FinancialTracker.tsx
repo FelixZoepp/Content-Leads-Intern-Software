@@ -138,21 +138,7 @@ export function FinancialTracker({ tenantId }: Props) {
     }
   };
 
-  const NumField = ({ id, label, value, onChange, decimal, prefix }: {
-    id: string; label: string; value: number; onChange: (v: string) => void;
-    decimal?: boolean; prefix?: string;
-  }) => (
-    <div className="space-y-1.5">
-      <Label htmlFor={id} className="text-xs font-medium">{label}</Label>
-      <div className="relative">
-        {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{prefix}</span>}
-        <Input id={id} type="number" min="0" step={decimal ? "0.01" : "1"}
-          inputMode={decimal ? "decimal" : "numeric"}
-          className={prefix ? "pl-7" : ""}
-          value={value} onChange={(e) => onChange(e.target.value)} />
-      </div>
-    </div>
-  );
+  // NumField moved outside component to prevent focus loss
 
   if (loading) return null;
 
@@ -353,6 +339,24 @@ export function FinancialTracker({ tenantId }: Props) {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function NumField({ id, label, value, onChange, decimal, prefix }: {
+  id: string; label: string; value: number; onChange: (v: string) => void;
+  decimal?: boolean; prefix?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-xs font-medium">{label}</Label>
+      <div className="relative">
+        {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{prefix}</span>}
+        <Input id={id} type="number" min="0" step={decimal ? "0.01" : "1"}
+          inputMode={decimal ? "decimal" : "numeric"}
+          className={prefix ? "pl-7" : ""}
+          value={value} onChange={(e) => onChange(e.target.value)} />
+      </div>
+    </div>
   );
 }
 
