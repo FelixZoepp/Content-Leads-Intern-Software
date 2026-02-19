@@ -183,88 +183,93 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
       const user = session?.user;
       if (!user) throw new Error("Nicht authentifiziert – bitte neu einloggen");
 
-      const { data: existingTenant } = await supabase
+      const { data: existingTenants } = await supabase
         .from("tenants")
         .select("id")
         .eq("user_id", user.id)
-        .maybeSingle();
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      const existingTenant = existingTenants?.[0] ?? null;
+
+      const tenantPayload = {
+        company_name: formData.companyName,
+        contact_name: formData.contactName || null,
+        industry: formData.industry || null,
+        team_size: formData.teamSize || null,
+        target_audience: formData.targetAudience || null,
+        website_url: formData.websiteUrl || null,
+        monthly_budget: val("monthlyBudget"),
+        linkedin_url: formData.linkedinUrl || null,
+        linkedin_followers_current: valInt("linkedinFollowersCurrent"),
+        posting_frequency: formData.postingFrequency || null,
+        linkedin_experience: formData.linkedinExperience || null,
+        current_offer: formData.currentOffer || null,
+        offer_price: val("offerPrice"),
+        contract_duration: formData.contractDuration || null,
+        closing_rate: val("closingRate"),
+        revenue_recurring: val("revenueRecurring"),
+        revenue_onetime: val("revenueOnetime"),
+        current_revenue_monthly: totalRevenue > 0 ? totalRevenue : null,
+        ads_spend_monthly: val("adsSpendMonthly"),
+        tools_costs_monthly: val("toolsCostsMonthly"),
+        personnel_costs_monthly: val("personnelCostsMonthly"),
+        delivery_costs_monthly: val("deliveryCostsMonthly"),
+        other_costs_monthly: val("otherCostsMonthly"),
+        margin_percent: totalRevenue > 0 ? Math.round(marginPercent * 10) / 10 : null,
+        cost_per_lead: val("costPerLead"),
+        cost_per_appointment: val("costPerAppointment"),
+        current_leads_per_month: valInt("currentLeadsPerMonth"),
+        current_conversion_rate: val("currentConversionRate"),
+        total_customers: valNullable("totalCustomers"),
+        existing_customers: valNullable("existingCustomers"),
+        new_customers_monthly: valNullable("newCustomersMonthly"),
+        aov_new_customer: valNullable("aovNewCustomer"),
+        aov_existing_customer: valNullable("aovExistingCustomer"),
+        new_customer_volume: newCustomerVolume > 0 ? newCustomerVolume : null,
+        existing_customer_volume: existingCustomerVolume > 0 ? existingCustomerVolume : null,
+        order_volume_monthly: totalOrderVolume > 0 ? totalOrderVolume : null,
+        payment_default_rate: valNullable("paymentDefaultRate"),
+        ltv_avg_customer: ltvCalculated > 0 ? ltvCalculated : null,
+        commission_rate_actual: valNullable("commissionRateActual"),
+        commission_rate_target: valNullable("commissionRateTarget"),
+        sales_gross_salary: valNullable("salesGrossSalary"),
+        sales_side_costs: valNullable("salesSideCosts"),
+        fulfillment_gross_salary: valNullable("fulfillmentGrossSalary"),
+        fulfillment_tool_costs: valNullable("fulfillmentToolCosts"),
+        cac_actual: cacCalculated > 0 ? cacCalculated : null,
+        cac_target: valNullable("cacTarget"),
+        cost_per_customer_fulfillment: valNullable("costPerCustomerFulfillment"),
+        goal_leads_monthly: valInt("goalLeadsMonthly"),
+        goal_revenue_monthly: val("goalRevenueMonthly"),
+        goal_timeframe: formData.goalTimeframe || null,
+        primary_goal: formData.primaryGoal || null,
+        onboarding_completed: true,
+      } as any;
+
+      let data: any;
 
       if (existingTenant) {
-        await refreshTenant();
-        onComplete();
-        return;
+        // UPDATE – alle Felder mit den neuen Formulardaten überschreiben
+        const { data: updated, error } = await supabase
+          .from("tenants")
+          .update(tenantPayload)
+          .eq("id", existingTenant.id)
+          .select()
+          .single();
+        if (error) throw error;
+        data = updated;
+      } else {
+        // INSERT neuer Tenant
+        const { data: inserted, error } = await supabase
+          .from("tenants")
+          .insert({ user_id: user.id, ...tenantPayload })
+          .select()
+          .single();
+        if (error) throw error;
+        data = inserted;
       }
 
-      const { data, error } = await supabase
-        .from("tenants")
-        .insert({
-          user_id: user.id,
-          company_name: formData.companyName,
-          contact_name: formData.contactName || null,
-          industry: formData.industry || null,
-          team_size: formData.teamSize || null,
-          target_audience: formData.targetAudience || null,
-          website_url: formData.websiteUrl || null,
-          monthly_budget: val("monthlyBudget"),
-          linkedin_url: formData.linkedinUrl || null,
-          linkedin_followers_current: valInt("linkedinFollowersCurrent"),
-          posting_frequency: formData.postingFrequency || null,
-          linkedin_experience: formData.linkedinExperience || null,
-          current_offer: formData.currentOffer || null,
-          offer_price: val("offerPrice"),
-          contract_duration: formData.contractDuration || null,
-          closing_rate: val("closingRate"),
-          // Finanzen: nur Netto
-          revenue_recurring: val("revenueRecurring"),
-          revenue_onetime: val("revenueOnetime"),
-          current_revenue_monthly: totalRevenue > 0 ? totalRevenue : null,
-          ads_spend_monthly: val("adsSpendMonthly"),
-          tools_costs_monthly: val("toolsCostsMonthly"),
-          personnel_costs_monthly: val("personnelCostsMonthly"),
-          delivery_costs_monthly: val("deliveryCostsMonthly"),
-          other_costs_monthly: val("otherCostsMonthly"),
-          // Marge auto
-          margin_percent: totalRevenue > 0 ? Math.round(marginPercent * 10) / 10 : null,
-          // KPIs
-          cost_per_lead: val("costPerLead"),
-          cost_per_appointment: val("costPerAppointment"),
-          cost_per_customer: val("costPerCustomer"),
-          current_leads_per_month: valInt("currentLeadsPerMonth"),
-          current_conversion_rate: val("currentConversionRate"),
-          // Kunden (mit auto-berechneten Werten)
-          total_customers: valNullable("totalCustomers"),
-          existing_customers: valNullable("existingCustomers"),
-          new_customers_monthly: valNullable("newCustomersMonthly"),
-          aov_new_customer: valNullable("aovNewCustomer"),
-          aov_existing_customer: valNullable("aovExistingCustomer"),
-          new_customer_volume: newCustomerVolume > 0 ? newCustomerVolume : null,
-          existing_customer_volume: existingCustomerVolume > 0 ? existingCustomerVolume : null,
-          order_volume_monthly: totalOrderVolume > 0 ? totalOrderVolume : null,
-          payment_default_rate: valNullable("paymentDefaultRate"),
-          // LTV auto-berechnet
-          ltv_avg_customer: ltvCalculated > 0 ? ltvCalculated : null,
-          // Vertrieb & Kosten
-          commission_rate_actual: valNullable("commissionRateActual"),
-          commission_rate_target: valNullable("commissionRateTarget"),
-          sales_gross_salary: valNullable("salesGrossSalary"),
-          sales_side_costs: valNullable("salesSideCosts"),
-          fulfillment_gross_salary: valNullable("fulfillmentGrossSalary"),
-          fulfillment_tool_costs: valNullable("fulfillmentToolCosts"),
-          // CAC auto-berechnet
-          cac_actual: cacCalculated > 0 ? cacCalculated : null,
-          cac_target: valNullable("cacTarget"),
-          cost_per_customer_fulfillment: valNullable("costPerCustomerFulfillment"),
-          // Ziele
-          goal_leads_monthly: valInt("goalLeadsMonthly"),
-          goal_revenue_monthly: val("goalRevenueMonthly"),
-          goal_timeframe: formData.goalTimeframe || null,
-          primary_goal: formData.primaryGoal || null,
-          onboarding_completed: true,
-        } as any)
-        .select()
-        .single();
-
-      if (error) throw error;
       await refreshTenant();
 
       setGeneratingAnalysis(true);
@@ -275,7 +280,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
       } catch { /* non-blocking */ }
       setGeneratingAnalysis(false);
 
-      toast({ title: "Profil erstellt", description: "Deine Erstanalyse wird geladen..." });
+      toast({ title: "Profil gespeichert ✓", description: "Deine Basisdaten wurden gespeichert." });
       setTimeout(() => onComplete(), 500);
     } catch (error: any) {
       toast({ title: "Fehler", description: error.message, variant: "destructive" });
