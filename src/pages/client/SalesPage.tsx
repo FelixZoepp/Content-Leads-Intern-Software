@@ -1,5 +1,5 @@
 import { useDashboardData } from "@/hooks/useDashboardData";
-import { ClientCharts } from "@/components/client/ClientCharts";
+import { SalesCharts } from "@/components/client/SalesCharts";
 import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
 
 export default function SalesPage() {
@@ -11,7 +11,7 @@ export default function SalesPage() {
         <h2 className="text-xl font-semibold text-foreground">Sales</h2>
         <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
       </div>
-      <ClientCharts metrics={metrics} timeRange={timeRange} />
+      <SalesCharts metrics={metrics} timeRange={timeRange} />
     </div>
   );
 }

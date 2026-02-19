@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/ca
 import { ClientMetricsCards } from "@/components/client/ClientMetricsCards";
 import { KPIInsights } from "@/components/dashboard/KPIInsights";
 import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
+import { OverviewCharts } from "@/components/client/OverviewCharts";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -39,6 +40,7 @@ export default function OverviewPage() {
       )}
 
       <ClientMetricsCards metrics={metrics} timeRange={timeRange} />
+      <OverviewCharts metrics={metrics} timeRange={timeRange} />
       <KPIInsights metrics={metrics} />
     </div>
   );
