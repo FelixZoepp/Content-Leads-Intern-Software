@@ -14,6 +14,7 @@ import {
   Bell,
   TrendingUp,
   Users,
+  Sun,
 } from "lucide-react";
 import {
   Sidebar,
@@ -31,7 +32,8 @@ import {
 } from "@/components/ui/sidebar";
 
 const clientNav = [
-  { title: "Übersicht", icon: LayoutDashboard, path: "/dashboard" },
+  { title: "Heute", icon: Sun, path: "/dashboard" },
+  { title: "Übersicht", icon: LayoutDashboard, path: "/dashboard/overview" },
   { title: "Marketing", icon: BarChart3, path: "/dashboard/marketing" },
   { title: "Sales", icon: Phone, path: "/dashboard/sales" },
   { title: "Fulfillment", icon: Package, path: "/dashboard/fulfillment" },
