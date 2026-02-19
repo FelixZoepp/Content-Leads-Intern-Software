@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, AlertCircle, AlertTriangle, CheckCircle2, ArrowRight } from "lucide-react";
+import { Sparkles, AlertCircle, AlertTriangle, CheckCircle2, ArrowRight, RefreshCw, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
   tenantId: string;
@@ -25,50 +26,92 @@ const tierConfig = {
   unbekannt: { icon: AlertCircle, color: "text-muted-foreground", bg: "bg-muted/30 border-border", label: "Kein Benchmark" },
 };
 
+const CACHE_HOURS = 6; // Neue Analyse nur wenn älter als 6h
+
 export function AIBriefing({ tenantId }: Props) {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const [classifications, setClassifications] = useState<Classification[]>([]);
   const [lastSummary, setLastSummary] = useState<any>(null);
 
-  useEffect(() => { loadLastSummary(); }, [tenantId]);
-
-  const loadLastSummary = async () => {
-    const { data } = await supabase
-      .from("ai_summaries")
-      .select("*")
-      .eq("tenant_id", tenantId)
-      .eq("scope", "client_weekly")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (data) {
-      setLastSummary(data);
-      setSummary(data.summary_text);
+  useEffect(() => {
+    if (tenantId) {
+      initAnalysis();
     }
+  }, [tenantId]);
+
+  const initAnalysis = async () => {
+    setLoading(true);
+    try {
+      // Check if we have a recent summary (< CACHE_HOURS old)
+      const { data: existing } = await supabase
+        .from("ai_summaries")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .eq("scope", "client_weekly")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        const ageHours = (Date.now() - new Date(existing.created_at).getTime()) / (1000 * 60 * 60);
+        setLastSummary(existing);
+        setSummary(existing.summary_text);
+
+        // If older than cache threshold, auto-refresh in background
+        if (ageHours > CACHE_HOURS) {
+          runAnalysis(true);
+        }
+      } else {
+        // No summary yet – generate automatically
+        await runAnalysis(false);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setLoading(false);
   };
 
-  const generateBriefing = async () => {
-    setLoading(true);
+  const runAnalysis = async (background = false) => {
+    if (!background) setLoading(true);
+    else setRefreshing(true);
+
     try {
       const { data, error } = await supabase.functions.invoke("generate-summary", {
         body: { tenantId, scope: "client_weekly" },
       });
 
       if (error) throw error;
-      if (data.error) {
-        toast({ title: "Fehler", description: data.error, variant: "destructive" });
+      if (data?.error) {
+        if (!background) {
+          toast({ title: "Hinweis", description: data.error, variant: "destructive" });
+        }
         return;
       }
 
       setSummary(data.summary.summary_text);
+      setLastSummary(data.summary);
       setClassifications(data.classifications || []);
-      toast({ title: "KI-Briefing erstellt", description: "Analyse mit Stufen-Einordnung ist fertig" });
+
+      if (background) {
+        toast({ title: "KI-Analyse aktualisiert", description: "Neue Auswertung ist verfügbar" });
+      }
     } catch (error: any) {
-      toast({ title: "Fehler", description: error.message || "KI-Briefing konnte nicht erstellt werden", variant: "destructive" });
+      if (!background) {
+        toast({ title: "Fehler", description: error.message || "Analyse konnte nicht erstellt werden", variant: "destructive" });
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    setLoading(false);
+  };
+
+  const handleManualRefresh = async () => {
+    setRefreshing(true);
+    await runAnalysis(false);
+    setRefreshing(false);
   };
 
   const grouped = {
@@ -77,32 +120,74 @@ export function AIBriefing({ tenantId }: Props) {
     grün: classifications.filter(c => c.tier === "grün"),
   };
 
+  const ageLabel = lastSummary
+    ? new Date(lastSummary.created_at).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+    : null;
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 animate-pulse">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-3 w-64" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-4/6" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Generate Button */}
+      {/* Header Card */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15">
-              <Sparkles className="h-5 w-5 text-primary" />
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-base">KI-Performance-Analyse</CardTitle>
+                <CardDescription className="text-xs">
+                  Automatische Auswertung deiner KPIs – aktualisiert alle {CACHE_HOURS} Stunden
+                </CardDescription>
+              </div>
             </div>
-            KI-Performance-Analyse
-          </CardTitle>
-          <CardDescription>
-            Die KI analysiert alle deine KPIs, ordnet sie in 3 Stufen ein und gibt dir eine konkrete 3-Schritte-Anleitung.
-          </CardDescription>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleManualRefresh}
+              disabled={refreshing}
+              className="rounded-xl gap-2 text-xs"
+            >
+              <RefreshCw className={`h-3 w-3 ${refreshing ? "animate-spin" : ""}`} />
+              {refreshing ? "Aktualisiert..." : "Neu analysieren"}
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent>
-          <Button onClick={generateBriefing} disabled={loading} className="rounded-xl glow-primary">
-            <Sparkles className="h-4 w-4 mr-2" />
-            {loading ? "Analyse läuft..." : "Neue KI-Analyse starten"}
-          </Button>
-          {lastSummary && !loading && (
-            <p className="text-xs text-muted-foreground mt-2">
-              Letzte Analyse: {new Date(lastSummary.created_at).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+        {ageLabel && (
+          <CardContent className="pt-0">
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Clock className="h-3 w-3" />
+              Letzte Analyse: {ageLabel}
             </p>
-          )}
-        </CardContent>
+          </CardContent>
+        )}
       </Card>
 
       {/* Tier Classification Cards */}
@@ -168,6 +253,16 @@ export function AIBriefing({ tenantId }: Props) {
             </CardContent>
           </Card>
         </motion.div>
+      )}
+
+      {!summary && !loading && (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center gap-3">
+            <Sparkles className="h-8 w-8 text-muted-foreground/50" />
+            <p className="text-sm text-muted-foreground">Noch keine KI-Analyse verfügbar.</p>
+            <p className="text-xs text-muted-foreground">Trage erste KPIs ein, um eine automatische Auswertung zu erhalten.</p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
