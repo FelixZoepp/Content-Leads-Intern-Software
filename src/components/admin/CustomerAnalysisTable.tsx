@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, TrendingUp, Star, Search, ArrowUpDown, Info } from "lucide-react";
+import { CustomerEntryForm, type CustomerEntry } from "@/components/admin/CustomerEntryForm";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // RAW DATA from CSV (all 30 customers – left + right columns)
@@ -116,14 +117,33 @@ export function CustomerAnalysisTable() {
   const [sourceFilter, setSourceFilter] = useState<string>("alle");
   const [sortKey, setSortKey] = useState<SortKey>("score");
   const [sortAsc, setSortAsc] = useState(false);
+  const [extraCustomers, setExtraCustomers] = useState<typeof RAW_CUSTOMERS>([]);
+
+  const allCustomers = useMemo(() => [...RAW_CUSTOMERS, ...extraCustomers], [extraCustomers]);
 
   const enriched = useMemo(() =>
-    RAW_CUSTOMERS.map(c => ({
+    allCustomers.map(c => ({
       ...c,
       score: computeScore(c),
       problems: detectProblems(c),
       strengths: detectStrengths(c),
-    })), []);
+    })), [allCustomers]);
+
+  const handleAddCustomer = (entry: CustomerEntry) => {
+    const mapped = {
+      name: entry.name,
+      industry: entry.industry || "Sonstige",
+      size: entry.size,
+      age: entry.age,
+      duration: entry.duration,
+      source: entry.source.replace(" (CC)", "").replace("Cold Call ", "CC"),
+      salesCycleDays: entry.salesCycleDays,
+      cltv: entry.cltv,
+      pages: entry.pages,
+      cohort: entry.cohort,
+    };
+    setExtraCustomers(prev => [...prev, mapped]);
+  };
 
   const industries = useMemo(() => Array.from(new Set(enriched.map(c => c.industry))).sort(), [enriched]);
   const sources = useMemo(() => Array.from(new Set(enriched.map(c => c.source))).sort(), [enriched]);
@@ -219,10 +239,13 @@ export function CustomerAnalysisTable() {
       {/* ── Filters ── */}
       <Card className="glass-card">
         <CardHeader className="pb-3 pt-4">
-          <CardTitle className="text-sm flex items-center gap-2">
-            🔍 Kundenanalyse
-            <Badge variant="secondary">{filtered.length} / {enriched.length}</Badge>
-          </CardTitle>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              🔍 Kundenanalyse
+              <Badge variant="secondary">{filtered.length} / {enriched.length}</Badge>
+            </CardTitle>
+            <CustomerEntryForm onAdd={handleAddCustomer} />
+          </div>
         </CardHeader>
         <CardContent className="pt-0 space-y-3">
           <div className="flex flex-wrap gap-2">
