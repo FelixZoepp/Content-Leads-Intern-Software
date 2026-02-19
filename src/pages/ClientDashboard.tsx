@@ -5,6 +5,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { DashboardDataProvider, useDashboardData } from "@/hooks/useDashboardData";
 
+import TodayPage from "./client/TodayPage";
 import OverviewPage from "./client/OverviewPage";
 import MarketingPage from "./client/MarketingPage";
 import SalesPage from "./client/SalesPage";
@@ -30,7 +31,8 @@ function ClientDashboardInner() {
   return (
     <DashboardLayout title="KPI Dashboard" subtitle={tenant?.company_name}>
       <Routes>
-        <Route index element={<OverviewPage />} />
+        <Route index element={<TodayPage />} />
+        <Route path="overview" element={<OverviewPage />} />
         <Route path="marketing" element={<MarketingPage />} />
         <Route path="sales" element={<SalesPage />} />
         <Route path="fulfillment" element={<FulfillmentPage />} />
