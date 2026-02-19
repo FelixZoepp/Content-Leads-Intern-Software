@@ -1,11 +1,10 @@
-import { useState } from "react";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { SalesCharts } from "@/components/client/SalesCharts";
 import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
-import { KPIEntryForm } from "@/components/dashboard/KPIEntryForm";
+import { SalesKPIEntry } from "@/components/dashboard/SalesKPIEntry";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { BarChart3, PlusCircle, TrendingUp } from "lucide-react";
+import { BarChart3, PlusCircle } from "lucide-react";
 
 function SalesKPICards({ metrics }: { metrics: any[] }) {
   const latest = metrics?.[0];
@@ -62,7 +61,7 @@ export default function SalesPage() {
         </TabsContent>
 
         <TabsContent value="entry" className="mt-4">
-          <KPIEntryForm tenantId={tenantId} onEntryAdded={reload} />
+          <SalesKPIEntry tenantId={tenantId} onEntryAdded={reload} />
         </TabsContent>
       </Tabs>
     </div>
