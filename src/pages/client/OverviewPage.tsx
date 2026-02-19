@@ -4,6 +4,7 @@ import { ClientMetricsCards } from "@/components/client/ClientMetricsCards";
 import { KPIInsights } from "@/components/dashboard/KPIInsights";
 import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
 import { OverviewCharts } from "@/components/client/OverviewCharts";
+import { BaselineKPICards } from "@/components/client/BaselineKPICards";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -41,6 +42,7 @@ export default function OverviewPage() {
 
       <ClientMetricsCards metrics={metrics} timeRange={timeRange} />
       <OverviewCharts metrics={metrics} timeRange={timeRange} />
+      <BaselineKPICards tenant={tenant} />
       <KPIInsights metrics={metrics} />
     </div>
   );
