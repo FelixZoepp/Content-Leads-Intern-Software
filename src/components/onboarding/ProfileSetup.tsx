@@ -4,11 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Building2, Linkedin, BarChart3, Target, ChevronRight, ChevronLeft, Sparkles, DollarSign, ShoppingBag, HelpCircle } from "lucide-react";
+import {
+  Loader2, Building2, Linkedin, BarChart3, Target, ChevronRight, ChevronLeft,
+  Sparkles, DollarSign, ShoppingBag, HelpCircle, Users, TrendingUp
+} from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 interface ProfileSetupProps {
@@ -20,6 +22,8 @@ const STEPS = [
   { icon: Linkedin, label: "LinkedIn" },
   { icon: ShoppingBag, label: "Angebot" },
   { icon: DollarSign, label: "Finanzen" },
+  { icon: Users, label: "Kunden" },
+  { icon: TrendingUp, label: "Vertrieb" },
   { icon: BarChart3, label: "KPIs" },
   { icon: Target, label: "Ziele" },
 ];
@@ -30,20 +34,24 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const [generatingAnalysis, setGeneratingAnalysis] = useState(false);
   const [unknowns, setUnknowns] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
+    // Step 0: Firma
     companyName: "",
     contactName: "",
     industry: "",
     teamSize: "",
     targetAudience: "",
     websiteUrl: "",
+    // Step 1: LinkedIn
     linkedinUrl: "",
     linkedinFollowersCurrent: "",
     postingFrequency: "",
     linkedinExperience: "",
+    // Step 2: Angebot
     currentOffer: "",
     offerPrice: "",
     contractDuration: "",
     closingRate: "",
+    // Step 3: Finanzen
     revenueRecurring: "",
     revenueOnetime: "",
     currentRevenueMonthly: "",
@@ -52,16 +60,39 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     personnelCostsMonthly: "",
     deliveryCostsMonthly: "",
     otherCostsMonthly: "",
+    // Step 4: Kunden (aus CSV)
+    totalCustomers: "",
+    existingCustomers: "",
+    newCustomersMonthly: "",
+    newCustomerVolume: "",
+    existingCustomerVolume: "",
+    orderVolumeMonthly: "",
+    paymentDefaultRate: "",
+    aovNewCustomer: "",
+    aovExistingCustomer: "",
+    ltvAvgCustomer: "",
+    // Step 5: Vertrieb / Kosten (aus CSV)
+    commissionRateActual: "",
+    commissionRateTarget: "",
+    salesSideCosts: "",
+    salesGrossSalary: "",
+    fulfillmentGrossSalary: "",
+    fulfillmentToolCosts: "",
+    cacActual: "",
+    cacTarget: "",
+    costPerCustomerFulfillment: "",
+    // Step 6: KPIs
     costPerLead: "",
     costPerAppointment: "",
     costPerCustomer: "",
     currentLeadsPerMonth: "",
     currentConversionRate: "",
+    monthlyBudget: "",
+    // Step 7: Ziele
     goalLeadsMonthly: "",
     goalRevenueMonthly: "",
     goalTimeframe: "",
     primaryGoal: "",
-    monthlyBudget: "",
   });
   const { toast } = useToast();
   const { refreshTenant } = useAuth();
@@ -101,6 +132,13 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const profit = totalRevenue - totalCosts;
   const marginPercent = totalRevenue > 0 ? ((profit / totalRevenue) * 100) : 0;
 
+  // Auto-calculated customer KPIs
+  const totalOrderVolume = useMemo(() => {
+    const newVol = parseFloat(formData.newCustomerVolume) || 0;
+    const existVol = parseFloat(formData.existingCustomerVolume) || 0;
+    return newVol + existVol;
+  }, [formData.newCustomerVolume, formData.existingCustomerVolume]);
+
   const canNext = () => {
     if (step === 0) return formData.companyName.trim().length > 0;
     return true;
@@ -108,6 +146,11 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
 
   const val = (key: string) => unknowns.has(key) ? null : (parseFloat((formData as any)[key]) || 0);
   const valInt = (key: string) => unknowns.has(key) ? null : (parseInt((formData as any)[key]) || 0);
+  const valNullable = (key: string) => {
+    if (unknowns.has(key)) return null;
+    const v = parseFloat((formData as any)[key]);
+    return isNaN(v) ? null : v;
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -165,8 +208,28 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
           goal_revenue_monthly: val("goalRevenueMonthly"),
           goal_timeframe: formData.goalTimeframe || null,
           primary_goal: formData.primaryGoal || null,
+          // Phase 1 KPIs from CSV
+          total_customers: valNullable("totalCustomers"),
+          existing_customers: valNullable("existingCustomers"),
+          new_customers_monthly: valNullable("newCustomersMonthly"),
+          new_customer_volume: valNullable("newCustomerVolume"),
+          existing_customer_volume: valNullable("existingCustomerVolume"),
+          order_volume_monthly: totalOrderVolume > 0 ? totalOrderVolume : valNullable("orderVolumeMonthly"),
+          payment_default_rate: valNullable("paymentDefaultRate"),
+          aov_new_customer: valNullable("aovNewCustomer"),
+          aov_existing_customer: valNullable("aovExistingCustomer"),
+          ltv_avg_customer: valNullable("ltvAvgCustomer"),
+          commission_rate_actual: valNullable("commissionRateActual"),
+          commission_rate_target: valNullable("commissionRateTarget"),
+          sales_side_costs: valNullable("salesSideCosts"),
+          sales_gross_salary: valNullable("salesGrossSalary"),
+          fulfillment_gross_salary: valNullable("fulfillmentGrossSalary"),
+          fulfillment_tool_costs: valNullable("fulfillmentToolCosts"),
+          cac_actual: valNullable("cacActual"),
+          cac_target: valNullable("cacTarget"),
+          cost_per_customer_fulfillment: valNullable("costPerCustomerFulfillment"),
           onboarding_completed: true,
-        })
+        } as any)
         .select()
         .single();
 
@@ -193,47 +256,11 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
 
   const progress = ((step + 1) / STEPS.length) * 100;
 
-  /** Number input with optional "Weiß ich nicht" checkbox */
-  const numField = (label: string, key: string, placeholder: string, unit = "") => {
-    const isUnknown = unknowns.has(key);
-    return (
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <Label className="text-sm">
-            {label}
-            {unit && <span className="text-muted-foreground ml-1 font-normal">({unit})</span>}
-          </Label>
-          <button
-            type="button"
-            onClick={() => toggleUnknown(key)}
-            className={`flex items-center gap-1 text-[11px] rounded-full px-2 py-0.5 transition-colors ${
-              isUnknown
-                ? "bg-primary/10 text-primary font-medium"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            }`}
-          >
-            <HelpCircle className="h-3 w-3" />
-            Weiß ich nicht
-          </button>
-        </div>
-        <Input
-          type="number"
-          step="any"
-          value={isUnknown ? "" : (formData as any)[key]}
-          onChange={(e) => update(key, e.target.value)}
-          placeholder={isUnknown ? "– wird übersprungen –" : placeholder}
-          disabled={isUnknown}
-          className={isUnknown ? "bg-muted/50 text-muted-foreground" : ""}
-        />
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-6">
       {/* Step indicator */}
       <div className="space-y-3">
-        <div className="flex justify-between">
+        <div className="flex justify-between flex-wrap gap-1">
           {STEPS.map((s, i) => (
             <button
               key={i}
@@ -307,7 +334,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
             <Label className="text-sm">LinkedIn-Profil-URL</Label>
             <Input type="url" value={formData.linkedinUrl} onChange={(e) => update("linkedinUrl", e.target.value)} placeholder="https://linkedin.com/in/..." />
           </div>
-          {numField("Aktuelle Follower", "linkedinFollowersCurrent", "500")}
+          <NumField label="Aktuelle Follower" fieldKey="linkedinFollowersCurrent" placeholder="500" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
           <div className="space-y-1.5">
             <Label className="text-sm">Posting-Frequenz</Label>
             <Select value={formData.postingFrequency} onValueChange={(v) => update("postingFrequency", v)}>
@@ -341,7 +368,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
             <Label className="text-sm">Was verkaufst du? (Offer)</Label>
             <Textarea value={formData.currentOffer} onChange={(e) => update("currentOffer", e.target.value)} placeholder="z.B. LinkedIn-Marketing-Paket inkl. Content, Lead-Gen, Ads..." rows={3} />
           </div>
-          {numField("Angebotspreis", "offerPrice", "3000", "€")}
+          <NumField label="Angebotspreis" fieldKey="offerPrice" placeholder="3000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
           <div className="space-y-1.5">
             <Label className="text-sm">Vertragslaufzeit</Label>
             <Select value={formData.contractDuration} onValueChange={(v) => update("contractDuration", v)}>
@@ -353,7 +380,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
               </SelectContent>
             </Select>
           </div>
-          {numField("Closing-Rate", "closingRate", "25", "%")}
+          <NumField label="Closing-Rate" fieldKey="closingRate" placeholder="25" unit="%" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
         </div>
       )}
 
@@ -362,12 +389,11 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Monatliche Finanzen</h3>
 
-          {/* Einnahmen */}
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">💰 Einnahmen</p>
             <div className="grid grid-cols-2 gap-3">
-              {numField("Wiederkehrend", "revenueRecurring", "10000", "€/Monat")}
-              {numField("Einmalig", "revenueOnetime", "5000", "€/Monat")}
+              <NumField label="Wiederkehrend" fieldKey="revenueRecurring" placeholder="10000" unit="€/Monat" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Einmalig" fieldKey="revenueOnetime" placeholder="5000" unit="€/Monat" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
             </div>
             <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/40">
               <span>Gesamt-Einnahmen</span>
@@ -375,15 +401,14 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
             </div>
           </div>
 
-          {/* Ausgaben */}
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📤 Ausgaben</p>
             <div className="grid grid-cols-2 gap-3">
-              {numField("Ads / Werbung", "adsSpendMonthly", "2000", "€")}
-              {numField("Tools & Software", "toolsCostsMonthly", "500", "€")}
-              {numField("Personal", "personnelCostsMonthly", "3000", "€")}
-              {numField("Delivery / Fulfillment", "deliveryCostsMonthly", "1000", "€")}
-              {numField("Sonstige Kosten", "otherCostsMonthly", "500", "€")}
+              <NumField label="Ads / Werbung" fieldKey="adsSpendMonthly" placeholder="2000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Tools & Software" fieldKey="toolsCostsMonthly" placeholder="500" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Personal" fieldKey="personnelCostsMonthly" placeholder="3000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Delivery / Fulfillment" fieldKey="deliveryCostsMonthly" placeholder="1000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Sonstige Kosten" fieldKey="otherCostsMonthly" placeholder="500" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
             </div>
             <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/40">
               <span>Gesamt-Ausgaben</span>
@@ -391,7 +416,6 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
             </div>
           </div>
 
-          {/* Auto-berechnete Werte */}
           <div className="p-3 rounded-lg border-2 border-primary/20 bg-primary/5 space-y-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📊 Automatisch berechnet</p>
             <div className="grid grid-cols-3 gap-4 text-center">
@@ -418,8 +442,84 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         </div>
       )}
 
-      {/* Step 4: KPIs */}
+      {/* Step 4: Kunden (aus KPI-Sheet) */}
       {step === 4 && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Kundenstamm & Volumen</h3>
+          <p className="text-sm text-muted-foreground">Aktueller Stand – Schätzwerte reichen.</p>
+
+          <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">👥 Kundenanzahl</p>
+            <div className="grid grid-cols-3 gap-3">
+              <NumField label="Gesamtkunden" fieldKey="totalCustomers" placeholder="6" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Bestandskunden" fieldKey="existingCustomers" placeholder="4" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Neukunden / Monat" fieldKey="newCustomersMonthly" placeholder="2" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+            </div>
+          </div>
+
+          <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">💶 Auftragsvolumen</p>
+            <div className="grid grid-cols-2 gap-3">
+              <NumField label="Neukundenvolumen" fieldKey="newCustomerVolume" placeholder="9000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Bestandskundenvolumen" fieldKey="existingCustomerVolume" placeholder="2500" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+            </div>
+            {totalOrderVolume > 0 && (
+              <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/40">
+                <span>Auftragsvolumen gesamt</span>
+                <span className="text-primary font-bold">{totalOrderVolume.toLocaleString("de-DE")} €</span>
+              </div>
+            )}
+          </div>
+
+          <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📊 Durchschnittswerte (AOV / LTV)</p>
+            <div className="grid grid-cols-3 gap-3">
+              <NumField label="AOV Neukunde" fieldKey="aovNewCustomer" placeholder="3000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="AOV Bestandskunde" fieldKey="aovExistingCustomer" placeholder="833" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="LTV Ø-Kundenwert" fieldKey="ltvAvgCustomer" placeholder="2700" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+            </div>
+          </div>
+
+          <NumField label="Zahlungsausfallquote" fieldKey="paymentDefaultRate" placeholder="10" unit="%" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+        </div>
+      )}
+
+      {/* Step 5: Vertrieb & Kosten (aus KPI-Sheet) */}
+      {step === 5 && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Vertrieb & Kosten</h3>
+
+          <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">💰 Provisionen</p>
+            <div className="grid grid-cols-2 gap-3">
+              <NumField label="Provisionssatz IST" fieldKey="commissionRateActual" placeholder="0" unit="%" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Provisionssatz SOLL" fieldKey="commissionRateTarget" placeholder="17.5" unit="%" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+            </div>
+          </div>
+
+          <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">🏢 Personalkosten</p>
+            <div className="grid grid-cols-2 gap-3">
+              <NumField label="Bruttogehalt Vertrieb" fieldKey="salesGrossSalary" placeholder="1175" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Nebenkosten Vertrieb" fieldKey="salesSideCosts" placeholder="130" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Bruttogehalt Fulfillment" fieldKey="fulfillmentGrossSalary" placeholder="1175" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Tools Fulfillment" fieldKey="fulfillmentToolCosts" placeholder="1537" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+            </div>
+          </div>
+
+          <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">🎯 Customer Acquisition Costs (CAC)</p>
+            <div className="grid grid-cols-2 gap-3">
+              <NumField label="CAC IST" fieldKey="cacActual" placeholder="864" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="CAC SOLL" fieldKey="cacTarget" placeholder="1680" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+            </div>
+            <NumField label="Kosten / Kunde (Fulfillment)" fieldKey="costPerCustomerFulfillment" placeholder="550" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+          </div>
+        </div>
+      )}
+
+      {/* Step 6: KPIs */}
+      {step === 6 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Aktuelle Kennzahlen</h3>
           <p className="text-sm text-muted-foreground">Schätzwerte reichen – oder klicke „Weiß ich nicht".</p>
@@ -427,26 +527,26 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📈 Performance</p>
             <div className="grid grid-cols-2 gap-3">
-              {numField("Leads / Monat", "currentLeadsPerMonth", "20")}
-              {numField("Gesamtumsatz / Monat", "currentRevenueMonthly", "15000", "€")}
-              {numField("Conversion-Rate", "currentConversionRate", "2.5", "%")}
-              {numField("Marketingbudget", "monthlyBudget", "5000", "€")}
+              <NumField label="Leads / Monat" fieldKey="currentLeadsPerMonth" placeholder="20" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Gesamtumsatz / Monat" fieldKey="currentRevenueMonthly" placeholder="15000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Conversion-Rate" fieldKey="currentConversionRate" placeholder="2.5" unit="%" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Marketingbudget" fieldKey="monthlyBudget" placeholder="5000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
             </div>
           </div>
 
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">💲 Stückkosten</p>
             <div className="grid grid-cols-3 gap-3">
-              {numField("Kosten / Lead", "costPerLead", "50", "€")}
-              {numField("Kosten / Termin", "costPerAppointment", "150", "€")}
-              {numField("Kosten / Kunde", "costPerCustomer", "500", "€")}
+              <NumField label="Kosten / Lead" fieldKey="costPerLead" placeholder="50" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Kosten / Termin" fieldKey="costPerAppointment" placeholder="150" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Kosten / Kunde" fieldKey="costPerCustomer" placeholder="500" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
             </div>
           </div>
         </div>
       )}
 
-      {/* Step 5: Ziele */}
-      {step === 5 && (
+      {/* Step 7: Ziele */}
+      {step === 7 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Ziele & Erwartungen</h3>
           <div className="space-y-1.5">
@@ -461,8 +561,8 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            {numField("Ziel-Leads / Monat", "goalLeadsMonthly", "50")}
-            {numField("Ziel-Umsatz / Monat", "goalRevenueMonthly", "25000", "€")}
+            <NumField label="Ziel-Leads / Monat" fieldKey="goalLeadsMonthly" placeholder="50" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+            <NumField label="Ziel-Umsatz / Monat" fieldKey="goalRevenueMonthly" placeholder="25000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">Zeitrahmen</Label>
@@ -495,6 +595,53 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
           </Button>
         )}
       </div>
+    </div>
+  );
+}
+
+// Standalone NumField to prevent focus loss on re-render
+function NumField({
+  label, fieldKey, placeholder, unit, formData, unknowns, update, toggleUnknown
+}: {
+  label: string;
+  fieldKey: string;
+  placeholder: string;
+  unit?: string;
+  formData: Record<string, string>;
+  unknowns: Set<string>;
+  update: (key: string, value: string) => void;
+  toggleUnknown: (key: string) => void;
+}) {
+  const isUnknown = unknowns.has(fieldKey);
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm">
+          {label}
+          {unit && <span className="text-muted-foreground ml-1 font-normal">({unit})</span>}
+        </Label>
+        <button
+          type="button"
+          onClick={() => toggleUnknown(fieldKey)}
+          className={`flex items-center gap-1 text-[11px] rounded-full px-2 py-0.5 transition-colors ${
+            isUnknown
+              ? "bg-primary/10 text-primary font-medium"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          }`}
+        >
+          <HelpCircle className="h-3 w-3" />
+          Weiß ich nicht
+        </button>
+      </div>
+      <Input
+        type="number"
+        step="any"
+        value={isUnknown ? "" : formData[fieldKey]}
+        onChange={(e) => update(fieldKey, e.target.value)}
+        placeholder={isUnknown ? "– wird übersprungen –" : placeholder}
+        disabled={isUnknown}
+        className={isUnknown ? "bg-muted/50 text-muted-foreground" : ""}
+      />
     </div>
   );
 }
