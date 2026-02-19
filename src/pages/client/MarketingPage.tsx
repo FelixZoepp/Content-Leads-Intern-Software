@@ -2,7 +2,7 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { ClientMetricsCards } from "@/components/client/ClientMetricsCards";
 import { KPIInsights } from "@/components/dashboard/KPIInsights";
 import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
-import { ClientCharts } from "@/components/client/ClientCharts";
+import { MarketingCharts } from "@/components/client/MarketingCharts";
 
 export default function MarketingPage() {
   const { metrics, timeRange, setTimeRange } = useDashboardData();
@@ -14,8 +14,8 @@ export default function MarketingPage() {
         <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
       </div>
       <ClientMetricsCards metrics={metrics} timeRange={timeRange} />
+      <MarketingCharts metrics={metrics} timeRange={timeRange} />
       <KPIInsights metrics={metrics} />
-      <ClientCharts metrics={metrics} timeRange={timeRange} />
     </div>
   );
 }
