@@ -13,7 +13,29 @@ interface Props {
   tenantId: string;
 }
 
-const monthLabel = (d: string) => new Date(d).toLocaleDateString("de-DE", { month: "long", year: "numeric" });
+// Get Monday of current week
+function getMonday(d: Date): Date {
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const mon = new Date(d);
+  mon.setDate(diff);
+  return mon;
+}
+
+function weekLabel(mondayStr: string): string {
+  const mon = new Date(mondayStr);
+  const sun = new Date(mondayStr);
+  sun.setDate(sun.getDate() + 6);
+  const fmt = (d: Date) => d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+  return `KW ${getKW(mon)} · ${fmt(mon)}–${fmt(sun)} ${sun.getFullYear()}`;
+}
+
+function getKW(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+}
 
 export function FinancialTracker({ tenantId }: Props) {
   const { toast } = useToast();
@@ -22,8 +44,10 @@ export function FinancialTracker({ tenantId }: Props) {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(
-    new Date().toISOString().slice(0, 7) + "-01"
+
+  // Store as Monday of current week
+  const [currentWeek, setCurrentWeek] = useState(
+    getMonday(new Date()).toISOString().slice(0, 10)
   );
 
   const [form, setForm] = useState({
@@ -42,7 +66,7 @@ export function FinancialTracker({ tenantId }: Props) {
     notes: "",
   });
 
-  useEffect(() => { loadData(); }, [tenantId, currentMonth]);
+  useEffect(() => { loadData(); }, [tenantId, currentWeek]);
 
   const loadData = async () => {
     setLoading(true);
@@ -50,13 +74,13 @@ export function FinancialTracker({ tenantId }: Props) {
       .from("financial_tracking")
       .select("*")
       .eq("tenant_id", tenantId)
-      .eq("period_month", currentMonth)
+      .eq("period_month", currentWeek)
       .maybeSingle();
 
-    // Previous month for comparison
-    const prevMonth = new Date(currentMonth);
-    prevMonth.setMonth(prevMonth.getMonth() - 1);
-    const prevStr = prevMonth.toISOString().slice(0, 10);
+    // Previous week for comparison
+    const prevMon = new Date(currentWeek);
+    prevMon.setDate(prevMon.getDate() - 7);
+    const prevStr = prevMon.toISOString().slice(0, 10);
     const { data: prev } = await supabase
       .from("financial_tracking")
       .select("*")
@@ -110,17 +134,17 @@ export function FinancialTracker({ tenantId }: Props) {
        (parseFloat(prevData.costs_personnel) || 0) + (parseFloat(prevData.costs_other) || 0))
     : null;
 
-  const navigateMonth = (dir: number) => {
-    const d = new Date(currentMonth);
-    d.setMonth(d.getMonth() + dir);
-    setCurrentMonth(d.toISOString().slice(0, 10));
+  const navigateWeek = (dir: number) => {
+    const d = new Date(currentWeek);
+    d.setDate(d.getDate() + dir * 7);
+    setCurrentWeek(d.toISOString().slice(0, 10));
   };
 
   const handleSave = async () => {
     setSaving(true);
     const payload: any = {
       tenant_id: tenantId,
-      period_month: currentMonth,
+      period_month: currentWeek,
       ...form,
     };
 
@@ -132,7 +156,7 @@ export function FinancialTracker({ tenantId }: Props) {
     if (error) {
       toast({ title: "Fehler", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Gespeichert ✓", description: `Finanzen für ${monthLabel(currentMonth)} gespeichert` });
+      toast({ title: "Gespeichert ✓", description: `Finanzen für ${weekLabel(currentWeek)} gespeichert` });
       setEditing(false);
       loadData();
     }
@@ -150,11 +174,11 @@ export function FinancialTracker({ tenantId }: Props) {
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">💰 Finanzen</CardTitle>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateMonth(-1)}>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateWeek(-1)}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <span className="text-sm font-medium min-w-[120px] text-center">{monthLabel(currentMonth)}</span>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateMonth(1)}>
+              <span className="text-sm font-medium min-w-[160px] text-center">{weekLabel(currentWeek)}</span>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateWeek(1)}>
                 <ArrowRight className="h-4 w-4" />
               </Button>
               <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
@@ -228,14 +252,14 @@ export function FinancialTracker({ tenantId }: Props) {
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg">💰 Finanzen – {monthLabel(currentMonth)}</CardTitle>
-            <CardDescription>Einnahmen, Kosten, Rechnungen und Cashflow</CardDescription>
+            <CardTitle className="text-lg">💰 Finanzen – {weekLabel(currentWeek)}</CardTitle>
+            <CardDescription>Wöchentliche Einnahmen, Kosten, Rechnungen und Cashflow</CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateMonth(-1)}>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateWeek(-1)}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateMonth(1)}>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateWeek(1)}>
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>

@@ -3,7 +3,7 @@ import { ClientMetricsCards } from "@/components/client/ClientMetricsCards";
 import { KPIInsights } from "@/components/dashboard/KPIInsights";
 import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
 import { MarketingCharts } from "@/components/client/MarketingCharts";
-import { KPIEntryForm } from "@/components/dashboard/KPIEntryForm";
+import { MarketingKPIEntry } from "@/components/dashboard/MarketingKPIEntry";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, PlusCircle } from "lucide-react";
 
@@ -36,7 +36,7 @@ export default function MarketingPage() {
         </TabsContent>
 
         <TabsContent value="entry" className="mt-4">
-          <KPIEntryForm tenantId={tenantId} onEntryAdded={reload} />
+          <MarketingKPIEntry tenantId={tenantId} onEntryAdded={reload} />
         </TabsContent>
       </Tabs>
     </div>
