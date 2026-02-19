@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, TrendingUp, Star, Search, ArrowUpDown, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AlertTriangle, TrendingUp, Star, Search, ArrowUpDown, Info, ChevronRight } from "lucide-react";
 import { CustomerEntryForm, type CustomerEntry } from "@/components/admin/CustomerEntryForm";
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -94,6 +95,53 @@ function detectStrengths(c: typeof RAW_CUSTOMERS[0]): string[] {
   return strengths;
 }
 
+type Recommendation = { action: string; priority: "hoch" | "mittel" | "info"; reason: string };
+
+// Generate concrete advisor recommendations per customer
+function detectRecommendations(c: typeof RAW_CUSTOMERS[0]): Recommendation[] {
+  const recs: Recommendation[] = [];
+  const months = durationMonths(c.duration);
+
+  // Churn risk checks
+  if (months <= 1 && c.cltv < 4000) {
+    recs.push({ action: "Churnrisiko prüfen", priority: "hoch", reason: "Kurze Laufzeit + niedriger CLTV = hohes Absprungrisiko. Gespräch zur Verlängerung führen." });
+  }
+  if (c.salesCycleDays > 60) {
+    recs.push({ action: "Qualifizierung prüfen", priority: "hoch", reason: "Sehr langer Sales-Cycle deutet auf Entscheidungsunsicherheit oder fehlenden Fit hin." });
+  }
+  if (c.pages <= 1 && c.source === "Ads") {
+    recs.push({ action: "Churnrisiko prüfen", priority: "hoch", reason: "Ads-Kunden mit 1 Seite churnen am häufigsten. Engagement-Check jetzt." });
+  }
+
+  // Upsell opportunities
+  if (c.pages < 5 && c.cltv >= 5000) {
+    recs.push({ action: "Upsell ansprechen", priority: "mittel", reason: `Nur ${c.pages} Seiten gebucht, aber CLTV ${c.cltv.toLocaleString("de-DE")}€ – Potenzial für mehr Seiten/Pakete vorhanden.` });
+  }
+  if (c.pages <= 1 && c.size >= 5) {
+    recs.push({ action: "Upsell ansprechen", priority: "mittel", reason: `Betrieb mit ${c.size} MA, aber nur 1 Seite. Weitere LinkedIn-Präsenz anbieten.` });
+  }
+
+  // Renewal opportunities
+  if (months >= 4 && months < 12) {
+    recs.push({ action: "Verlängerung initiieren", priority: "mittel", reason: `Vertrag läuft ${c.duration}. Jetzt Verlängerung auf Jahresbasis ansprechen (+LTV).` });
+  }
+  if (months === 12 && c.cohort === "früh") {
+    recs.push({ action: "Verlängerung initiieren", priority: "hoch", reason: "Jahresvertrag aus früher Kohorte – Renewal-Gespräch dringend einleiten." });
+  }
+
+  // Reference / referral
+  if (c.cltv >= 7000 && c.source !== "Empfehlung") {
+    recs.push({ action: "Empfehlung anfragen", priority: "info", reason: `Top-Kunde (${c.cltv.toLocaleString("de-DE")}€ CLTV) – ideal für eine Testimonial- oder Empfehlungsanfrage.` });
+  }
+
+  // No problems, keep nurturing
+  if (recs.length === 0) {
+    recs.push({ action: "Status halten", priority: "info", reason: "Kunde läuft stabil. Regelmäßiges Check-in empfehlen um Zufriedenheit zu sichern." });
+  }
+
+  return recs;
+}
+
 type SortKey = "score" | "cltv" | "pages" | "salesCycleDays" | "name";
 
 const FOCUS_COLORS: Record<string, string> = {
@@ -127,6 +175,7 @@ export function CustomerAnalysisTable() {
       score: computeScore(c),
       problems: detectProblems(c),
       strengths: detectStrengths(c),
+      recommendations: detectRecommendations(c),
     })), [allCustomers]);
 
   const handleAddCustomer = (entry: CustomerEntry) => {
@@ -301,6 +350,7 @@ export function CustomerAnalysisTable() {
                   <Th label="Score" k="score" />
                   <th className="p-2 text-center font-semibold">Fokus</th>
                   <th className="p-2 text-left font-semibold min-w-48">Stärken / Probleme</th>
+                  <th className="p-2 text-left font-semibold min-w-52">Empfehlungen</th>
                 </tr>
               </thead>
               <tbody>
@@ -369,6 +419,32 @@ export function CustomerAnalysisTable() {
                             </span>
                           ))}
                         </div>
+                      </td>
+                      <td className="p-2">
+                        <TooltipProvider delayDuration={100}>
+                          <div className="flex flex-col gap-1">
+                            {c.recommendations.map((rec, ri) => (
+                              <Tooltip key={ri}>
+                                <TooltipTrigger asChild>
+                                  <div className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full border cursor-help font-medium w-fit ${
+                                    rec.priority === "hoch"
+                                      ? "bg-destructive/10 text-destructive border-destructive/30"
+                                      : rec.priority === "mittel"
+                                      ? "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30"
+                                      : "bg-muted text-muted-foreground border-border/40"
+                                  }`}>
+                                    <ChevronRight className="h-2.5 w-2.5 shrink-0" />
+                                    {rec.action}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="left" className="max-w-64 text-xs">
+                                  <p className="font-semibold mb-0.5">{rec.action}</p>
+                                  <p className="text-muted-foreground">{rec.reason}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            ))}
+                          </div>
+                        </TooltipProvider>
                       </td>
                     </tr>
                   );
