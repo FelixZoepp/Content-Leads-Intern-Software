@@ -129,27 +129,40 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const profit = totalRevenue - totalCosts;
   const marginPercent = totalRevenue > 0 ? ((profit / totalRevenue) * 100) : 0;
 
+  // AOV Neukunde: auto aus Angebotspreis (Step 2), überschreibbar
+  const aovNewAuto = useMemo(() => {
+    const manual = parseFloat(formData.aovNewCustomer);
+    if (!isNaN(manual) && formData.aovNewCustomer !== "") return manual;
+    return parseFloat(formData.offerPrice) || 0;
+  }, [formData.aovNewCustomer, formData.offerPrice]);
+
+  // AOV Bestandskunde: auto aus MRR ÷ Bestandskunden, überschreibbar
+  const aovExistingAuto = useMemo(() => {
+    const manual = parseFloat(formData.aovExistingCustomer);
+    if (!isNaN(manual) && formData.aovExistingCustomer !== "") return manual;
+    const mrr = parseFloat(formData.revenueRecurring) || 0;
+    const existing = parseFloat(formData.existingCustomers) || 0;
+    return mrr > 0 && existing > 0 ? Math.round(mrr / existing) : 0;
+  }, [formData.aovExistingCustomer, formData.revenueRecurring, formData.existingCustomers]);
+
   // Auftragsvolumen = AOV × Kundenanzahl
   const newCustomerVolume = useMemo(() => {
-    const aov = parseFloat(formData.aovNewCustomer) || 0;
     const count = parseFloat(formData.newCustomersMonthly) || 0;
-    return aov > 0 && count > 0 ? aov * count : 0;
-  }, [formData.aovNewCustomer, formData.newCustomersMonthly]);
+    return aovNewAuto > 0 && count > 0 ? aovNewAuto * count : 0;
+  }, [aovNewAuto, formData.newCustomersMonthly]);
 
   const existingCustomerVolume = useMemo(() => {
-    const aov = parseFloat(formData.aovExistingCustomer) || 0;
     const count = parseFloat(formData.existingCustomers) || 0;
-    return aov > 0 && count > 0 ? aov * count : 0;
-  }, [formData.aovExistingCustomer, formData.existingCustomers]);
+    return aovExistingAuto > 0 && count > 0 ? aovExistingAuto * count : 0;
+  }, [aovExistingAuto, formData.existingCustomers]);
 
   const totalOrderVolume = newCustomerVolume + existingCustomerVolume;
 
-  // LTV = AOV Neukunde × Laufzeit in Monaten
+  // LTV = AOV Neukunde (auto) × Laufzeit in Monaten
   const ltvCalculated = useMemo(() => {
-    const aov = parseFloat(formData.aovNewCustomer) || 0;
     const months = parseFloat(formData.contractDurationMonths) || 0;
-    return aov > 0 && months > 0 ? aov * months : 0;
-  }, [formData.aovNewCustomer, formData.contractDurationMonths]);
+    return aovNewAuto > 0 && months > 0 ? aovNewAuto * months : 0;
+  }, [aovNewAuto, formData.contractDurationMonths]);
 
   // CAC = Gesamtkosten / Neukunden pro Monat
   const cacCalculated = useMemo(() => {
@@ -224,8 +237,8 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         total_customers: valNullable("totalCustomers"),
         existing_customers: valNullable("existingCustomers"),
         new_customers_monthly: valNullable("newCustomersMonthly"),
-        aov_new_customer: valNullable("aovNewCustomer"),
-        aov_existing_customer: valNullable("aovExistingCustomer"),
+        aov_new_customer: aovNewAuto > 0 ? aovNewAuto : null,
+        aov_existing_customer: aovExistingAuto > 0 ? aovExistingAuto : null,
         new_customer_volume: newCustomerVolume > 0 ? newCustomerVolume : null,
         existing_customer_volume: existingCustomerVolume > 0 ? existingCustomerVolume : null,
         order_volume_monthly: totalOrderVolume > 0 ? totalOrderVolume : null,
@@ -501,21 +514,69 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
 
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">💶 Ø-Auftragswert (AOV, Netto)</p>
-            <div className="grid grid-cols-2 gap-3">
-              <NumField label="AOV Neukunde" fieldKey="aovNewCustomer" placeholder="3000" unit="€ netto" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-              <NumField label="AOV Bestandskunde / Mo." fieldKey="aovExistingCustomer" placeholder="833" unit="€ netto" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+            <p className="text-xs text-muted-foreground">Wird automatisch aus Angebotspreis & MRR berechnet – optional überschreibbar.</p>
+
+            {/* AOV Neukunde: auto aus offerPrice */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">
+                  AOV Neukunde <span className="text-muted-foreground font-normal text-xs">(€ netto)</span>
+                </label>
+                {!formData.aovNewCustomer && aovNewAuto > 0 && (
+                  <span className="text-[11px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                    Auto: {aovNewAuto.toLocaleString("de-DE")} € (= Angebotspreis)
+                  </span>
+                )}
+              </div>
+              <input
+                type="number"
+                step="any"
+                value={formData.aovNewCustomer}
+                onChange={e => update("aovNewCustomer", e.target.value)}
+                placeholder={aovNewAuto > 0 ? String(aovNewAuto) : "3000"}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+              {!formData.aovNewCustomer && aovNewAuto > 0 && (
+                <p className="text-[10px] text-muted-foreground">Aus Schritt 2 (Angebotspreis). Hier überschreiben falls abweichend.</p>
+              )}
             </div>
+
+            {/* AOV Bestandskunde: auto aus MRR ÷ Bestandskunden */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">
+                  AOV Bestandskunde / Mo. <span className="text-muted-foreground font-normal text-xs">(€ netto)</span>
+                </label>
+                {!formData.aovExistingCustomer && aovExistingAuto > 0 && (
+                  <span className="text-[11px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                    Auto: {aovExistingAuto.toLocaleString("de-DE")} € (MRR ÷ Kunden)
+                  </span>
+                )}
+              </div>
+              <input
+                type="number"
+                step="any"
+                value={formData.aovExistingCustomer}
+                onChange={e => update("aovExistingCustomer", e.target.value)}
+                placeholder={aovExistingAuto > 0 ? String(aovExistingAuto) : "833"}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+              {!formData.aovExistingCustomer && aovExistingAuto > 0 && (
+                <p className="text-[10px] text-muted-foreground">Aus MRR ({formData.revenueRecurring}€) ÷ Bestandskunden ({formData.existingCustomers}). Hier überschreiben falls abweichend.</p>
+              )}
+            </div>
+
             {(newCustomerVolume > 0 || existingCustomerVolume > 0) && (
               <div className="pt-1 border-t border-border/40 space-y-1">
                 {newCustomerVolume > 0 && (
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Neukundenvolumen ({formData.newCustomersMonthly || "?"} × {formData.aovNewCustomer || "?"}€)</span>
+                    <span>Neukundenvolumen ({formData.newCustomersMonthly || "?"} × {aovNewAuto}€)</span>
                     <span className="font-medium text-foreground">{newCustomerVolume.toLocaleString("de-DE")} €</span>
                   </div>
                 )}
                 {existingCustomerVolume > 0 && (
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Bestandskundenvolumen ({formData.existingCustomers || "?"} × {formData.aovExistingCustomer || "?"}€)</span>
+                    <span>Bestandskundenvolumen ({formData.existingCustomers || "?"} × {aovExistingAuto}€)</span>
                     <span className="font-medium text-foreground">{existingCustomerVolume.toLocaleString("de-DE")} €</span>
                   </div>
                 )}
