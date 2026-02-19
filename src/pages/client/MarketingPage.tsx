@@ -3,9 +3,12 @@ import { ClientMetricsCards } from "@/components/client/ClientMetricsCards";
 import { KPIInsights } from "@/components/dashboard/KPIInsights";
 import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
 import { MarketingCharts } from "@/components/client/MarketingCharts";
+import { KPIEntryForm } from "@/components/dashboard/KPIEntryForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BarChart3, PlusCircle } from "lucide-react";
 
 export default function MarketingPage() {
-  const { metrics, timeRange, setTimeRange } = useDashboardData();
+  const { metrics, timeRange, setTimeRange, reload, tenantId } = useDashboardData();
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -13,9 +16,29 @@ export default function MarketingPage() {
         <h2 className="text-xl font-semibold text-foreground">Marketing & LinkedIn</h2>
         <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
       </div>
-      <ClientMetricsCards metrics={metrics} timeRange={timeRange} />
-      <MarketingCharts metrics={metrics} timeRange={timeRange} />
-      <KPIInsights metrics={metrics} />
+
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList className="rounded-xl">
+          <TabsTrigger value="dashboard" className="rounded-xl gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Live-Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="entry" className="rounded-xl gap-2">
+            <PlusCircle className="h-4 w-4" />
+            KPIs erfassen
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard" className="mt-4 space-y-6">
+          <ClientMetricsCards metrics={metrics} timeRange={timeRange} />
+          <MarketingCharts metrics={metrics} timeRange={timeRange} />
+          <KPIInsights metrics={metrics} />
+        </TabsContent>
+
+        <TabsContent value="entry" className="mt-4">
+          <KPIEntryForm tenantId={tenantId} onEntryAdded={reload} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
