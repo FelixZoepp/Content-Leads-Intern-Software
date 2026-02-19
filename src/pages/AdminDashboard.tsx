@@ -8,6 +8,7 @@ import { AlertsPanel } from "@/components/admin/AlertsPanel";
 import { AdminAISummary } from "@/components/admin/AdminAISummary";
 import { AdminPortfolioTabs } from "@/components/admin/AdminPortfolioTabs";
 import { AdminCSATOverview } from "@/components/admin/AdminCSATOverview";
+import { CustomerAnalysisTable } from "@/components/admin/CustomerAnalysisTable";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Routes, Route } from "react-router-dom";
 
@@ -34,6 +35,18 @@ function AdminAISummaryPage() {
     <div className="space-y-6 max-w-6xl">
       <h2 className="text-xl font-semibold text-foreground">KI-Summary</h2>
       <AdminAISummary />
+    </div>
+  );
+}
+
+function AdminCustomerAnalysisPage() {
+  return (
+    <div className="space-y-6 max-w-7xl">
+      <div>
+        <h2 className="text-xl font-semibold text-foreground">Kundenanalyse</h2>
+        <p className="text-sm text-muted-foreground">Alle 30 Kunden – Fokus-Score, Schwachstellen & Korrelationen</p>
+      </div>
+      <CustomerAnalysisTable />
     </div>
   );
 }
@@ -110,6 +123,7 @@ export default function AdminDashboard() {
         <Route path="alerts" element={<AdminAlertsPage alerts={alerts} loadAdminData={loadAdminData} />} />
         <Route path="csat" element={<AdminCSATPage tenants={tenants} />} />
         <Route path="ai-summary" element={<AdminAISummaryPage />} />
+        <Route path="customer-analysis" element={<AdminCustomerAnalysisPage />} />
       </Routes>
     </DashboardLayout>
   );
