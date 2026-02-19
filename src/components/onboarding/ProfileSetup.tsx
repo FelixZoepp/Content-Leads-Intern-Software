@@ -51,43 +51,39 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     offerPrice: "",
     contractDuration: "",
     closingRate: "",
-    // Step 3: Finanzen
-    revenueRecurring: "",
-    revenueOnetime: "",
-    currentRevenueMonthly: "",
+    // Step 3: Finanzen (alle Netto)
+    revenueRecurring: "",      // MRR Netto
+    revenueOnetime: "",        // Einmalzahlungen Netto
     adsSpendMonthly: "",
     toolsCostsMonthly: "",
     personnelCostsMonthly: "",
     deliveryCostsMonthly: "",
     otherCostsMonthly: "",
-    // Step 4: Kunden (aus CSV)
+    // Step 4: Kunden
     totalCustomers: "",
     existingCustomers: "",
     newCustomersMonthly: "",
-    newCustomerVolume: "",
-    existingCustomerVolume: "",
-    orderVolumeMonthly: "",
+    aovNewCustomer: "",         // AOV Neukunde → newCustomerVolume wird auto-berechnet
+    aovExistingCustomer: "",    // AOV Bestandskunde → existingCustomerVolume wird auto-berechnet
     paymentDefaultRate: "",
-    aovNewCustomer: "",
-    aovExistingCustomer: "",
-    ltvAvgCustomer: "",
-    // Step 5: Vertrieb / Kosten (aus CSV)
+    // LTV wird auto-berechnet: AOV × Laufzeit-Monate
+    contractDurationMonths: "",  // für LTV-Berechnung
+    // Step 5: Vertrieb & Kosten
     commissionRateActual: "",
     commissionRateTarget: "",
-    salesSideCosts: "",
     salesGrossSalary: "",
+    salesSideCosts: "",
     fulfillmentGrossSalary: "",
     fulfillmentToolCosts: "",
-    cacActual: "",
+    // CAC wird auto-berechnet: Gesamtkosten / Neukunden
     cacTarget: "",
     costPerCustomerFulfillment: "",
     // Step 6: KPIs
-    costPerLead: "",
-    costPerAppointment: "",
-    costPerCustomer: "",
     currentLeadsPerMonth: "",
     currentConversionRate: "",
     monthlyBudget: "",
+    costPerLead: "",
+    costPerAppointment: "",
     // Step 7: Ziele
     goalLeadsMonthly: "",
     goalRevenueMonthly: "",
@@ -113,7 +109,8 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     });
   };
 
-  // Auto-calculated values
+  // ── Auto-berechnete Werte ──────────────────────────────────────────────────
+
   const totalRevenue = useMemo(() => {
     const rec = parseFloat(formData.revenueRecurring) || 0;
     const one = parseFloat(formData.revenueOnetime) || 0;
@@ -132,12 +129,39 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const profit = totalRevenue - totalCosts;
   const marginPercent = totalRevenue > 0 ? ((profit / totalRevenue) * 100) : 0;
 
-  // Auto-calculated customer KPIs
-  const totalOrderVolume = useMemo(() => {
-    const newVol = parseFloat(formData.newCustomerVolume) || 0;
-    const existVol = parseFloat(formData.existingCustomerVolume) || 0;
-    return newVol + existVol;
-  }, [formData.newCustomerVolume, formData.existingCustomerVolume]);
+  // Auftragsvolumen = AOV × Kundenanzahl
+  const newCustomerVolume = useMemo(() => {
+    const aov = parseFloat(formData.aovNewCustomer) || 0;
+    const count = parseFloat(formData.newCustomersMonthly) || 0;
+    return aov > 0 && count > 0 ? aov * count : 0;
+  }, [formData.aovNewCustomer, formData.newCustomersMonthly]);
+
+  const existingCustomerVolume = useMemo(() => {
+    const aov = parseFloat(formData.aovExistingCustomer) || 0;
+    const count = parseFloat(formData.existingCustomers) || 0;
+    return aov > 0 && count > 0 ? aov * count : 0;
+  }, [formData.aovExistingCustomer, formData.existingCustomers]);
+
+  const totalOrderVolume = newCustomerVolume + existingCustomerVolume;
+
+  // LTV = AOV Neukunde × Laufzeit in Monaten
+  const ltvCalculated = useMemo(() => {
+    const aov = parseFloat(formData.aovNewCustomer) || 0;
+    const months = parseFloat(formData.contractDurationMonths) || 0;
+    return aov > 0 && months > 0 ? aov * months : 0;
+  }, [formData.aovNewCustomer, formData.contractDurationMonths]);
+
+  // CAC = Gesamtkosten / Neukunden pro Monat
+  const cacCalculated = useMemo(() => {
+    const costs = totalCosts;
+    const sales = parseFloat(formData.salesGrossSalary) || 0;
+    const salesSide = parseFloat(formData.salesSideCosts) || 0;
+    const fulfillment = parseFloat(formData.fulfillmentGrossSalary) || 0;
+    const fulfTools = parseFloat(formData.fulfillmentToolCosts) || 0;
+    const allCosts = costs + sales + salesSide + fulfillment + fulfTools;
+    const newCusts = parseFloat(formData.newCustomersMonthly) || 0;
+    return allCosts > 0 && newCusts > 0 ? Math.round(allCosts / newCusts) : 0;
+  }, [totalCosts, formData.salesGrossSalary, formData.salesSideCosts, formData.fulfillmentGrossSalary, formData.fulfillmentToolCosts, formData.newCustomersMonthly]);
 
   const canNext = () => {
     if (step === 0) return formData.companyName.trim().length > 0;
@@ -190,44 +214,51 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
           offer_price: val("offerPrice"),
           contract_duration: formData.contractDuration || null,
           closing_rate: val("closingRate"),
+          // Finanzen: nur Netto
           revenue_recurring: val("revenueRecurring"),
           revenue_onetime: val("revenueOnetime"),
-          current_revenue_monthly: val("currentRevenueMonthly"),
+          current_revenue_monthly: totalRevenue > 0 ? totalRevenue : null,
           ads_spend_monthly: val("adsSpendMonthly"),
           tools_costs_monthly: val("toolsCostsMonthly"),
           personnel_costs_monthly: val("personnelCostsMonthly"),
           delivery_costs_monthly: val("deliveryCostsMonthly"),
           other_costs_monthly: val("otherCostsMonthly"),
+          // Marge auto
+          margin_percent: totalRevenue > 0 ? Math.round(marginPercent * 10) / 10 : null,
+          // KPIs
           cost_per_lead: val("costPerLead"),
           cost_per_appointment: val("costPerAppointment"),
           cost_per_customer: val("costPerCustomer"),
-          margin_percent: totalRevenue > 0 ? Math.round(marginPercent * 10) / 10 : null,
           current_leads_per_month: valInt("currentLeadsPerMonth"),
           current_conversion_rate: val("currentConversionRate"),
+          // Kunden (mit auto-berechneten Werten)
+          total_customers: valNullable("totalCustomers"),
+          existing_customers: valNullable("existingCustomers"),
+          new_customers_monthly: valNullable("newCustomersMonthly"),
+          aov_new_customer: valNullable("aovNewCustomer"),
+          aov_existing_customer: valNullable("aovExistingCustomer"),
+          new_customer_volume: newCustomerVolume > 0 ? newCustomerVolume : null,
+          existing_customer_volume: existingCustomerVolume > 0 ? existingCustomerVolume : null,
+          order_volume_monthly: totalOrderVolume > 0 ? totalOrderVolume : null,
+          payment_default_rate: valNullable("paymentDefaultRate"),
+          // LTV auto-berechnet
+          ltv_avg_customer: ltvCalculated > 0 ? ltvCalculated : null,
+          // Vertrieb & Kosten
+          commission_rate_actual: valNullable("commissionRateActual"),
+          commission_rate_target: valNullable("commissionRateTarget"),
+          sales_gross_salary: valNullable("salesGrossSalary"),
+          sales_side_costs: valNullable("salesSideCosts"),
+          fulfillment_gross_salary: valNullable("fulfillmentGrossSalary"),
+          fulfillment_tool_costs: valNullable("fulfillmentToolCosts"),
+          // CAC auto-berechnet
+          cac_actual: cacCalculated > 0 ? cacCalculated : null,
+          cac_target: valNullable("cacTarget"),
+          cost_per_customer_fulfillment: valNullable("costPerCustomerFulfillment"),
+          // Ziele
           goal_leads_monthly: valInt("goalLeadsMonthly"),
           goal_revenue_monthly: val("goalRevenueMonthly"),
           goal_timeframe: formData.goalTimeframe || null,
           primary_goal: formData.primaryGoal || null,
-          // Phase 1 KPIs from CSV
-          total_customers: valNullable("totalCustomers"),
-          existing_customers: valNullable("existingCustomers"),
-          new_customers_monthly: valNullable("newCustomersMonthly"),
-          new_customer_volume: valNullable("newCustomerVolume"),
-          existing_customer_volume: valNullable("existingCustomerVolume"),
-          order_volume_monthly: totalOrderVolume > 0 ? totalOrderVolume : valNullable("orderVolumeMonthly"),
-          payment_default_rate: valNullable("paymentDefaultRate"),
-          aov_new_customer: valNullable("aovNewCustomer"),
-          aov_existing_customer: valNullable("aovExistingCustomer"),
-          ltv_avg_customer: valNullable("ltvAvgCustomer"),
-          commission_rate_actual: valNullable("commissionRateActual"),
-          commission_rate_target: valNullable("commissionRateTarget"),
-          sales_side_costs: valNullable("salesSideCosts"),
-          sales_gross_salary: valNullable("salesGrossSalary"),
-          fulfillment_gross_salary: valNullable("fulfillmentGrossSalary"),
-          fulfillment_tool_costs: valNullable("fulfillmentToolCosts"),
-          cac_actual: valNullable("cacActual"),
-          cac_target: valNullable("cacTarget"),
-          cost_per_customer_fulfillment: valNullable("costPerCustomerFulfillment"),
           onboarding_completed: true,
         } as any)
         .select()
@@ -368,7 +399,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
             <Label className="text-sm">Was verkaufst du? (Offer)</Label>
             <Textarea value={formData.currentOffer} onChange={(e) => update("currentOffer", e.target.value)} placeholder="z.B. LinkedIn-Marketing-Paket inkl. Content, Lead-Gen, Ads..." rows={3} />
           </div>
-          <NumField label="Angebotspreis" fieldKey="offerPrice" placeholder="3000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+          <NumField label="Angebotspreis (Netto)" fieldKey="offerPrice" placeholder="3000" unit="€ netto" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
           <div className="space-y-1.5">
             <Label className="text-sm">Vertragslaufzeit</Label>
             <Select value={formData.contractDuration} onValueChange={(v) => update("contractDuration", v)}>
@@ -384,69 +415,75 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         </div>
       )}
 
-      {/* Step 3: Finanzen */}
+      {/* Step 3: Finanzen – nur Netto */}
       {step === 3 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Monatliche Finanzen</h3>
+          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Monatliche Finanzen <span className="text-primary font-normal normal-case">(alle Angaben Netto)</span></h3>
 
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">💰 Einnahmen</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">💰 Einnahmen (Netto)</p>
             <div className="grid grid-cols-2 gap-3">
-              <NumField label="Wiederkehrend" fieldKey="revenueRecurring" placeholder="10000" unit="€/Monat" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-              <NumField label="Einmalig" fieldKey="revenueOnetime" placeholder="5000" unit="€/Monat" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Wiederkehrend (MRR)" fieldKey="revenueRecurring" placeholder="10000" unit="€ netto/Mo." formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Einmalig (Projekte)" fieldKey="revenueOnetime" placeholder="5000" unit="€ netto/Mo." formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
             </div>
-            <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/40">
-              <span>Gesamt-Einnahmen</span>
-              <span className="text-primary">{totalRevenue.toLocaleString("de-DE")} €</span>
-            </div>
+            {totalRevenue > 0 && (
+              <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/40">
+                <span>Gesamt-Einnahmen (Netto)</span>
+                <span className="text-primary">{totalRevenue.toLocaleString("de-DE")} €</span>
+              </div>
+            )}
           </div>
 
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📤 Ausgaben</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📤 Ausgaben (Netto)</p>
             <div className="grid grid-cols-2 gap-3">
               <NumField label="Ads / Werbung" fieldKey="adsSpendMonthly" placeholder="2000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
               <NumField label="Tools & Software" fieldKey="toolsCostsMonthly" placeholder="500" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-              <NumField label="Personal" fieldKey="personnelCostsMonthly" placeholder="3000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Personal (gesamt)" fieldKey="personnelCostsMonthly" placeholder="3000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
               <NumField label="Delivery / Fulfillment" fieldKey="deliveryCostsMonthly" placeholder="1000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
               <NumField label="Sonstige Kosten" fieldKey="otherCostsMonthly" placeholder="500" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
             </div>
-            <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/40">
-              <span>Gesamt-Ausgaben</span>
-              <span className="text-destructive">{totalCosts.toLocaleString("de-DE")} €</span>
-            </div>
+            {totalCosts > 0 && (
+              <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/40">
+                <span>Gesamt-Ausgaben</span>
+                <span className="text-destructive">{totalCosts.toLocaleString("de-DE")} €</span>
+              </div>
+            )}
           </div>
 
-          <div className="p-3 rounded-lg border-2 border-primary/20 bg-primary/5 space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📊 Automatisch berechnet</p>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-xs text-muted-foreground">Gewinn/Verlust</p>
-                <p className={`text-lg font-bold ${profit >= 0 ? "text-green-600 dark:text-green-400" : "text-destructive"}`}>
-                  {profit >= 0 ? "+" : ""}{profit.toLocaleString("de-DE")} €
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Marge</p>
-                <p className={`text-lg font-bold ${marginPercent >= 30 ? "text-green-600 dark:text-green-400" : marginPercent >= 10 ? "text-yellow-600 dark:text-yellow-400" : "text-destructive"}`}>
-                  {marginPercent.toFixed(1)}%
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Kostenquote</p>
-                <p className="text-lg font-bold text-foreground">
-                  {totalRevenue > 0 ? ((totalCosts / totalRevenue) * 100).toFixed(1) : "0"}%
-                </p>
+          {totalRevenue > 0 && (
+            <div className="p-3 rounded-lg border-2 border-primary/20 bg-primary/5 space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📊 Automatisch berechnet</p>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <p className="text-xs text-muted-foreground">Gewinn / Verlust</p>
+                  <p className={`text-lg font-bold ${profit >= 0 ? "text-green-600 dark:text-green-400" : "text-destructive"}`}>
+                    {profit >= 0 ? "+" : ""}{profit.toLocaleString("de-DE")} €
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Netto-Marge</p>
+                  <p className={`text-lg font-bold ${marginPercent >= 30 ? "text-green-600 dark:text-green-400" : marginPercent >= 10 ? "text-yellow-600 dark:text-yellow-400" : "text-destructive"}`}>
+                    {marginPercent.toFixed(1)}%
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Kostenquote</p>
+                  <p className="text-lg font-bold text-foreground">
+                    {totalRevenue > 0 ? ((totalCosts / totalRevenue) * 100).toFixed(1) : "0"}%
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
-      {/* Step 4: Kunden (aus KPI-Sheet) */}
+      {/* Step 4: Kunden – AOV-basiert, LTV auto-berechnet */}
       {step === 4 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Kundenstamm & Volumen</h3>
-          <p className="text-sm text-muted-foreground">Aktueller Stand – Schätzwerte reichen.</p>
+          <p className="text-sm text-muted-foreground">Auftragsvolumen und LTV werden automatisch berechnet.</p>
 
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">👥 Kundenanzahl</p>
@@ -458,36 +495,55 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
           </div>
 
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">💶 Auftragsvolumen</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">💶 Ø-Auftragswert (AOV, Netto)</p>
             <div className="grid grid-cols-2 gap-3">
-              <NumField label="Neukundenvolumen" fieldKey="newCustomerVolume" placeholder="9000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-              <NumField label="Bestandskundenvolumen" fieldKey="existingCustomerVolume" placeholder="2500" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="AOV Neukunde" fieldKey="aovNewCustomer" placeholder="3000" unit="€ netto" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="AOV Bestandskunde / Mo." fieldKey="aovExistingCustomer" placeholder="833" unit="€ netto" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
             </div>
-            {totalOrderVolume > 0 && (
-              <div className="flex justify-between text-sm font-medium pt-1 border-t border-border/40">
-                <span>Auftragsvolumen gesamt</span>
-                <span className="text-primary font-bold">{totalOrderVolume.toLocaleString("de-DE")} €</span>
+            {(newCustomerVolume > 0 || existingCustomerVolume > 0) && (
+              <div className="pt-1 border-t border-border/40 space-y-1">
+                {newCustomerVolume > 0 && (
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Neukundenvolumen ({formData.newCustomersMonthly || "?"} × {formData.aovNewCustomer || "?"}€)</span>
+                    <span className="font-medium text-foreground">{newCustomerVolume.toLocaleString("de-DE")} €</span>
+                  </div>
+                )}
+                {existingCustomerVolume > 0 && (
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Bestandskundenvolumen ({formData.existingCustomers || "?"} × {formData.aovExistingCustomer || "?"}€)</span>
+                    <span className="font-medium text-foreground">{existingCustomerVolume.toLocaleString("de-DE")} €</span>
+                  </div>
+                )}
+                {totalOrderVolume > 0 && (
+                  <div className="flex justify-between text-sm font-semibold pt-1 border-t border-border/40">
+                    <span>Auftragsvolumen gesamt</span>
+                    <span className="text-primary">{totalOrderVolume.toLocaleString("de-DE")} €</span>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📊 Durchschnittswerte (AOV / LTV)</p>
-            <div className="grid grid-cols-3 gap-3">
-              <NumField label="AOV Neukunde" fieldKey="aovNewCustomer" placeholder="3000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-              <NumField label="AOV Bestandskunde" fieldKey="aovExistingCustomer" placeholder="833" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-              <NumField label="LTV Ø-Kundenwert" fieldKey="ltvAvgCustomer" placeholder="2700" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-            </div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📈 LTV-Berechnung</p>
+            <p className="text-xs text-muted-foreground">LTV = AOV Neukunde × Ø Vertragslaufzeit in Monaten</p>
+            <NumField label="Ø Vertragslaufzeit" fieldKey="contractDurationMonths" placeholder="3" unit="Monate" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+            {ltvCalculated > 0 && (
+              <div className="flex justify-between text-sm font-semibold pt-1 border-t border-border/40">
+                <span>LTV (automatisch)</span>
+                <span className="text-primary">{ltvCalculated.toLocaleString("de-DE")} € / Kunde</span>
+              </div>
+            )}
           </div>
 
           <NumField label="Zahlungsausfallquote" fieldKey="paymentDefaultRate" placeholder="10" unit="%" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
         </div>
       )}
 
-      {/* Step 5: Vertrieb & Kosten (aus KPI-Sheet) */}
+      {/* Step 5: Vertrieb & Kosten – CAC auto-berechnet */}
       {step === 5 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Vertrieb & Kosten</h3>
+          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Vertrieb & Personalkosten</h3>
 
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">💰 Provisionen</p>
@@ -498,7 +554,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
           </div>
 
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">🏢 Personalkosten</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">🏢 Personalkosten (Brutto, Netto für dich als Arbeitgeber)</p>
             <div className="grid grid-cols-2 gap-3">
               <NumField label="Bruttogehalt Vertrieb" fieldKey="salesGrossSalary" placeholder="1175" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
               <NumField label="Nebenkosten Vertrieb" fieldKey="salesSideCosts" placeholder="130" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
@@ -507,12 +563,16 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
             </div>
           </div>
 
-          <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">🎯 Customer Acquisition Costs (CAC)</p>
-            <div className="grid grid-cols-2 gap-3">
-              <NumField label="CAC IST" fieldKey="cacActual" placeholder="864" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-              <NumField label="CAC SOLL" fieldKey="cacTarget" placeholder="1680" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-            </div>
+          <div className="p-3 rounded-lg border-2 border-primary/20 bg-primary/5 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">🎯 Customer Acquisition Cost (CAC)</p>
+            <p className="text-xs text-muted-foreground">CAC wird automatisch berechnet: Gesamtkosten ÷ Neukunden / Monat</p>
+            {cacCalculated > 0 && (
+              <div className="flex justify-between text-sm font-semibold">
+                <span>CAC IST (automatisch)</span>
+                <span className="text-primary">{cacCalculated.toLocaleString("de-DE")} € / Neukunde</span>
+              </div>
+            )}
+            <NumField label="CAC SOLL (Zielwert)" fieldKey="cacTarget" placeholder="1680" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
             <NumField label="Kosten / Kunde (Fulfillment)" fieldKey="costPerCustomerFulfillment" placeholder="550" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
           </div>
         </div>
@@ -528,18 +588,16 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📈 Performance</p>
             <div className="grid grid-cols-2 gap-3">
               <NumField label="Leads / Monat" fieldKey="currentLeadsPerMonth" placeholder="20" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-              <NumField label="Gesamtumsatz / Monat" fieldKey="currentRevenueMonthly" placeholder="15000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-              <NumField label="Conversion-Rate" fieldKey="currentConversionRate" placeholder="2.5" unit="%" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-              <NumField label="Marketingbudget" fieldKey="monthlyBudget" placeholder="5000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Conversion-Rate (Lead→Kunde)" fieldKey="currentConversionRate" placeholder="2.5" unit="%" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+              <NumField label="Marketingbudget / Monat" fieldKey="monthlyBudget" placeholder="5000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
             </div>
           </div>
 
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">💲 Stückkosten</p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <NumField label="Kosten / Lead" fieldKey="costPerLead" placeholder="50" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
               <NumField label="Kosten / Termin" fieldKey="costPerAppointment" placeholder="150" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-              <NumField label="Kosten / Kunde" fieldKey="costPerCustomer" placeholder="500" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
             </div>
           </div>
         </div>
@@ -562,7 +620,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <NumField label="Ziel-Leads / Monat" fieldKey="goalLeadsMonthly" placeholder="50" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-            <NumField label="Ziel-Umsatz / Monat" fieldKey="goalRevenueMonthly" placeholder="25000" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+            <NumField label="Ziel-Umsatz / Monat (Netto)" fieldKey="goalRevenueMonthly" placeholder="25000" unit="€ netto" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">Zeitrahmen</Label>
@@ -618,7 +676,7 @@ function NumField({
       <div className="flex items-center justify-between">
         <Label className="text-sm">
           {label}
-          {unit && <span className="text-muted-foreground ml-1 font-normal">({unit})</span>}
+          {unit && <span className="text-muted-foreground ml-1 font-normal text-xs">({unit})</span>}
         </Label>
         <button
           type="button"
