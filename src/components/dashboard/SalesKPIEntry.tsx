@@ -26,7 +26,7 @@ const defaultSales = {
   cash_collected: 0,
   deal_volume: 0,
   monthly_retainer: 0,
-  words_spoken: 0,
+  dms_sent: 0,
 };
 
 export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
@@ -61,7 +61,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
         cash_collected: parseFloat(String(data.cash_collected)) || 0,
         deal_volume: parseFloat(String(data.deal_volume)) || 0,
         monthly_retainer: parseFloat(String(data.monthly_retainer)) || 0,
-        words_spoken: data.words_spoken || 0,
+        dms_sent: data.dms_sent || 0,
       }));
     } else {
       setExistingId(null);
@@ -98,12 +98,11 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
       revenue: form.cash_collected,
       deal_volume: form.deal_volume,
       monthly_retainer: form.monthly_retainer,
-      words_spoken: form.words_spoken,
+      dms_sent: form.dms_sent,
     };
 
     let error;
     if (existingId) {
-      // Merge: only update sales fields, keep marketing fields intact
       ({ error } = await supabase
         .from("metrics_snapshot")
         .update(salesPayload)
@@ -154,9 +153,9 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Field id="calls_made" label="Anwahlen gemacht" value={form.calls_made} onChange={v => n("calls_made", v)} />
-              <Field id="calls_reached" label="Erreicht" value={form.calls_reached} onChange={v => n("calls_reached", v)} />
-              <Field id="calls_interested" label="Interessiert" value={form.calls_interested} onChange={v => n("calls_interested", v)} />
-              <Field id="words_spoken" label="Gesprochene Worte" value={form.words_spoken} onChange={v => n("words_spoken", v)} />
+              <Field id="calls_reached" label="Entscheider Erreicht" value={form.calls_reached} onChange={v => n("calls_reached", v)} />
+              <Field id="calls_interested" label="Gatekeeper Erreicht" value={form.calls_interested} onChange={v => n("calls_interested", v)} />
+              <Field id="appointments" label="Termine gelegt" value={form.appointments} onChange={v => n("appointments", v)} />
             </div>
             {form.calls_made > 0 && (
               <div className="flex flex-wrap gap-4 text-xs bg-muted/40 rounded-lg px-3 py-2 text-muted-foreground">
@@ -169,13 +168,13 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
           {/* Setting */}
           <section className="space-y-3">
             <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
-              <Target className="h-4 w-4" /> Setting – Terminierung
+              <Target className="h-4 w-4" /> Opening – Terminierung
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Field id="appointments" label="Termine gelegt" value={form.appointments} onChange={v => n("appointments", v)} />
-              <Field id="settings_planned" label="Settings geplant" value={form.settings_planned} onChange={v => n("settings_planned", v)} />
-              <Field id="settings_held" label="Settings stattgefunden" value={form.settings_held}
+              <Field id="settings_planned" label="Settings geplant heute" value={form.settings_planned} onChange={v => n("settings_planned", v)} />
+              <Field id="settings_held" label="Settings stattgefunden heute" value={form.settings_held}
                 onChange={v => setForm(p => ({ ...p, settings_held: Math.min(parseInt(v)||0, p.settings_planned) }))} />
+              <Field id="dms_sent" label="DMs versendet" value={form.dms_sent} onChange={v => n("dms_sent", v)} />
             </div>
             {form.settings_planned > 0 && (
               <div className="flex flex-wrap gap-4 text-xs bg-muted/40 rounded-lg px-3 py-2 text-muted-foreground">
