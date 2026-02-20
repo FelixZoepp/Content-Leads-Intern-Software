@@ -17,14 +17,15 @@ import ReportsPage from "./client/ReportsPage";
 
 function ClientDashboardInner() {
   const navigate = useNavigate();
-  const { user, tenantId } = useAuth();
+  const { user, tenantId, loading: authLoading } = useAuth();
   const { tenant, loading } = useDashboardData();
 
   useEffect(() => {
-    if (user && !tenantId) {
+    // Only redirect after auth has fully loaded to avoid race conditions
+    if (!authLoading && user && tenantId === null) {
       navigate("/onboarding");
     }
-  }, [user, tenantId]);
+  }, [user, tenantId, authLoading]);
 
   if (loading) return <DashboardSkeleton />;
 
