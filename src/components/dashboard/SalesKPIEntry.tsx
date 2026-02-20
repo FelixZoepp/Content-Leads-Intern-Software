@@ -27,6 +27,7 @@ const defaultSales = {
   deal_volume: 0,
   monthly_retainer: 0,
   dms_sent: 0,
+  words_spoken: 0, // repurposed as Gesprächszeit in Minuten
 };
 
 export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
@@ -62,6 +63,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
         deal_volume: parseFloat(String(data.deal_volume)) || 0,
         monthly_retainer: parseFloat(String(data.monthly_retainer)) || 0,
         dms_sent: data.dms_sent || 0,
+        words_spoken: data.words_spoken || 0,
       }));
     } else {
       setExistingId(null);
@@ -99,6 +101,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
       deal_volume: form.deal_volume,
       monthly_retainer: form.monthly_retainer,
       dms_sent: form.dms_sent,
+      words_spoken: form.words_spoken,
     };
 
     let error;
@@ -156,6 +159,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
               <Field id="calls_reached" label="Entscheider Erreicht" value={form.calls_reached} onChange={v => n("calls_reached", v)} />
               <Field id="calls_interested" label="Gatekeeper Erreicht" value={form.calls_interested} onChange={v => n("calls_interested", v)} />
               <Field id="appointments" label="Termine gelegt" value={form.appointments} onChange={v => n("appointments", v)} />
+              <Field id="words_spoken" label="Gesprächszeit (Min.)" value={form.words_spoken} onChange={v => n("words_spoken", v)} />
             </div>
             {form.calls_made > 0 && (
               <div className="flex flex-wrap gap-4 text-xs bg-muted/40 rounded-lg px-3 py-2 text-muted-foreground">
