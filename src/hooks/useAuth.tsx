@@ -36,16 +36,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          await loadUserRole(session.user.id);
+          loadUserRole(session.user.id).finally(() => setLoading(false));
         } else {
           setUserRole(null);
           setTenantId(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
