@@ -1,18 +1,30 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Flame, Target, TrendingUp, Users, MessageSquare, Star } from "lucide-react";
+import { Check, Flame, Target, TrendingUp, Users, MessageSquare, Star, ExternalLink, BarChart3, Phone, LayoutDashboard } from "lucide-react";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { useNavigate } from "react-router-dom";
 
 const TODAY_KEY = `checklist_${new Date().toISOString().slice(0, 10)}`;
 
 type ChecklistItem = { id: string; label: string; done: boolean };
-type Section = { title: string; emoji: string; color: string; items: ChecklistItem[] };
+type Section = {
+  title: string;
+  emoji: string;
+  color: string;
+  path: string;
+  pathLabel: string;
+  icon: React.ElementType;
+  items: ChecklistItem[];
+};
 
 const defaultSections: Section[] = [
   {
     title: "Marketing",
     emoji: "📣",
     color: "hsl(174 72% 50%)",
+    path: "/dashboard/marketing",
+    pathLabel: "Marketing eintragen",
+    icon: BarChart3,
     items: [
       { id: "m1", label: "LinkedIn Post erstellt & veröffentlicht", done: false },
       { id: "m2", label: "Story / Reel gepostet", done: false },
@@ -24,6 +36,9 @@ const defaultSections: Section[] = [
     title: "Sales",
     emoji: "🎯",
     color: "hsl(211 100% 60%)",
+    path: "/dashboard/sales",
+    pathLabel: "Sales eintragen",
+    icon: Phone,
     items: [
       { id: "s1", label: "Leads qualifiziert & follow-up", done: false },
       { id: "s2", label: "Termine für heute vorbereitet", done: false },
@@ -35,6 +50,9 @@ const defaultSections: Section[] = [
     title: "Cold Calling",
     emoji: "📞",
     color: "hsl(280 70% 65%)",
+    path: "/dashboard/sales",
+    pathLabel: "Calls eintragen",
+    icon: Phone,
     items: [
       { id: "c1", label: "Call-Liste vorbereitet", done: false },
       { id: "c2", label: "Mindest-Calls erreicht (Ziel: 20)", done: false },
@@ -46,6 +64,9 @@ const defaultSections: Section[] = [
     title: "Tagesabschluss",
     emoji: "✅",
     color: "hsl(142 71% 55%)",
+    path: "/dashboard/overview",
+    pathLabel: "KPIs eintragen",
+    icon: LayoutDashboard,
     items: [
       { id: "d1", label: "KPIs in Dashboard eingetragen", done: false },
       { id: "d2", label: "Morgen vorbereitet & Priorities gesetzt", done: false },
@@ -57,7 +78,21 @@ const defaultSections: Section[] = [
 function loadSections(): Section[] {
   try {
     const saved = localStorage.getItem(TODAY_KEY);
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Merge saved done-states into defaultSections to preserve new fields (path, icon, etc.)
+      return defaultSections.map((section) => {
+        const savedSection = parsed.find((s: any) => s.title === section.title);
+        if (!savedSection) return section;
+        return {
+          ...section,
+          items: section.items.map((item) => {
+            const savedItem = savedSection.items?.find((i: any) => i.id === item.id);
+            return savedItem ? { ...item, done: savedItem.done } : item;
+          }),
+        };
+      });
+    }
   } catch {}
   return defaultSections;
 }
@@ -137,6 +172,7 @@ function ProgressRing({ percent }: { percent: number }) {
 export default function TodayPage() {
   const [sections, setSections] = useState<Section[]>(loadSections);
   const { metrics } = useDashboardData();
+  const navigate = useNavigate();
 
   useEffect(() => {
     localStorage.setItem(TODAY_KEY, JSON.stringify(sections));
@@ -221,7 +257,7 @@ export default function TodayPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          {kpis.map((kpi, i) => (
+          {kpis.map((kpi) => (
             <GlowCard key={kpi.label} glowColor={kpi.color}>
               <div className="p-3 flex flex-col items-center gap-1">
                 <kpi.icon className="h-4 w-4" style={{ color: kpi.color }} />
@@ -327,6 +363,26 @@ export default function TodayPage() {
                         </motion.button>
                       ))}
                     </div>
+
+                    {/* Navigate button */}
+                    <motion.button
+                      onClick={() => navigate(section.path)}
+                      className="w-full flex items-center justify-center gap-2 mt-1 py-2 px-3 rounded-xl text-xs font-medium transition-all duration-200"
+                      style={{
+                        background: `${section.color}14`,
+                        color: section.color,
+                        border: `1px solid ${section.color}33`,
+                      }}
+                      whileHover={{
+                        background: `${section.color}28`,
+                        boxShadow: `0 0 16px -4px ${section.color}66`,
+                      }}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      <section.icon className="h-3.5 w-3.5" />
+                      {section.pathLabel}
+                      <ExternalLink className="h-3 w-3 opacity-60" />
+                    </motion.button>
                   </div>
                 </GlowCard>
               </motion.div>
