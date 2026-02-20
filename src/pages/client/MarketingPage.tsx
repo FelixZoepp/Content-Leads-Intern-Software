@@ -6,6 +6,8 @@ import { MarketingCharts } from "@/components/client/MarketingCharts";
 import { MarketingKPIEntry } from "@/components/dashboard/MarketingKPIEntry";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, PlusCircle } from "lucide-react";
+import { KPIMetricTracker } from "@/components/client/KPIMetricTracker";
+import { marketingKPIConfigs } from "@/lib/kpiTrackerConfigs";
 
 export default function MarketingPage() {
   const { metrics, timeRange, setTimeRange, reload, tenantId } = useDashboardData();
@@ -32,6 +34,7 @@ export default function MarketingPage() {
         <TabsContent value="dashboard" className="mt-4 space-y-6">
           <ClientMetricsCards metrics={metrics} timeRange={timeRange} />
           <MarketingCharts metrics={metrics} timeRange={timeRange} />
+          <KPIMetricTracker configs={marketingKPIConfigs} metrics={metrics} />
           <KPIInsights metrics={metrics} />
         </TabsContent>
 

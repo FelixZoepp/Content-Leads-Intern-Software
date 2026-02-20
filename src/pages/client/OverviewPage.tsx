@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { KPIEntryForm } from "@/components/dashboard/KPIEntryForm";
+import { KPIMetricTracker } from "@/components/client/KPIMetricTracker";
+import { salesKPIConfigs, marketingKPIConfigs } from "@/lib/kpiTrackerConfigs";
 
 export default function OverviewPage() {
   const { tenant, metrics, healthScore, timeRange, setTimeRange, reload, tenantId } = useDashboardData();
@@ -42,6 +44,7 @@ export default function OverviewPage() {
 
       <ClientMetricsCards metrics={metrics} timeRange={timeRange} />
       <OverviewCharts metrics={metrics} timeRange={timeRange} />
+      <KPIMetricTracker configs={[...salesKPIConfigs, ...marketingKPIConfigs]} metrics={metrics} />
       <BaselineKPICards tenant={tenant} />
       <KPIInsights metrics={metrics} />
     </div>
