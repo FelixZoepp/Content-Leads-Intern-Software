@@ -23,20 +23,35 @@ export function ClientMetricsCards({ metrics, timeRange = "daily" }: Props) {
     return vals.reduce((s, m) => s + parseFloat(m[field]), 0) / vals.length;
   };
 
+  // Funnel conversion rates
+  const totalImpressions = sum("impressions");
+  const totalLeads = sum("leads_total");
+  const totalAppointments = sum("appointments");
+  const totalDeals = sum("deals");
+
+  const crVisitorToLead = totalImpressions > 0 ? (totalLeads / totalImpressions) * 100 : 0;
+  const crLeadToAppt = totalLeads > 0 ? (totalAppointments / totalLeads) * 100 : 0;
+  const crApptToDeal = totalAppointments > 0 ? (totalDeals / totalAppointments) * 100 : 0;
+  const crVisitorToDeal = totalImpressions > 0 ? (totalDeals / totalImpressions) * 100 : 0;
+
   const cards = [
-    { title: "Impressionen", value: sum("impressions"), icon: BarChart3, format: "number" },
+    { title: "Impressionen", value: totalImpressions, icon: BarChart3, format: "number" },
     { title: "Kommentare", value: sum("comments"), icon: FileText, format: "number" },
     { title: "DMs gesendet", value: sum("dms_sent"), icon: FileText, format: "number" },
-    { title: "Leads", value: sum("leads_total"), icon: Target, format: "number" },
+    { title: "Leads", value: totalLeads, icon: Target, format: "number" },
     { title: "MQL", value: sum("leads_qualified"), icon: Target, format: "number" },
     { title: "MQL-Quote", value: avg("lead_quality_rate"), icon: Percent, format: "percent" },
+    { title: "Besucher → Lead", value: crVisitorToLead, icon: TrendingUp, format: "percent" },
+    { title: "Lead → Termin", value: crLeadToAppt, icon: TrendingUp, format: "percent" },
+    { title: "Termin → Deal", value: crApptToDeal, icon: TrendingUp, format: "percent" },
+    { title: "Besucher → Deal", value: crVisitorToDeal, icon: TrendingDown, format: "percent4" },
     { title: "Anwahlen", value: sum("calls_made"), icon: Phone, format: "number" },
     { title: "Erreicht", value: sum("calls_reached"), icon: PhoneCall, format: "number" },
-    { title: "Termine", value: sum("appointments"), icon: Users, format: "number" },
+    { title: "Termine", value: totalAppointments, icon: Users, format: "number" },
     { title: "Setting Show-Rate", value: avg("setting_show_rate"), icon: Percent, format: "percent" },
     { title: "Closing Show-Rate", value: avg("closing_show_rate"), icon: Percent, format: "percent" },
     { title: "Closing-Rate", value: avg("closing_rate"), icon: BarChart3, format: "percent" },
-    { title: "Deals", value: sum("deals"), icon: TrendingUp, format: "number" },
+    { title: "Deals", value: totalDeals, icon: TrendingUp, format: "number" },
     { title: "Cash Collected", value: sum("cash_collected") || sum("revenue"), icon: DollarSign, format: "currency" },
   ];
 
@@ -59,6 +74,7 @@ export function ClientMetricsCards({ metrics, timeRange = "daily" }: Props) {
             <CardContent className="px-4 pb-3">
               <div className="text-xl font-bold">
                 {card.format === "currency" ? `${card.value.toFixed(0)}€` :
+                 card.format === "percent4" ? (card.value > 0 ? `${card.value.toFixed(2)}%` : "–") :
                  card.format === "percent" ? (card.value > 0 ? `${card.value.toFixed(1)}%` : "–") :
                  card.value}
               </div>
