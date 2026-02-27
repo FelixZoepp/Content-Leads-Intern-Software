@@ -66,17 +66,19 @@ export function ClientMetricsCards({ metrics, timeRange = "daily" }: Props) {
           whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] } }}
           whileTap={{ scale: 0.98 }}
         >
-          <Card className="h-full cursor-default">
+          <Card className="h-full cursor-default group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3 px-4">
-              <CardTitle className="text-xs font-medium text-muted-foreground">{card.title}</CardTitle>
-              <card.icon className="h-3.5 w-3.5 text-muted-foreground" />
+              <CardTitle className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{card.title}</CardTitle>
+              <div className="p-1.5 rounded-lg" style={{ background: "hsl(0 85% 55% / 0.08)" }}>
+                <card.icon className="h-3.5 w-3.5 text-primary" />
+              </div>
             </CardHeader>
             <CardContent className="px-4 pb-3">
-              <div className="text-xl font-bold">
+              <div className="text-xl font-bold tracking-tight">
                 {card.format === "currency" ? `${card.value.toFixed(0)}€` :
                  card.format === "percent4" ? (card.value > 0 ? `${card.value.toFixed(2)}%` : "–") :
                  card.format === "percent" ? (card.value > 0 ? `${card.value.toFixed(1)}%` : "–") :
-                 card.value}
+                 card.value.toLocaleString("de-DE")}
               </div>
             </CardContent>
           </Card>

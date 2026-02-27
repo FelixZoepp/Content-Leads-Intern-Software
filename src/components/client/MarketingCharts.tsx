@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from "recharts";
+import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from "recharts";
+import { GlassTooltip, glassGridProps, glassXAxisProps, glassYAxisProps, glassLegendStyle, ChartGradient, barRadius } from "@/components/charts/chartStyles";
 
 interface Props {
   metrics: any[];
@@ -18,7 +19,6 @@ export function MarketingCharts({ metrics, timeRange = "daily" }: Props) {
     Kommentare: parseFloat(m.comments) || 0,
     "Link Clicks": parseFloat(m.link_clicks) || 0,
     "Neue Follower": parseFloat(m.new_followers) || 0,
-    "Follower gesamt": parseFloat(m.followers_current) || 0,
     "DMs gesendet": parseFloat(m.dms_sent) || 0,
     Leads: parseFloat(m.leads_total) || 0,
     MQL: parseFloat(m.leads_qualified) || 0,
@@ -26,24 +26,35 @@ export function MarketingCharts({ metrics, timeRange = "daily" }: Props) {
     "Reach-Rate %": parseFloat(m.reach_rate) || 0,
   }));
 
+  const c1 = "hsl(0 85% 55%)";
+  const c2 = "hsl(25 90% 55%)";
+  const c3 = "hsl(38 92% 55%)";
+  const c4 = "hsl(0 70% 45%)";
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Reichweite & Engagement</CardTitle>
+          <CardTitle className="text-sm font-semibold tracking-tight">Reichweite & Engagement</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={280}>
             <AreaChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Area type="monotone" dataKey="Impressionen" fill="hsl(var(--chart-1))" stroke="hsl(var(--chart-1))" fillOpacity={0.2} />
-              <Area type="monotone" dataKey="Likes" fill="hsl(var(--chart-2))" stroke="hsl(var(--chart-2))" fillOpacity={0.2} />
-              <Area type="monotone" dataKey="Kommentare" fill="hsl(var(--chart-3))" stroke="hsl(var(--chart-3))" fillOpacity={0.2} />
-              <Area type="monotone" dataKey="Link Clicks" fill="hsl(var(--chart-4))" stroke="hsl(var(--chart-4))" fillOpacity={0.2} />
+              <defs>
+                <ChartGradient id="gImp" color={c1} />
+                <ChartGradient id="gLike" color={c2} />
+                <ChartGradient id="gComm" color={c3} />
+                <ChartGradient id="gLink" color={c4} />
+              </defs>
+              <CartesianGrid {...glassGridProps} />
+              <XAxis dataKey="date" {...glassXAxisProps} />
+              <YAxis {...glassYAxisProps} />
+              <Tooltip content={<GlassTooltip />} />
+              <Legend wrapperStyle={glassLegendStyle} />
+              <Area type="monotone" dataKey="Impressionen" fill="url(#gImp)" stroke={c1} strokeWidth={2} />
+              <Area type="monotone" dataKey="Likes" fill="url(#gLike)" stroke={c2} strokeWidth={2} />
+              <Area type="monotone" dataKey="Kommentare" fill="url(#gComm)" stroke={c3} strokeWidth={2} />
+              <Area type="monotone" dataKey="Link Clicks" fill="url(#gLink)" stroke={c4} strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>
@@ -51,18 +62,18 @@ export function MarketingCharts({ metrics, timeRange = "daily" }: Props) {
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Follower-Entwicklung</CardTitle>
+          <CardTitle className="text-sm font-semibold tracking-tight">Follower-Entwicklung</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="Neue Follower" fill="hsl(var(--chart-2))" />
-              <Bar dataKey="DMs gesendet" fill="hsl(var(--chart-4))" />
+            <BarChart data={chartData} barGap={4}>
+              <CartesianGrid {...glassGridProps} />
+              <XAxis dataKey="date" {...glassXAxisProps} />
+              <YAxis {...glassYAxisProps} />
+              <Tooltip content={<GlassTooltip />} />
+              <Legend wrapperStyle={glassLegendStyle} />
+              <Bar dataKey="Neue Follower" fill={c2} radius={barRadius} />
+              <Bar dataKey="DMs gesendet" fill={c4} radius={barRadius} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -70,18 +81,18 @@ export function MarketingCharts({ metrics, timeRange = "daily" }: Props) {
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Leads & MQL</CardTitle>
+          <CardTitle className="text-sm font-semibold tracking-tight">Leads & MQL</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="Leads" fill="hsl(var(--chart-1))" />
-              <Bar dataKey="MQL" fill="hsl(var(--chart-3))" />
+            <BarChart data={chartData} barGap={4}>
+              <CartesianGrid {...glassGridProps} />
+              <XAxis dataKey="date" {...glassXAxisProps} />
+              <YAxis {...glassYAxisProps} />
+              <Tooltip content={<GlassTooltip />} />
+              <Legend wrapperStyle={glassLegendStyle} />
+              <Bar dataKey="Leads" fill={c1} radius={barRadius} />
+              <Bar dataKey="MQL" fill={c3} radius={barRadius} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -89,19 +100,23 @@ export function MarketingCharts({ metrics, timeRange = "daily" }: Props) {
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Quoten</CardTitle>
+          <CardTitle className="text-sm font-semibold tracking-tight">Quoten</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} domain={[0, 100]} />
-              <Tooltip />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Line type="monotone" dataKey="MQL-Quote %" stroke="hsl(var(--chart-1))" strokeWidth={2} />
-              <Line type="monotone" dataKey="Reach-Rate %" stroke="hsl(var(--chart-4))" strokeWidth={2} />
-            </LineChart>
+            <AreaChart data={chartData}>
+              <defs>
+                <ChartGradient id="gMQL" color={c1} />
+                <ChartGradient id="gReach" color={c2} />
+              </defs>
+              <CartesianGrid {...glassGridProps} />
+              <XAxis dataKey="date" {...glassXAxisProps} />
+              <YAxis {...glassYAxisProps} domain={[0, 100]} />
+              <Tooltip content={<GlassTooltip formatter={(v: number) => `${v.toFixed(1)}%`} />} />
+              <Legend wrapperStyle={glassLegendStyle} />
+              <Area type="monotone" dataKey="MQL-Quote %" fill="url(#gMQL)" stroke={c1} strokeWidth={2} />
+              <Area type="monotone" dataKey="Reach-Rate %" fill="url(#gReach)" stroke={c2} strokeWidth={2} />
+            </AreaChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
