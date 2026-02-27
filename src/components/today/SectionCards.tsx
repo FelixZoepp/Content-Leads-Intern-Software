@@ -19,14 +19,14 @@ interface SectionCard {
 }
 
 const sectionCards: SectionCard[] = [
-  { badge: "KPIs", badgeColor: "hsl(174 72% 50%)", title: "Übersicht & KPIs", path: "/dashboard/overview", image: cardOverview },
-  { badge: "Marketing", badgeColor: "hsl(38 92% 60%)", title: "Reichweite & Content tracken", path: "/dashboard/marketing", image: cardMarketing },
-  { badge: "Sales", badgeColor: "hsl(211 100% 60%)", title: "Pipeline & Deals verfolgen", path: "/dashboard/sales", image: cardSales },
-  { badge: "Fulfillment", badgeColor: "hsl(280 70% 65%)", title: "Projekte & Kundenerfolg", path: "/dashboard/fulfillment", image: cardFulfillment },
-  { badge: "Finanzen", badgeColor: "hsl(142 71% 55%)", title: "Revenue & Kosten im Blick", path: "/dashboard/finance", image: cardFinance },
-  { badge: "KI-Briefing", badgeColor: "hsl(211 100% 60%)", title: "Intelligente Analyse & Insights", path: "/dashboard/ai", image: cardAi },
-  { badge: "Leistungsanalyse", badgeColor: "hsl(340 75% 58%)", title: "Kundenzufriedenheit messen", path: "/dashboard/csat", image: cardCsat },
-  { badge: "Reports", badgeColor: "hsl(280 70% 65%)", title: "Monatsberichte & Export", path: "/dashboard/reports", image: cardReports },
+  { badge: "KPIs", badgeColor: "hsl(0 85% 55%)", title: "Übersicht & KPIs", path: "/dashboard/overview", image: cardOverview },
+  { badge: "Marketing", badgeColor: "hsl(25 90% 55%)", title: "Reichweite & Content tracken", path: "/dashboard/marketing", image: cardMarketing },
+  { badge: "Sales", badgeColor: "hsl(0 70% 50%)", title: "Pipeline & Deals verfolgen", path: "/dashboard/sales", image: cardSales },
+  { badge: "Fulfillment", badgeColor: "hsl(15 80% 50%)", title: "Projekte & Kundenerfolg", path: "/dashboard/fulfillment", image: cardFulfillment },
+  { badge: "Finanzen", badgeColor: "hsl(38 92% 55%)", title: "Revenue & Kosten im Blick", path: "/dashboard/finance", image: cardFinance },
+  { badge: "KI-Briefing", badgeColor: "hsl(0 85% 55%)", title: "Intelligente Analyse & Insights", path: "/dashboard/ai", image: cardAi },
+  { badge: "Leistungsanalyse", badgeColor: "hsl(10 75% 52%)", title: "Kundenzufriedenheit messen", path: "/dashboard/csat", image: cardCsat },
+  { badge: "Reports", badgeColor: "hsl(25 90% 55%)", title: "Monatsberichte & Export", path: "/dashboard/reports", image: cardReports },
 ];
 
 export function SectionCards() {
