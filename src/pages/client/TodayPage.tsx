@@ -24,7 +24,7 @@ const defaultSections: Section[] = [
   {
     title: "Marketing",
     emoji: "📣",
-    color: "hsl(174 72% 50%)",
+    color: "hsl(25 90% 55%)",
     path: "/dashboard/marketing",
     pathLabel: "Marketing eintragen",
     icon: BarChart3,
@@ -38,7 +38,7 @@ const defaultSections: Section[] = [
   {
     title: "Sales",
     emoji: "🎯",
-    color: "hsl(211 100% 60%)",
+    color: "hsl(0 85% 55%)",
     path: "/dashboard/sales",
     pathLabel: "Sales eintragen",
     icon: Phone,
@@ -52,7 +52,7 @@ const defaultSections: Section[] = [
   {
     title: "Cold Calling",
     emoji: "📞",
-    color: "hsl(280 70% 65%)",
+    color: "hsl(15 80% 50%)",
     path: "/dashboard/sales",
     pathLabel: "Calls eintragen",
     icon: Phone,
@@ -66,7 +66,7 @@ const defaultSections: Section[] = [
   {
     title: "Tagesabschluss",
     emoji: "✅",
-    color: "hsl(142 71% 55%)",
+    color: "hsl(38 92% 55%)",
     path: "/dashboard/overview",
     pathLabel: "KPIs eintragen",
     icon: LayoutDashboard,
@@ -131,12 +131,12 @@ export default function TodayPage() {
   // Latest metrics for KPI strip
   const latest = metrics?.[metrics.length - 1];
   const kpis = [
-    { label: "Leads", value: latest?.leads_total ?? "–", icon: Users, color: "hsl(174 72% 50%)" },
-    { label: "Termine", value: latest?.appointments ?? "–", icon: Target, color: "hsl(211 100% 60%)" },
-    { label: "Deals", value: latest?.deals ?? "–", icon: Star, color: "hsl(280 70% 65%)" },
-    { label: "Revenue", value: latest?.revenue ? `€${Number(latest.revenue).toLocaleString("de-DE")}` : "–", icon: TrendingUp, color: "hsl(142 71% 55%)" },
-    { label: "Impressionen", value: latest?.impressions ? `${(Number(latest.impressions) / 1000).toFixed(1)}k` : "–", icon: Flame, color: "hsl(38 92% 60%)" },
-    { label: "Follower", value: latest?.followers_current ?? "–", icon: MessageSquare, color: "hsl(174 72% 50%)" },
+    { label: "Leads", value: latest?.leads_total ?? "–", icon: Users, color: "hsl(0 85% 55%)" },
+    { label: "Termine", value: latest?.appointments ?? "–", icon: Target, color: "hsl(25 90% 55%)" },
+    { label: "Deals", value: latest?.deals ?? "–", icon: Star, color: "hsl(15 80% 50%)" },
+    { label: "Revenue", value: latest?.revenue ? `€${Number(latest.revenue).toLocaleString("de-DE")}` : "–", icon: TrendingUp, color: "hsl(38 92% 55%)" },
+    { label: "Impressionen", value: latest?.impressions ? `${(Number(latest.impressions) / 1000).toFixed(1)}k` : "–", icon: Flame, color: "hsl(0 70% 50%)" },
+    { label: "Follower", value: latest?.followers_current ?? "–", icon: MessageSquare, color: "hsl(10 75% 52%)" },
   ];
 
   return (
@@ -144,11 +144,11 @@ export default function TodayPage() {
       {/* Animated background orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, hsl(280 70% 50%) 0%, transparent 70%)", filter: "blur(80px)" }} />
+          style={{ background: "radial-gradient(circle, hsl(0 85% 45%) 0%, transparent 70%)", filter: "blur(80px)" }} />
         <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full opacity-15"
-          style={{ background: "radial-gradient(circle, hsl(211 100% 60%) 0%, transparent 70%)", filter: "blur(80px)" }} />
+          style={{ background: "radial-gradient(circle, hsl(25 90% 50%) 0%, transparent 70%)", filter: "blur(80px)" }} />
         <div className="absolute top-[40%] right-[20%] w-[300px] h-[300px] rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, hsl(340 75% 58%) 0%, transparent 70%)", filter: "blur(60px)" }} />
+          style={{ background: "radial-gradient(circle, hsl(0 70% 50%) 0%, transparent 70%)", filter: "blur(60px)" }} />
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-10">
