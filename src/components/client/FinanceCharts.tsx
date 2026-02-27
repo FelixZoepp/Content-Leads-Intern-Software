@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from "recharts";
+import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { GlassTooltip, glassGridProps, glassXAxisProps, glassYAxisProps, glassLegendStyle, ChartGradient, barRadius } from "@/components/charts/chartStyles";
 
 interface Props {
   tenantId: string;
@@ -41,29 +42,33 @@ export function FinanceCharts({ tenantId }: Props) {
       Tools: parseFloat(r.costs_tools) || 0,
       Personal: parseFloat(r.costs_personnel) || 0,
       Sonstiges: parseFloat(r.costs_other) || 0,
-      "Wiederkehrend": parseFloat(r.revenue_recurring) || 0,
-      "Einmalig": parseFloat(r.revenue_onetime) || 0,
       "Offene RE": parseFloat(r.invoices_open_amount) || 0,
       "Überfällig": parseFloat(r.invoices_overdue_amount) || 0,
     };
   });
 
+  const c1 = "hsl(0 85% 55%)";
+  const c2 = "hsl(25 90% 55%)";
+  const c3 = "hsl(38 92% 55%)";
+  const c4 = "hsl(0 70% 45%)";
+  const fmtEur = (v: number) => `${v.toLocaleString("de-DE")}€`;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Einnahmen vs. Kosten</CardTitle>
+          <CardTitle className="text-sm font-semibold tracking-tight">Einnahmen vs. Kosten</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(v: number) => `${v.toLocaleString("de-DE")}€`} />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="Einnahmen" fill="hsl(var(--chart-2))" />
-              <Bar dataKey="Kosten" fill="hsl(var(--chart-1))" />
+            <BarChart data={chartData} barGap={4}>
+              <CartesianGrid {...glassGridProps} />
+              <XAxis dataKey="date" {...glassXAxisProps} />
+              <YAxis {...glassYAxisProps} />
+              <Tooltip content={<GlassTooltip formatter={fmtEur} />} />
+              <Legend wrapperStyle={glassLegendStyle} />
+              <Bar dataKey="Einnahmen" fill={c2} radius={barRadius} />
+              <Bar dataKey="Kosten" fill={c1} radius={barRadius} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -71,40 +76,23 @@ export function FinanceCharts({ tenantId }: Props) {
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Cashflow & Marge</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
-              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} domain={[-100, 100]} />
-              <Tooltip />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Line yAxisId="left" type="monotone" dataKey="Cashflow" stroke="hsl(var(--chart-3))" strokeWidth={2} />
-              <Line yAxisId="right" type="monotone" dataKey="Marge %" stroke="hsl(var(--chart-4))" strokeWidth={2} strokeDasharray="5 5" />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Kostenaufteilung</CardTitle>
+          <CardTitle className="text-sm font-semibold tracking-tight">Cashflow & Marge</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={280}>
             <AreaChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(v: number) => `${v.toLocaleString("de-DE")}€`} />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Area type="monotone" dataKey="Ads" stackId="1" fill="hsl(var(--chart-1))" stroke="hsl(var(--chart-1))" />
-              <Area type="monotone" dataKey="Tools" stackId="1" fill="hsl(var(--chart-2))" stroke="hsl(var(--chart-2))" />
-              <Area type="monotone" dataKey="Personal" stackId="1" fill="hsl(var(--chart-3))" stroke="hsl(var(--chart-3))" />
-              <Area type="monotone" dataKey="Sonstiges" stackId="1" fill="hsl(var(--chart-4))" stroke="hsl(var(--chart-4))" />
+              <defs>
+                <ChartGradient id="gCF" color={c3} />
+                <ChartGradient id="gMarg" color={c4} />
+              </defs>
+              <CartesianGrid {...glassGridProps} />
+              <XAxis dataKey="date" {...glassXAxisProps} />
+              <YAxis yAxisId="left" {...glassYAxisProps} />
+              <YAxis yAxisId="right" orientation="right" {...glassYAxisProps} domain={[-100, 100]} />
+              <Tooltip content={<GlassTooltip />} />
+              <Legend wrapperStyle={glassLegendStyle} />
+              <Area yAxisId="left" type="monotone" dataKey="Cashflow" fill="url(#gCF)" stroke={c3} strokeWidth={2} />
+              <Area yAxisId="right" type="monotone" dataKey="Marge %" fill="url(#gMarg)" stroke={c4} strokeWidth={2} strokeDasharray="5 5" />
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>
@@ -112,18 +100,45 @@ export function FinanceCharts({ tenantId }: Props) {
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Offene & überfällige Rechnungen</CardTitle>
+          <CardTitle className="text-sm font-semibold tracking-tight">Kostenaufteilung</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(v: number) => `${v.toLocaleString("de-DE")}€`} />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="Offene RE" fill="hsl(var(--chart-2))" />
-              <Bar dataKey="Überfällig" fill="hsl(var(--chart-1))" />
+            <AreaChart data={chartData}>
+              <defs>
+                <ChartGradient id="gAds" color={c1} />
+                <ChartGradient id="gTools" color={c2} />
+                <ChartGradient id="gPers" color={c3} />
+                <ChartGradient id="gSonst" color={c4} />
+              </defs>
+              <CartesianGrid {...glassGridProps} />
+              <XAxis dataKey="date" {...glassXAxisProps} />
+              <YAxis {...glassYAxisProps} />
+              <Tooltip content={<GlassTooltip formatter={fmtEur} />} />
+              <Legend wrapperStyle={glassLegendStyle} />
+              <Area type="monotone" dataKey="Ads" stackId="1" fill="url(#gAds)" stroke={c1} strokeWidth={1.5} />
+              <Area type="monotone" dataKey="Tools" stackId="1" fill="url(#gTools)" stroke={c2} strokeWidth={1.5} />
+              <Area type="monotone" dataKey="Personal" stackId="1" fill="url(#gPers)" stroke={c3} strokeWidth={1.5} />
+              <Area type="monotone" dataKey="Sonstiges" stackId="1" fill="url(#gSonst)" stroke={c4} strokeWidth={1.5} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-semibold tracking-tight">Offene & überfällige Rechnungen</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={chartData} barGap={4}>
+              <CartesianGrid {...glassGridProps} />
+              <XAxis dataKey="date" {...glassXAxisProps} />
+              <YAxis {...glassYAxisProps} />
+              <Tooltip content={<GlassTooltip formatter={fmtEur} />} />
+              <Legend wrapperStyle={glassLegendStyle} />
+              <Bar dataKey="Offene RE" fill={c2} radius={barRadius} />
+              <Bar dataKey="Überfällig" fill={c1} radius={barRadius} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
