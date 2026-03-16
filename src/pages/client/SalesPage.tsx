@@ -52,9 +52,13 @@ export default function SalesPage() {
             <BarChart3 className="h-4 w-4" />
             Live-Dashboard
           </TabsTrigger>
+          <TabsTrigger value="daily" className="rounded-xl gap-2">
+            <Zap className="h-4 w-4" />
+            Daily Tracking
+          </TabsTrigger>
           <TabsTrigger value="entry" className="rounded-xl gap-2">
             <PlusCircle className="h-4 w-4" />
-            KPIs erfassen
+            Alle KPIs erfassen
           </TabsTrigger>
         </TabsList>
 
