@@ -113,6 +113,182 @@ function getOverallStatus(scores: any, submissionStatus: string) {
 }
 
 function formatValue(val: any, bench: any) {
+
+// ═══════════════════════════════════════════════════
+// ACTION PLAN GENERATOR
+// ═══════════════════════════════════════════════════
+
+interface ActionItem {
+  icon: typeof Target;
+  priority: "high" | "medium" | "low";
+  title: string;
+  description: string;
+  impact: string;
+}
+
+function generateActionPlan(customer: any): ActionItem[] {
+  const actions: ActionItem[] = [];
+  const d = customer.daily || {};
+  const w = customer.weekly || {};
+  const m = customer.monthly || {};
+
+  // Missing data → top priority
+  if (customer.overallStatus === "missing") {
+    actions.push({
+      icon: PhoneCall,
+      priority: "high",
+      title: "Sofort anrufen",
+      description: `${customer.contact} hat ${customer.last_daily_submission ? `seit ${formatTimeAgo(customer.last_daily_submission).toLowerCase()} keine Daten eingetragen` : "noch nie Daten eingetragen"}. Frage nach Blockern und biete eine gemeinsame Eingabe an.`,
+      impact: "Reaktivierung & Accountability",
+    });
+    return actions;
+  }
+
+  // Outbound activity too low
+  if (d.anwahlen !== undefined && d.anwahlen < 50) {
+    actions.push({
+      icon: PhoneCall,
+      priority: "high",
+      title: "Outbound-Aktivität massiv steigern",
+      description: `Nur ${d.anwahlen} Anwahlen (Ziel: 150). Feste Telefonblöcke von 2h morgens einführen. Power-Hour-Challenge vorschlagen.`,
+      impact: "3x mehr Termine bei Zielerreichung",
+    });
+  } else if (d.anwahlen !== undefined && d.anwahlen < 150) {
+    actions.push({
+      icon: PhoneCall,
+      priority: "medium",
+      title: "Anwahlen auf Zielniveau bringen",
+      description: `${d.anwahlen}/150 Anwahlen. Noch ${150 - d.anwahlen} mehr pro Tag nötig. Prüfe ob Kontaktlisten ausreichen und CRM-Workflow optimiert ist.`,
+      impact: "+30-50% mehr Termine erwartet",
+    });
+  }
+
+  // Gatekeeper rate too high
+  if (d.anwahlen > 0 && d.gatekeeper > 0) {
+    const gkRate = (d.gatekeeper / d.anwahlen) * 100;
+    if (gkRate > 20) {
+      actions.push({
+        icon: Zap,
+        priority: "high",
+        title: "Gatekeeper-Durchbruch trainieren",
+        description: `${gkRate.toFixed(0)}% Gatekeeper-Rate (Ziel: <10%). Skript für Gatekeeper-Überwindung überarbeiten. Direkte Durchwahlen recherchieren. LinkedIn-Warmup vor Cold Calls nutzen.`,
+        impact: "2x mehr Entscheider-Gespräche",
+      });
+    }
+  }
+
+  // Entscheider-Erreichbarkeit niedrig
+  if (d.anwahlen > 0 && d.erreicht_entscheider !== undefined) {
+    const erRate = (d.erreicht_entscheider / d.anwahlen) * 100;
+    if (erRate < 15) {
+      actions.push({
+        icon: Target,
+        priority: "medium",
+        title: "Erreichbarkeit optimieren",
+        description: `Nur ${erRate.toFixed(0)}% Entscheider erreicht. Anrufzeiten analysieren (7:30-9:00 & 17:00-18:30 testen). Mobilnummern über LinkedIn/Xing beschaffen.`,
+        impact: "+50% mehr qualifizierte Gespräche",
+      });
+    }
+  }
+
+  // Weekly: Low show-up setting
+  if (w.showup_setting !== undefined && w.showup_setting < 60) {
+    actions.push({
+      icon: AlertTriangle,
+      priority: "high",
+      title: "Setting Show-Up-Rate kritisch",
+      description: `Nur ${w.showup_setting}% Show-Up (Ziel: 80%). Sofort einführen: SMS-Reminder 24h + 1h vorher, Bestätigungs-Call am Vortag, Termin-Kalendereinladung mit Agenda.`,
+      impact: "30-40% weniger No-Shows",
+    });
+  } else if (w.showup_setting !== undefined && w.showup_setting < 80) {
+    actions.push({
+      icon: Target,
+      priority: "medium",
+      title: "Show-Up-Rate verbessern",
+      description: `${w.showup_setting}% Show-Up. Personalisierte Vorab-Mail mit Mehrwert senden. Termin-Value im Vorfeld klar kommunizieren.`,
+      impact: "+15% mehr gehaltene Settings",
+    });
+  }
+
+  // Weekly: Closing rate
+  if (w.closing_rate !== undefined && w.closing_rate < 50) {
+    actions.push({
+      icon: TrendingDown,
+      priority: "high",
+      title: "Closing-Rate sofort verbessern",
+      description: `Nur ${w.closing_rate}% Closing-Rate (Ziel: 70-80%). Closing-Skript reviewen, Einwandbehandlung trainieren. Shadow-Calls mit Top-Performer organisieren.`,
+      impact: "Verdopplung der Deals bei gleichen Leads",
+    });
+  } else if (w.closing_rate !== undefined && w.closing_rate > 80) {
+    actions.push({
+      icon: Megaphone,
+      priority: "low",
+      title: "Closing-Rate über Optimum",
+      description: `${w.closing_rate}% liegt über dem optimalen Korridor (70-80%). Prüfe ob die Pipeline zu eng qualifiziert wird und potenzielle Deals verloren gehen.`,
+      impact: "Mehr Deals bei breiterer Qualifikation",
+    });
+  }
+
+  // Weekly: Impressions too low
+  if (w.impressions !== undefined && w.impressions < 5000) {
+    actions.push({
+      icon: Megaphone,
+      priority: "medium",
+      title: "Content-Reichweite steigern",
+      description: `Nur ${w.impressions?.toLocaleString("de-DE")} Impressions (Ziel: 20.000). Posting-Frequenz erhöhen, Hook-Formeln optimieren, Engagement-Pods nutzen.`,
+      impact: "4x mehr Sichtbarkeit & Leads",
+    });
+  }
+
+  // Monthly: High churn
+  if (m.churn !== undefined && m.churn > 10) {
+    actions.push({
+      icon: AlertTriangle,
+      priority: "high",
+      title: "Churn-Rate alarmierend",
+      description: `${m.churn}% Churn (Ziel: <5%). Exit-Interviews mit abgewanderten Kunden führen. Onboarding-Prozess und erste 30 Tage analysieren. Proaktives Check-in bei gefährdeten Kunden.`,
+      impact: "Stabilisierung der Recurring Revenue",
+    });
+  } else if (m.churn !== undefined && m.churn > 5) {
+    actions.push({
+      icon: Target,
+      priority: "medium",
+      title: "Churn-Rate senken",
+      description: `${m.churn}% Churn. Monatliche Success-Calls einführen. Quick-Wins in ersten 14 Tagen sicherstellen.`,
+      impact: "+20% höhere Kundenbindung",
+    });
+  }
+
+  // Monthly: MRR stagnation
+  if (m.mrr_growth !== undefined && m.mrr_growth < 5) {
+    actions.push({
+      icon: TrendingDown,
+      priority: "high",
+      title: "MRR-Wachstum stagniert",
+      description: `Nur ${m.mrr_growth}% MRR-Wachstum (Ziel: >15%). Upselling-Strategie entwickeln, Vertragslaufzeiten verlängern, Preisanpassung prüfen.`,
+      impact: "Nachhaltige Umsatzsteigerung",
+    });
+  }
+
+  // Connection requests low
+  if (d.connection_requests !== undefined && d.connection_requests < 10) {
+    actions.push({
+      icon: Zap,
+      priority: "medium",
+      title: "LinkedIn-Aktivität erhöhen",
+      description: `Nur ${d.connection_requests} Connection Requests (Ziel: 20). Tägliche LinkedIn-Routine von 30 Min. einführen. Sales Navigator für gezieltes Targeting nutzen.`,
+      impact: "+100% mehr LinkedIn-Pipeline",
+    });
+  }
+
+  // Sort by priority
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  actions.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+  return actions.slice(0, 5); // Max 5 actions
+}
+
+function formatValue(val: any, bench: any) {
   if (val === undefined || val === null) return "–";
   if (bench.unit === "€") return val.toLocaleString("de-DE") + " €";
   if (bench.unit) return val + bench.unit;
