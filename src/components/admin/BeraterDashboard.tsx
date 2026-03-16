@@ -112,7 +112,7 @@ function getOverallStatus(scores: any, submissionStatus: string) {
   return "green";
 }
 
-function formatValue(val: any, bench: any) {
+// Action Plan Generator
 
 // ═══════════════════════════════════════════════════
 // ACTION PLAN GENERATOR
