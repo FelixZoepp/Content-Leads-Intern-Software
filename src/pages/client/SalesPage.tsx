@@ -2,9 +2,10 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { SalesCharts } from "@/components/client/SalesCharts";
 import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
 import { SalesKPIEntry } from "@/components/dashboard/SalesKPIEntry";
+import { DailyKPIInput } from "@/components/dashboard/DailyKPIInput";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { BarChart3, PlusCircle } from "lucide-react";
+import { BarChart3, PlusCircle, Zap } from "lucide-react";
 import { KPIMetricTracker } from "@/components/client/KPIMetricTracker";
 import { salesKPIConfigs, outboundKPIConfigs } from "@/lib/kpiTrackerConfigs";
 
@@ -51,9 +52,13 @@ export default function SalesPage() {
             <BarChart3 className="h-4 w-4" />
             Live-Dashboard
           </TabsTrigger>
+          <TabsTrigger value="daily" className="rounded-xl gap-2">
+            <Zap className="h-4 w-4" />
+            Daily Tracking
+          </TabsTrigger>
           <TabsTrigger value="entry" className="rounded-xl gap-2">
             <PlusCircle className="h-4 w-4" />
-            KPIs erfassen
+            Alle KPIs erfassen
           </TabsTrigger>
         </TabsList>
 
@@ -62,6 +67,10 @@ export default function SalesPage() {
           <SalesCharts metrics={metrics} timeRange={timeRange} />
           <KPIMetricTracker configs={outboundKPIConfigs} metrics={metrics} title="Outbound-KPIs" />
           <KPIMetricTracker configs={salesKPIConfigs} metrics={metrics} title="Sales-Pipeline-KPIs" />
+        </TabsContent>
+
+        <TabsContent value="daily" className="mt-4 max-w-2xl">
+          <DailyKPIInput tenantId={tenantId} onEntryAdded={reload} />
         </TabsContent>
 
         <TabsContent value="entry" className="mt-4">
