@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, Flame, Mail, AlertTriangle, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Search, ChevronDown, Flame, Mail, AlertTriangle, CheckCircle, XCircle, Clock, Target, PhoneCall, Megaphone, TrendingDown, Zap } from "lucide-react";
 
 // ═══════════════════════════════════════════════════
 // BENCHMARKS & EVALUATION
