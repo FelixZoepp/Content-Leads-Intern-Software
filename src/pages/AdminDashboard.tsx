@@ -52,12 +52,10 @@ function AdminCustomerAnalysisPage() {
   );
 }
 
-function AdminOverviewPage({ tenants, alerts, loadAdminData }: { tenants: any[]; alerts: any[]; loadAdminData: () => void }) {
+function AdminOverviewPage() {
   return (
-    <div className="space-y-6 max-w-6xl">
-      <AlertsPanel alerts={alerts} onResolve={loadAdminData} />
-      <AdminPortfolioTabs tenants={tenants} />
-      <AdminAISummary />
+    <div className="space-y-6 max-w-5xl">
+      <BeraterDashboard />
     </div>
   );
 }
