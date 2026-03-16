@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { BarChart3, PlusCircle } from "lucide-react";
 import { KPIMetricTracker } from "@/components/client/KPIMetricTracker";
-import { salesKPIConfigs } from "@/lib/kpiTrackerConfigs";
+import { salesKPIConfigs, outboundKPIConfigs } from "@/lib/kpiTrackerConfigs";
 
 function SalesKPICards({ metrics }: { metrics: any[] }) {
   const latest = metrics?.[0];
@@ -60,7 +60,8 @@ export default function SalesPage() {
         <TabsContent value="dashboard" className="mt-4 space-y-6">
           <SalesKPICards metrics={metrics} />
           <SalesCharts metrics={metrics} timeRange={timeRange} />
-          <KPIMetricTracker configs={salesKPIConfigs} metrics={metrics} />
+          <KPIMetricTracker configs={outboundKPIConfigs} metrics={metrics} title="Outbound-KPIs" />
+          <KPIMetricTracker configs={salesKPIConfigs} metrics={metrics} title="Sales-Pipeline-KPIs" />
         </TabsContent>
 
         <TabsContent value="entry" className="mt-4">

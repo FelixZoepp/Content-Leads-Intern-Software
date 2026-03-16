@@ -11,11 +11,14 @@ interface Insight {
   message: string;
 }
 
+// Benchmarks aus Wissensdatenbank (90 Tage Cashflow Offensive)
 const BENCHMARKS = {
-  show_up_rate: { min: 70, label: "Show-Up-Rate" },
-  closing_rate: { min: 20, label: "Closing-Rate" },
+  show_up_rate: { min: 80, label: "Show-Up-Rate (Setting)" },      // Grün >80%
+  closing_rate: { min: 50, label: "Closing-Rate" },                 // Rot <50%
   cr_lead_to_appt: { min: 15, label: "Lead→Termin Conv." },
   cost_per_lead: { max: 50, label: "Kosten pro Lead" },
+  closing_show_rate: { min: 85, label: "Show-Up-Rate (Closing)" },  // Grün >85%
+  impressions: { min: 5000, label: "Impressions / Post" },          // Rot <5000
 };
 
 export function KPIInsights({ metrics }: Props) {
