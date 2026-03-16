@@ -69,6 +69,10 @@ export default function SalesPage() {
           <KPIMetricTracker configs={salesKPIConfigs} metrics={metrics} title="Sales-Pipeline-KPIs" />
         </TabsContent>
 
+        <TabsContent value="daily" className="mt-4 max-w-2xl">
+          <DailyKPIInput tenantId={tenantId} onEntryAdded={reload} />
+        </TabsContent>
+
         <TabsContent value="entry" className="mt-4">
           <SalesKPIEntry tenantId={tenantId} onEntryAdded={reload} />
         </TabsContent>
