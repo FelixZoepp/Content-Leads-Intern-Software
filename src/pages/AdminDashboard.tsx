@@ -9,6 +9,7 @@ import { AdminAISummary } from "@/components/admin/AdminAISummary";
 import { AdminPortfolioTabs } from "@/components/admin/AdminPortfolioTabs";
 import { AdminCSATOverview } from "@/components/admin/AdminCSATOverview";
 import { CustomerAnalysisTable } from "@/components/admin/CustomerAnalysisTable";
+import { BeraterDashboard } from "@/components/admin/BeraterDashboard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Routes, Route } from "react-router-dom";
 
