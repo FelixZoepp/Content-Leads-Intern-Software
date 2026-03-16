@@ -1,487 +1,436 @@
-import { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertTriangle, TrendingUp, Star, Search, ArrowUpDown, Info, ChevronRight } from "lucide-react";
-import { CustomerEntryForm, type CustomerEntry } from "@/components/admin/CustomerEntryForm";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TenantDetailSheet } from "@/components/admin/TenantDetailSheet";
+import { motion } from "framer-motion";
+import {
+  Search, Users, TrendingUp, TrendingDown, AlertTriangle,
+  ChevronRight, Building2, Calendar, DollarSign, Target,
+} from "lucide-react";
 
-// ──────────────────────────────────────────────────────────────────────────────
-// RAW DATA from CSV (all 30 customers – left + right columns)
-// ──────────────────────────────────────────────────────────────────────────────
-const RAW_CUSTOMERS = [
-  // Left column (earlier cohort)
-  { name: "Florea Design GmbH", industry: "Handwerk", size: 20, age: 20, duration: "1 Monat", source: "CC", salesCycleDays: 180, cltv: 3000, pages: 1, cohort: "früh" },
-  { name: "Sanierungsgesellschaft Riedel mbH", industry: "Handwerk", size: 7, age: 20, duration: "1 Monat", source: "CC", salesCycleDays: 90, cltv: 3000, pages: 1, cohort: "früh" },
-  { name: "Tim Hofmann", industry: "Handwerk", size: 1, age: 5, duration: "1 Monat", source: "Ads", salesCycleDays: 7, cltv: 3000, pages: 1, cohort: "früh" },
-  { name: "Türenwerk Westner GmbH", industry: "Handwerk", size: 10, age: 50, duration: "1 Monat", source: "CC", salesCycleDays: 30, cltv: 5350, pages: 4, cohort: "früh" },
-  { name: "Little Home e.V.", industry: "Verein", size: 3, age: 5, duration: "1 Monat", source: "Ads", salesCycleDays: 7, cltv: 3000, pages: 1, cohort: "früh" },
-  { name: "Alu Factory Ostingersleben UG", industry: "Handwerk", size: 3, age: 150, duration: "1 Monat", source: "CC", salesCycleDays: 14, cltv: 3000, pages: 1, cohort: "früh" },
-  { name: "LIFESTYLE WATCHES", industry: "Uhrenhändler", size: 2, age: 10, duration: "12 Monate", source: "Ads", salesCycleDays: 4, cltv: 9600, pages: 4, cohort: "früh" },
-  { name: "Rekrutierungshelfer GmbH", industry: "Recruiting", size: 15, age: 10, duration: "1 Monat", source: "Ads", salesCycleDays: 7, cltv: 3000, pages: 1, cohort: "früh" },
-  { name: "Clean Team 35", industry: "Reinigung", size: 10, age: 5, duration: "4 Monate", source: "Ads", salesCycleDays: 2, cltv: 6000, pages: 7, cohort: "früh" },
-  { name: "HITUG UG", industry: "Handwerk", size: 1, age: 10, duration: "1 Monat", source: "CC", salesCycleDays: 4, cltv: 5000, pages: 5, cohort: "früh" },
-  { name: "Daniel Marienfeld", industry: "Fotograf", size: 1, age: 5, duration: "1 Monat", source: "Ads", salesCycleDays: 90, cltv: 3000, pages: 1, cohort: "früh" },
-  { name: "Schmöllner Heimbetriebsgesellschaft mbH", industry: "Heim", size: 40, age: 30, duration: "3 Monate", source: "Empfehlung", salesCycleDays: 7, cltv: 3500, pages: 1, cohort: "früh" },
-  { name: "R.R. Meisterraum GmbH", industry: "Handwerk", size: 5, age: 20, duration: "12 Monate", source: "CC", salesCycleDays: 3, cltv: 4200, pages: 1, cohort: "früh" },
-  { name: "Johanna Lappe (Hundeschule)", industry: "Sonstige", size: 1, age: 1, duration: "1 Monat", source: "Empfehlung", salesCycleDays: 21, cltv: 3000, pages: 1, cohort: "früh" },
-  { name: "Steffen Hahn Sachverständiger", industry: "Beratung", size: 1, age: 5, duration: "1 Monat", source: "CC", salesCycleDays: 7, cltv: 3000, pages: 1, cohort: "früh" },
-  // Right column (recent cohort)
-  { name: "Patrick Eich", industry: "Sonstige", size: 1, age: 25, duration: "4 Monate", source: "Andere", salesCycleDays: 7, cltv: 8800, pages: 6, cohort: "aktuell" },
-  { name: "Lotto Brandenburg", industry: "Lotto", size: 100, age: 0, duration: "4 Monate", source: "Empfehlung", salesCycleDays: 14, cltv: 8330, pages: 1, cohort: "aktuell" },
-  { name: "Metallbau Eisele GmbH", industry: "Handwerk", size: 5, age: 25, duration: "12 Monate", source: "CC", salesCycleDays: 3, cltv: 8200, pages: 9, cohort: "aktuell" },
-  { name: "Sonnilux GmbH", industry: "Handwerk", size: 5, age: 30, duration: "16 Monate", source: "CC", salesCycleDays: 7, cltv: 8100, pages: 8, cohort: "aktuell" },
-  { name: "Lifestyle Watches", industry: "Uhrenhändler", size: 2, age: 10, duration: "12 Monate", source: "Ads", salesCycleDays: 3, cltv: 7800, pages: 4, cohort: "aktuell" },
-  { name: "Dietrich Dienstleistungen GmbH", industry: "Reinigung", size: 10, age: 25, duration: "2 Monate", source: "Ads", salesCycleDays: 4, cltv: 7700, pages: 10, cohort: "aktuell" },
-  { name: "Böhme GmbH", industry: "Beratung", size: 5, age: 35, duration: "6 Monate", source: "CC", salesCycleDays: 3, cltv: 7200, pages: 15, cohort: "aktuell" },
-  { name: "Lex Event GmbH", industry: "Sonstige", size: 3, age: 7, duration: "3 Monate", source: "Ads", salesCycleDays: 30, cltv: 7140, pages: 5, cohort: "aktuell" },
-  { name: "Clean Team 35 (neu)", industry: "Reinigung", size: 10, age: 5, duration: "3 Monate", source: "Ads", salesCycleDays: 3, cltv: 7140, pages: 7, cohort: "aktuell" },
-  { name: "Mawu Fliesen GmbH", industry: "Handwerk", size: 2, age: 25, duration: "6 Monate", source: "CC", salesCycleDays: 4, cltv: 6800, pages: 5, cohort: "aktuell" },
-  { name: "First Medical Service", industry: "Medizin", size: 6, age: 5, duration: "6 Monate", source: "Ads", salesCycleDays: 2, cltv: 6600, pages: 4, cohort: "aktuell" },
-  { name: "Zimmerwerk KG", industry: "Handwerk", size: 5, age: 20, duration: "6 Monate", source: "CC", salesCycleDays: 4, cltv: 6600, pages: 1, cohort: "aktuell" },
-  { name: "Türenwerk Westner", industry: "Handwerk", size: 10, age: 50, duration: "2 Monate", source: "CC", salesCycleDays: 30, cltv: 6300, pages: 4, cohort: "aktuell" },
-  { name: "Thomas Poss", industry: "Beratung", size: 1, age: 1, duration: "12 Monate", source: "Andere", salesCycleDays: 4, cltv: 6000, pages: 1, cohort: "aktuell" },
-  { name: "MBH Elektrotechnik", industry: "Handwerk", size: 3, age: 2, duration: "1 Monat", source: "Ads", salesCycleDays: 7, cltv: 6000, pages: 4, cohort: "aktuell" },
-];
+// ═══════════════════════════════════════════════════
+// TYPES & SCORING
+// ═══════════════════════════════════════════════════
 
-// Duration in months mapping for scoring
-function durationMonths(d: string): number {
-  const m = d.match(/(\d+)/);
-  if (!m) return 1;
-  const n = parseInt(m[1]);
-  if (d.includes("Monat")) return n;
-  return n;
+interface EnrichedTenant {
+  id: string;
+  company_name: string;
+  contact_name: string | null;
+  industry: string | null;
+  contract_duration: string | null;
+  created_at: string;
+  offer_price: number;
+  total_customers: number | null;
+  current_revenue_monthly: number;
+  goal_revenue_monthly: number;
+  is_active: boolean;
+  // Loaded data
+  health: any | null;
+  fulfillment: any | null;
+  latestMetrics: any | null;
+  // Computed
+  score: number;
+  focusLabel: string;
+  problems: string[];
+  strengths: string[];
+  recommendations: Recommendation[];
 }
 
-// Score each customer: higher = more valuable/focus-worthy
-function computeScore(c: typeof RAW_CUSTOMERS[0]) {
+interface Recommendation {
+  action: string;
+  priority: "hoch" | "mittel" | "info";
+  reason: string;
+}
+
+function computeScore(tenant: any, health: any, fulfillment: any, metrics: any): number {
   let score = 0;
-  // CLTV (max weight)
-  score += Math.min(c.cltv / 1000 * 10, 100); // up to 100pts
-  // Pages booked (more pages = deeper engagement)
-  score += Math.min(c.pages * 5, 50);
-  // Long duration = higher LTV potential
-  score += Math.min(durationMonths(c.duration) * 3, 30);
-  // Fast sales cycle = efficient
-  if (c.salesCycleDays <= 7) score += 20;
-  else if (c.salesCycleDays <= 14) score += 10;
-  else if (c.salesCycleDays <= 30) score += 5;
-  // Recent cohort
-  if (c.cohort === "aktuell") score += 15;
+
+  // Health score contribution (0-30)
+  if (health?.score) score += Math.min(health.score * 0.3, 30);
+
+  // Revenue contribution (0-25)
+  const rev = parseFloat(tenant.current_revenue_monthly) || 0;
+  if (rev >= 50000) score += 25;
+  else if (rev >= 20000) score += 20;
+  else if (rev >= 10000) score += 15;
+  else if (rev >= 5000) score += 10;
+  else score += 5;
+
+  // Contract duration (0-15)
+  const dur = tenant.contract_duration || "";
+  if (dur.includes("12") || dur.includes("Jahr")) score += 15;
+  else if (dur.includes("6")) score += 10;
+  else if (dur.includes("3")) score += 7;
+  else score += 3;
+
+  // Fulfillment progress (0-15)
+  if (fulfillment) {
+    if (fulfillment.project_status === "active") score += 10;
+    if (fulfillment.contract_renewed) score += 5;
+    if (fulfillment.csat_score >= 4) score += 5;
+  }
+
+  // Activity (0-15) — has recent metrics
+  if (metrics) {
+    if (parseFloat(metrics.leads_total) > 0) score += 5;
+    if (parseFloat(metrics.deals) > 0) score += 5;
+    if (parseFloat(metrics.revenue) > 0) score += 5;
+  }
+
   return Math.round(score);
 }
 
-// Detect problems per customer
-function detectProblems(c: typeof RAW_CUSTOMERS[0]): string[] {
+function getFocusLabel(score: number): string {
+  if (score >= 70) return "Top";
+  if (score >= 50) return "Gut";
+  if (score >= 30) return "Mittel";
+  return "Schwach";
+}
+
+function detectProblems(tenant: any, health: any, fulfillment: any, metrics: any): string[] {
   const problems: string[] = [];
-  if (c.cltv < 4000) problems.push("Niedriger CLTV");
-  if (durationMonths(c.duration) <= 1) problems.push("Kurze Laufzeit");
-  if (c.salesCycleDays > 60) problems.push("Langer Sales-Cycle");
-  if (c.pages <= 1) problems.push("Wenig Seiten gebucht");
-  if (c.size <= 1) problems.push("Sehr kleiner Betrieb");
-  if (c.source === "Andere") problems.push("Unklare Leadquelle");
+  if (health && health.score < 40) problems.push("Niedriger Health-Score");
+  if (health?.color === "red") problems.push("Kritischer Zustand");
+  if (fulfillment?.project_status === "paused") problems.push("Projekt pausiert");
+  if (fulfillment?.csat_score && fulfillment.csat_score < 3) problems.push("Niedrige Zufriedenheit");
+  if (fulfillment?.contract_end) {
+    const daysLeft = Math.round((new Date(fulfillment.contract_end).getTime() - Date.now()) / 86400000);
+    if (daysLeft < 30 && daysLeft > 0) problems.push("Vertrag läuft bald aus");
+    if (daysLeft <= 0) problems.push("Vertrag abgelaufen");
+  }
+  if (!metrics || (!parseFloat(metrics.leads_total) && !parseFloat(metrics.deals))) problems.push("Keine aktuelle Aktivität");
+  const dur = tenant.contract_duration || "";
+  if (dur === "1 Monat" || dur === "1") problems.push("Kurze Laufzeit");
   return problems;
 }
 
-// Detect strengths
-function detectStrengths(c: typeof RAW_CUSTOMERS[0]): string[] {
+function detectStrengths(tenant: any, health: any, fulfillment: any, metrics: any): string[] {
   const strengths: string[] = [];
-  if (c.cltv >= 8000) strengths.push("Top CLTV");
-  if (c.salesCycleDays <= 4) strengths.push("Blitz-Close");
-  if (c.pages >= 8) strengths.push("High Upsell");
-  if (durationMonths(c.duration) >= 12) strengths.push("Langläufer");
-  if (c.source === "Empfehlung") strengths.push("Empfehlung");
+  if (health && health.score >= 70) strengths.push("Top Health");
+  if (fulfillment?.contract_renewed) strengths.push("Verlängert");
+  if (fulfillment?.csat_score >= 4) strengths.push("Hohe Zufriedenheit");
+  if (metrics && parseFloat(metrics.deals) > 0) strengths.push("Aktive Deals");
+  const rev = parseFloat(tenant.current_revenue_monthly) || 0;
+  if (rev >= 20000) strengths.push("High Revenue");
   return strengths;
 }
 
-type Recommendation = { action: string; priority: "hoch" | "mittel" | "info"; reason: string };
-
-// Generate concrete advisor recommendations per customer
-function detectRecommendations(c: typeof RAW_CUSTOMERS[0]): Recommendation[] {
+function detectRecommendations(tenant: any, health: any, fulfillment: any, metrics: any): Recommendation[] {
   const recs: Recommendation[] = [];
-  const months = durationMonths(c.duration);
+  const problems = detectProblems(tenant, health, fulfillment, metrics);
 
-  // Churn risk checks
-  if (months <= 1 && c.cltv < 4000) {
-    recs.push({ action: "Churnrisiko prüfen", priority: "hoch", reason: "Kurze Laufzeit + niedriger CLTV = hohes Absprungrisiko. Gespräch zur Verlängerung führen." });
+  if (problems.includes("Vertrag läuft bald aus")) {
+    recs.push({ action: "Verlängerung initiieren", priority: "hoch", reason: "Vertrag läuft in weniger als 30 Tagen aus. Jetzt Renewal-Gespräch führen." });
   }
-  if (c.salesCycleDays > 60) {
-    recs.push({ action: "Qualifizierung prüfen", priority: "hoch", reason: "Sehr langer Sales-Cycle deutet auf Entscheidungsunsicherheit oder fehlenden Fit hin." });
+  if (problems.includes("Niedrige Zufriedenheit")) {
+    recs.push({ action: "CSAT-Gespräch führen", priority: "hoch", reason: "Kundenzufriedenheit unter 3/5 – Churn-Risiko. Sofort Ursachen klären." });
   }
-  if (c.pages <= 1 && c.source === "Ads") {
-    recs.push({ action: "Churnrisiko prüfen", priority: "hoch", reason: "Ads-Kunden mit 1 Seite churnen am häufigsten. Engagement-Check jetzt." });
+  if (problems.includes("Keine aktuelle Aktivität")) {
+    recs.push({ action: "Check-in anrufen", priority: "hoch", reason: "Keine aktuelle Aktivität erkennbar. Prüfen ob der Kunde Support benötigt." });
   }
-
-  // Upsell opportunities
-  if (c.pages < 5 && c.cltv >= 5000) {
-    recs.push({ action: "Upsell ansprechen", priority: "mittel", reason: `Nur ${c.pages} Seiten gebucht, aber CLTV ${c.cltv.toLocaleString("de-DE")}€ – Potenzial für mehr Seiten/Pakete vorhanden.` });
+  if (problems.includes("Niedriger Health-Score")) {
+    recs.push({ action: "Intensiv-Betreuung", priority: "hoch", reason: "Health-Score kritisch niedrig. Maßnahmenplan erarbeiten." });
   }
-  if (c.pages <= 1 && c.size >= 5) {
-    recs.push({ action: "Upsell ansprechen", priority: "mittel", reason: `Betrieb mit ${c.size} MA, aber nur 1 Seite. Weitere LinkedIn-Präsenz anbieten.` });
+  if (problems.includes("Kurze Laufzeit")) {
+    recs.push({ action: "Upsell auf Langvertrag", priority: "mittel", reason: "Kurze Laufzeit = höheres Churn-Risiko. Vorteile eines Jahresvertrags aufzeigen." });
   }
-
-  // Renewal opportunities
-  if (months >= 4 && months < 12) {
-    recs.push({ action: "Verlängerung initiieren", priority: "mittel", reason: `Vertrag läuft ${c.duration}. Jetzt Verlängerung auf Jahresbasis ansprechen (+LTV).` });
-  }
-  if (months === 12 && c.cohort === "früh") {
-    recs.push({ action: "Verlängerung initiieren", priority: "hoch", reason: "Jahresvertrag aus früher Kohorte – Renewal-Gespräch dringend einleiten." });
+  if (!fulfillment?.contract_renewed && fulfillment?.contract_end) {
+    recs.push({ action: "Vertragsverlängerung besprechen", priority: "mittel", reason: "Vertrag noch nicht verlängert. Proaktiv Gespräch initiieren." });
   }
 
-  // Reference / referral
-  if (c.cltv >= 7000 && c.source !== "Empfehlung") {
-    recs.push({ action: "Empfehlung anfragen", priority: "info", reason: `Top-Kunde (${c.cltv.toLocaleString("de-DE")}€ CLTV) – ideal für eine Testimonial- oder Empfehlungsanfrage.` });
+  // Positive recs
+  const strengths = detectStrengths(tenant, health, fulfillment, metrics);
+  if (strengths.includes("Hohe Zufriedenheit") && !problems.length) {
+    recs.push({ action: "Empfehlung anfragen", priority: "info", reason: "Zufriedener Kunde – ideal für Testimonial oder Empfehlung." });
   }
-
-  // No problems, keep nurturing
   if (recs.length === 0) {
-    recs.push({ action: "Status halten", priority: "info", reason: "Kunde läuft stabil. Regelmäßiges Check-in empfehlen um Zufriedenheit zu sichern." });
+    recs.push({ action: "Status halten", priority: "info", reason: "Kunde läuft stabil. Regelmäßiges Check-in empfohlen." });
   }
 
   return recs;
 }
 
-type SortKey = "score" | "cltv" | "pages" | "salesCycleDays" | "name";
-
-const FOCUS_COLORS: Record<string, string> = {
-  "Top": "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/30",
-  "Gut": "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30",
-  "Mittel": "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/30",
-  "Schwach": "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30",
+const FOCUS_STYLES: Record<string, { bg: string; text: string; border: string }> = {
+  Top: { bg: "bg-success/10", text: "text-success", border: "border-success/30" },
+  Gut: { bg: "bg-primary/10", text: "text-primary", border: "border-primary/30" },
+  Mittel: { bg: "bg-warning/10", text: "text-warning", border: "border-warning/30" },
+  Schwach: { bg: "bg-destructive/10", text: "text-destructive", border: "border-destructive/30" },
 };
 
-function focusLabel(score: number): "Top" | "Gut" | "Mittel" | "Schwach" {
-  if (score >= 140) return "Top";
-  if (score >= 100) return "Gut";
-  if (score >= 60) return "Mittel";
-  return "Schwach";
-}
+const PRIORITY_STYLES: Record<string, string> = {
+  hoch: "bg-destructive/10 text-destructive border-destructive/30",
+  mittel: "bg-warning/10 text-warning border-warning/30",
+  info: "bg-muted text-muted-foreground border-border/40",
+};
+
+// ═══════════════════════════════════════════════════
+// COMPONENT
+// ═══════════════════════════════════════════════════
 
 export function CustomerAnalysisTable() {
+  const [tenants, setTenants] = useState<EnrichedTenant[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [cohortFilter, setCohortFilter] = useState<string>("alle");
-  const [industryFilter, setIndustryFilter] = useState<string>("alle");
-  const [sourceFilter, setSourceFilter] = useState<string>("alle");
-  const [sortKey, setSortKey] = useState<SortKey>("score");
-  const [sortAsc, setSortAsc] = useState(false);
-  const [extraCustomers, setExtraCustomers] = useState<typeof RAW_CUSTOMERS>([]);
+  const [focusFilter, setFocusFilter] = useState<string>("alle");
+  const [selectedTenant, setSelectedTenant] = useState<any | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
-  const allCustomers = useMemo(() => [...RAW_CUSTOMERS, ...extraCustomers], [extraCustomers]);
+  useEffect(() => {
+    loadTenants();
+  }, []);
 
-  const enriched = useMemo(() =>
-    allCustomers.map(c => ({
-      ...c,
-      score: computeScore(c),
-      problems: detectProblems(c),
-      strengths: detectStrengths(c),
-      recommendations: detectRecommendations(c),
-    })), [allCustomers]);
+  const loadTenants = async () => {
+    setLoading(true);
+    try {
+      const { data: tenantsData } = await supabase
+        .from("tenants")
+        .select("*")
+        .eq("is_active", true)
+        .order("company_name");
 
-  const handleAddCustomer = (entry: CustomerEntry) => {
-    const mapped = {
-      name: entry.name,
-      industry: entry.industry || "Sonstige",
-      size: entry.size,
-      age: entry.age,
-      duration: entry.duration,
-      source: entry.source.replace(" (CC)", "").replace("Cold Call ", "CC"),
-      salesCycleDays: entry.salesCycleDays,
-      cltv: entry.cltv,
-      pages: entry.pages,
-      cohort: entry.cohort,
-    };
-    setExtraCustomers(prev => [...prev, mapped]);
+      if (!tenantsData) { setLoading(false); return; }
+
+      const enriched = await Promise.all(
+        tenantsData.map(async (tenant) => {
+          const [healthRes, fulfillmentRes, metricsRes] = await Promise.all([
+            supabase.from("health_scores").select("*").eq("tenant_id", tenant.id)
+              .order("created_at", { ascending: false }).limit(1).maybeSingle(),
+            supabase.from("fulfillment_tracking").select("*").eq("tenant_id", tenant.id).maybeSingle(),
+            supabase.from("v_metrics_monthly").select("*").eq("tenant_id", tenant.id)
+              .order("period_start", { ascending: false }).limit(1),
+          ]);
+
+          const health = healthRes.data;
+          const fulfillment = fulfillmentRes.data;
+          const latestMetrics = (metricsRes.data as any)?.[0] || null;
+
+          const score = computeScore(tenant, health, fulfillment, latestMetrics);
+          const fl = getFocusLabel(score);
+          const problems = detectProblems(tenant, health, fulfillment, latestMetrics);
+          const strengths = detectStrengths(tenant, health, fulfillment, latestMetrics);
+          const recommendations = detectRecommendations(tenant, health, fulfillment, latestMetrics);
+
+          return {
+            ...tenant,
+            health,
+            fulfillment,
+            latestMetrics,
+            score,
+            focusLabel: fl,
+            problems,
+            strengths,
+            recommendations,
+          } as EnrichedTenant;
+        })
+      );
+
+      // Sort by score descending
+      enriched.sort((a, b) => b.score - a.score);
+      setTenants(enriched);
+    } catch (err) {
+      console.error("Error loading tenants:", err);
+    }
+    setLoading(false);
   };
-
-  const industries = useMemo(() => Array.from(new Set(enriched.map(c => c.industry))).sort(), [enriched]);
-  const sources = useMemo(() => Array.from(new Set(enriched.map(c => c.source))).sort(), [enriched]);
 
   const filtered = useMemo(() => {
-    let data = enriched;
-    if (cohortFilter !== "alle") data = data.filter(c => c.cohort === cohortFilter);
-    if (industryFilter !== "alle") data = data.filter(c => c.industry === industryFilter);
-    if (sourceFilter !== "alle") data = data.filter(c => c.source === sourceFilter);
-    if (search.trim()) data = data.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.industry.toLowerCase().includes(search.toLowerCase()));
-    return [...data].sort((a, b) => {
-      const av = a[sortKey] as any;
-      const bv = b[sortKey] as any;
-      return sortAsc ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
-    });
-  }, [enriched, search, cohortFilter, industryFilter, sourceFilter, sortKey, sortAsc]);
+    let data = tenants;
+    if (focusFilter !== "alle") data = data.filter(t => t.focusLabel === focusFilter);
+    if (search.trim()) data = data.filter(t =>
+      t.company_name.toLowerCase().includes(search.toLowerCase()) ||
+      (t.contact_name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (t.industry || "").toLowerCase().includes(search.toLowerCase())
+    );
+    return data;
+  }, [tenants, search, focusFilter]);
 
-  // Insights / Muster
-  const avgCltvCC = useMemo(() => {
-    const cc = enriched.filter(c => c.source === "CC");
-    return cc.reduce((s, c) => s + c.cltv, 0) / cc.length;
-  }, [enriched]);
-  const avgCltvAds = useMemo(() => {
-    const ads = enriched.filter(c => c.source === "Ads");
-    return ads.reduce((s, c) => s + c.cltv, 0) / ads.length;
-  }, [enriched]);
-  const avgCltvEmpf = useMemo(() => {
-    const e = enriched.filter(c => c.source === "Empfehlung");
-    return e.reduce((s, c) => s + c.cltv, 0) / e.length;
-  }, [enriched]);
-  const topByPages = useMemo(() => [...enriched].sort((a, b) => b.pages - a.pages).slice(0, 3), [enriched]);
-  const highCycleSlow = useMemo(() => enriched.filter(c => c.salesCycleDays > 60), [enriched]);
-  const avgCltvRecent = useMemo(() => {
-    const r = enriched.filter(c => c.cohort === "aktuell");
-    return r.reduce((s, c) => s + c.cltv, 0) / r.length;
-  }, [enriched]);
-  const avgCltvOld = useMemo(() => {
-    const r = enriched.filter(c => c.cohort === "früh");
-    return r.reduce((s, c) => s + c.cltv, 0) / r.length;
-  }, [enriched]);
+  const counts = useMemo(() =>
+    tenants.reduce((a: Record<string, number>, t) => {
+      a[t.focusLabel] = (a[t.focusLabel] || 0) + 1;
+      return a;
+    }, { Top: 0, Gut: 0, Mittel: 0, Schwach: 0 }),
+  [tenants]);
 
-  const toggleSort = (key: SortKey) => {
-    if (sortKey === key) setSortAsc(p => !p);
-    else { setSortKey(key); setSortAsc(false); }
+  const handleSelect = (tenant: EnrichedTenant) => {
+    setSelectedTenant(tenant);
+    setSheetOpen(true);
   };
 
-  const Th = ({ label, k }: { label: string; k: SortKey }) => (
-    <th
-      className="p-2 text-right cursor-pointer select-none hover:text-primary transition-colors whitespace-nowrap"
-      onClick={() => toggleSort(k)}
-    >
-      <span className="inline-flex items-center gap-1 justify-end">
-        {label}
-        <ArrowUpDown className="h-3 w-3 opacity-50" />
-      </span>
-    </th>
-  );
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="glass-card"><CardContent className="p-4"><Skeleton className="h-16 w-full" /></CardContent></Card>
+          ))}
+        </div>
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="glass-card"><CardContent className="p-4"><Skeleton className="h-20 w-full" /></CardContent></Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
-      {/* ── Insights Banner ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <InsightCard
-          icon={<TrendingUp className="h-4 w-4 text-primary" />}
-          label="Ø CLTV – Aktuell vs. Früher"
-          value={`${Math.round(avgCltvRecent).toLocaleString("de-DE")} € vs. ${Math.round(avgCltvOld).toLocaleString("de-DE")} €`}
-          sub={avgCltvRecent > avgCltvOld ? `+${Math.round(((avgCltvRecent - avgCltvOld) / avgCltvOld) * 100)}% Verbesserung` : "Rückgang"}
-          positive={avgCltvRecent >= avgCltvOld}
-        />
-        <InsightCard
-          icon={<Star className="h-4 w-4 text-yellow-500" />}
-          label="Beste Leadquelle (CLTV)"
-          value={avgCltvCC >= avgCltvAds && avgCltvCC >= avgCltvEmpf ? "Cold Call" : avgCltvEmpf >= avgCltvAds ? "Empfehlung" : "Ads"}
-          sub={`CC ${Math.round(avgCltvCC).toLocaleString("de-DE")}€ · Ads ${Math.round(avgCltvAds).toLocaleString("de-DE")}€ · Empf. ${Math.round(avgCltvEmpf).toLocaleString("de-DE")}€`}
-          positive
-        />
-        <InsightCard
-          icon={<AlertTriangle className="h-4 w-4 text-destructive" />}
-          label="Lange Sales-Cycles"
-          value={`${highCycleSlow.length} Kunden > 60 Tage`}
-          sub={highCycleSlow.map(c => c.name.split(" ")[0]).join(", ")}
-          positive={highCycleSlow.length === 0}
-        />
-        <InsightCard
-          icon={<Info className="h-4 w-4 text-blue-500" />}
-          label="Top Upsell (Seiten)"
-          value={topByPages[0]?.name.split(" ").slice(0, 2).join(" ") || "–"}
-          sub={topByPages.map(c => `${c.name.split(" ")[0]}: ${c.pages} S.`).join(" · ")}
-          positive
+      {/* Focus category cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {(["Schwach", "Mittel", "Gut", "Top"] as const).map((label, i) => {
+          const styles = FOCUS_STYLES[label];
+          const active = focusFilter === label;
+          return (
+            <motion.div
+              key={label}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04 }}
+            >
+              <Card
+                className={`glass-card cursor-pointer transition-all duration-200 hover:scale-[1.02] ${active ? `${styles.border} border ${styles.bg}` : ""}`}
+                onClick={() => setFocusFilter(active ? "alle" : label)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`text-3xl font-bold font-mono ${styles.text}`}>
+                      {counts[label] || 0}
+                    </span>
+                    <Badge variant="outline" className={`${styles.bg} ${styles.text} ${styles.border} text-[10px] font-bold`}>
+                      {label}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {label === "Top" ? "Exzellente Performance" :
+                     label === "Gut" ? "Auf gutem Kurs" :
+                     label === "Mittel" ? "Optimierungsbedarf" :
+                     "Sofortmaßnahmen nötig"}
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Kunde, Kontakt oder Branche suchen…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9 glass-card border-border/50"
         />
       </div>
 
-      {/* ── Filters ── */}
-      <Card className="glass-card">
-        <CardHeader className="pb-3 pt-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              🔍 Kundenanalyse
-              <Badge variant="secondary">{filtered.length} / {enriched.length}</Badge>
-            </CardTitle>
-            <CustomerEntryForm onAdd={handleAddCustomer} />
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0 space-y-3">
-          <div className="flex flex-wrap gap-2">
-            <div className="relative flex-1 min-w-40">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Kunde suchen..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="pl-8 h-8 text-sm"
-              />
-            </div>
-            <Select value={cohortFilter} onValueChange={setCohortFilter}>
-              <SelectTrigger className="h-8 text-sm w-36"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="alle">Alle Kohorten</SelectItem>
-                <SelectItem value="früh">Frühere</SelectItem>
-                <SelectItem value="aktuell">Aktuelle</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={industryFilter} onValueChange={setIndustryFilter}>
-              <SelectTrigger className="h-8 text-sm w-40"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="alle">Alle Branchen</SelectItem>
-                {industries.map(i => <SelectItem key={i} value={i}>{i}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={sourceFilter} onValueChange={setSourceFilter}>
-              <SelectTrigger className="h-8 text-sm w-40"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="alle">Alle Quellen</SelectItem>
-                {sources.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
+      {/* Customer list */}
+      <div className="space-y-2">
+        {filtered.map((tenant, idx) => {
+          const styles = FOCUS_STYLES[tenant.focusLabel] || FOCUS_STYLES.Mittel;
+          const rev = parseFloat(String(tenant.current_revenue_monthly)) || 0;
 
-          {/* ── Table ── */}
-          <div className="overflow-x-auto rounded-lg border border-border/40">
-            <table className="w-full text-xs">
-              <thead className="bg-muted/40 border-b border-border/40">
-                <tr>
-                  <th className="p-2 text-left font-semibold sticky left-0 bg-muted/40 cursor-pointer" onClick={() => toggleSort("name")}>
-                    <span className="inline-flex items-center gap-1">Kunde <ArrowUpDown className="h-3 w-3 opacity-50" /></span>
-                  </th>
-                  <th className="p-2 text-left font-semibold">Branche</th>
-                  <th className="p-2 text-center font-semibold">Größe</th>
-                  <th className="p-2 text-center font-semibold">Laufzeit</th>
-                  <th className="p-2 text-center font-semibold">Quelle</th>
-                  <Th label="Sales-Cycle" k="salesCycleDays" />
-                  <Th label="CLTV" k="cltv" />
-                  <Th label="Seiten" k="pages" />
-                  <th className="p-2 text-center font-semibold">Kohort</th>
-                  <Th label="Score" k="score" />
-                  <th className="p-2 text-center font-semibold">Fokus</th>
-                  <th className="p-2 text-left font-semibold min-w-48">Stärken / Probleme</th>
-                  <th className="p-2 text-left font-semibold min-w-52">Empfehlungen</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((c, i) => {
-                  const label = focusLabel(c.score);
-                  const focusCls = FOCUS_COLORS[label];
-                  const rowBg = label === "Top" ? "bg-green-500/5" : label === "Schwach" ? "bg-red-500/5" : "";
-                  return (
-                    <tr key={i} className={`border-b border-border/30 hover:bg-muted/40 transition-colors ${rowBg}`}>
-                      <td className="p-2 font-medium sticky left-0 bg-background/80 backdrop-blur-sm max-w-48 truncate" title={c.name}>
-                        {c.name}
-                      </td>
-                      <td className="p-2 text-muted-foreground whitespace-nowrap">{c.industry}</td>
-                      <td className="p-2 text-center text-muted-foreground">{c.size}</td>
-                      <td className="p-2 text-center whitespace-nowrap">
-                        <span className={durationMonths(c.duration) >= 12 ? "text-green-600 dark:text-green-400 font-medium" : durationMonths(c.duration) >= 4 ? "text-foreground" : "text-muted-foreground"}>
-                          {c.duration}
-                        </span>
-                      </td>
-                      <td className="p-2 text-center">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                          c.source === "CC" ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" :
-                          c.source === "Ads" ? "bg-orange-500/10 text-orange-600 dark:text-orange-400" :
-                          c.source === "Empfehlung" ? "bg-green-500/10 text-green-600 dark:text-green-400" :
-                          "bg-muted text-muted-foreground"
-                        }`}>{c.source}</span>
-                      </td>
-                      <td className="p-2 text-right">
-                        <span className={c.salesCycleDays > 60 ? "text-destructive font-medium" : c.salesCycleDays <= 7 ? "text-green-600 dark:text-green-400" : "text-foreground"}>
-                          {c.salesCycleDays <= 1 ? "1 Tag" : c.salesCycleDays <= 7 ? `${c.salesCycleDays}d` :
-                           c.salesCycleDays <= 14 ? "2 Wo." : c.salesCycleDays <= 30 ? "1 Mon." :
-                           c.salesCycleDays <= 90 ? "3 Mon." : "6 Mon."}
-                        </span>
-                      </td>
-                      <td className="p-2 text-right font-semibold">
-                        <span className={c.cltv >= 8000 ? "text-green-600 dark:text-green-400" : c.cltv < 4000 ? "text-muted-foreground" : "text-foreground"}>
-                          {c.cltv.toLocaleString("de-DE")} €
-                        </span>
-                      </td>
-                      <td className="p-2 text-right">
-                        <span className={c.pages >= 8 ? "text-primary font-bold" : c.pages <= 1 ? "text-muted-foreground" : "text-foreground"}>
-                          {c.pages}
-                        </span>
-                      </td>
-                      <td className="p-2 text-center">
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                          c.cohort === "aktuell" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                        }`}>{c.cohort}</span>
-                      </td>
-                      <td className="p-2 text-right font-bold">{c.score}</td>
-                      <td className="p-2 text-center">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${focusCls}`}>
-                          {label}
-                        </span>
-                      </td>
-                      <td className="p-2">
-                        <div className="flex flex-wrap gap-1">
-                          {c.strengths.map(s => (
-                            <span key={s} className="text-[10px] bg-green-500/10 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded-full">
-                              ✓ {s}
-                            </span>
-                          ))}
-                          {c.problems.map(p => (
-                            <span key={p} className="text-[10px] bg-destructive/10 text-destructive px-1.5 py-0.5 rounded-full">
-                              ⚠ {p}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="p-2">
-                        <TooltipProvider delayDuration={100}>
-                          <div className="flex flex-col gap-1">
-                            {c.recommendations.map((rec, ri) => (
-                              <Tooltip key={ri}>
-                                <TooltipTrigger asChild>
-                                  <div className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full border cursor-help font-medium w-fit ${
-                                    rec.priority === "hoch"
-                                      ? "bg-destructive/10 text-destructive border-destructive/30"
-                                      : rec.priority === "mittel"
-                                      ? "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30"
-                                      : "bg-muted text-muted-foreground border-border/40"
-                                  }`}>
-                                    <ChevronRight className="h-2.5 w-2.5 shrink-0" />
-                                    {rec.action}
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent side="left" className="max-w-64 text-xs">
-                                  <p className="font-semibold mb-0.5">{rec.action}</p>
-                                  <p className="text-muted-foreground">{rec.reason}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            ))}
-                          </div>
-                        </TooltipProvider>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          return (
+            <motion.div
+              key={tenant.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + idx * 0.02 }}
+            >
+              <Card
+                className="glass-card cursor-pointer transition-all duration-200 hover:border-border/80 hover:scale-[1.005] group"
+                onClick={() => handleSelect(tenant)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    {/* Score circle */}
+                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${styles.bg} border ${styles.border}`}>
+                      <span className={`text-sm font-bold font-mono ${styles.text}`}>{tenant.score}</span>
+                    </div>
 
-          {/* ── Korrelations-Insights ── */}
-          <div className="mt-4 p-3 rounded-lg bg-muted/30 border border-border/40 space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">🔗 Muster & Erkenntnisse</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-muted-foreground">
-              <span>📊 Kunden mit <strong>mehr Seiten (&ge;8)</strong> erzielen durchschnittlich höheren CLTV (Böhme 15 S. → 7.200€, Sonnilux 8 S. → 8.100€)</span>
-              <span>⚡ <strong>CC-Leadquelle</strong> = schnellster Close bei Handwerk (oft 3–4 Tage); ideal für Skalierung</span>
-              <span>📈 Aktuellere Kunden ({Math.round(avgCltvRecent).toLocaleString("de-DE")}€ Ø CLTV) deutlich besser als frühe Kohorte ({Math.round(avgCltvOld).toLocaleString("de-DE")}€)</span>
-              <span>⚠️ <strong>1-Monats-Verträge mit 1 Seite</strong>: hohe Absprunggefahr, niedriger CLTV – Fokus auf Upsell oder Qualifizierung</span>
-              <span>🎯 <strong>Handwerksbetriebe ab 5 MA</strong> mit Unternehmensalter &ge;20 Jahren = stabilste Kunden (R.R. Meisterraum, Metallbau Eisele)</span>
-              <span>🔄 <strong>Ads-Kunden</strong> mit 1 Seite und &le;1 Monat Laufzeit = höchstes Churnrisiko → Re-Qualifizierung empfohlen</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-foreground truncate">{tenant.company_name}</p>
+                        <Badge variant="outline" className={`${styles.bg} ${styles.text} ${styles.border} text-[9px] font-bold shrink-0`}>
+                          {tenant.focusLabel}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-3 mt-0.5">
+                        {tenant.contact_name && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Users className="h-3 w-3" />{tenant.contact_name}
+                          </span>
+                        )}
+                        {tenant.industry && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Building2 className="h-3 w-3" />{tenant.industry}
+                          </span>
+                        )}
+                        {rev > 0 && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1 hidden sm:flex">
+                            <DollarSign className="h-3 w-3" />{rev.toLocaleString("de-DE")}€/M
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
-function InsightCard({ icon, label, value, sub, positive }: {
-  icon: React.ReactNode; label: string; value: string; sub?: string; positive: boolean;
-}) {
-  return (
-    <div className={`rounded-xl p-3 border ${positive ? "bg-muted/30 border-border/40" : "bg-destructive/5 border-destructive/20"}`}>
-      <div className="flex items-center gap-2 mb-1">
-        {icon}
-        <p className="text-[11px] text-muted-foreground font-medium">{label}</p>
+                    {/* Tags */}
+                    <div className="hidden md:flex items-center gap-1.5 flex-wrap justify-end max-w-xs">
+                      {tenant.strengths.slice(0, 2).map(s => (
+                        <span key={s} className="text-[10px] bg-success/10 text-success px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                          ✓ {s}
+                        </span>
+                      ))}
+                      {tenant.problems.slice(0, 2).map(p => (
+                        <span key={p} className="text-[10px] bg-destructive/10 text-destructive px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                          ⚠ {p}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Recommendations preview */}
+                    <div className="hidden lg:flex flex-col gap-1 max-w-52">
+                      {tenant.recommendations.slice(0, 2).map((rec, ri) => (
+                        <span key={ri} className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${PRIORITY_STYLES[rec.priority]}`}>
+                          <Target className="h-2.5 w-2.5 shrink-0" />
+                          {rec.action}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Health indicator */}
+                    {tenant.health && (
+                      <div className="hidden sm:flex flex-col items-center gap-0.5">
+                        <span className={`text-xs font-bold font-mono ${
+                          tenant.health.color === "green" ? "text-success" :
+                          tenant.health.color === "amber" ? "text-warning" :
+                          "text-destructive"
+                        }`}>{tenant.health.score}</span>
+                        <span className="text-[9px] text-muted-foreground">Health</span>
+                      </div>
+                    )}
+
+                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
+
+        {filtered.length === 0 && (
+          <p className="text-center text-sm text-muted-foreground py-8">Keine Kunden gefunden</p>
+        )}
       </div>
-      <p className="text-sm font-bold text-foreground leading-tight">{value}</p>
-      {sub && <p className="text-[10px] text-muted-foreground mt-0.5">{sub}</p>}
+
+      {/* Detail Sheet */}
+      <TenantDetailSheet
+        tenant={selectedTenant}
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+      />
     </div>
   );
 }
