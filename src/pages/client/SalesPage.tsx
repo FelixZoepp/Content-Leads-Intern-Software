@@ -60,7 +60,8 @@ export default function SalesPage() {
         <TabsContent value="dashboard" className="mt-4 space-y-6">
           <SalesKPICards metrics={metrics} />
           <SalesCharts metrics={metrics} timeRange={timeRange} />
-          <KPIMetricTracker configs={salesKPIConfigs} metrics={metrics} />
+          <KPIMetricTracker configs={outboundKPIConfigs} metrics={metrics} title="Outbound-KPIs" />
+          <KPIMetricTracker configs={salesKPIConfigs} metrics={metrics} title="Sales-Pipeline-KPIs" />
         </TabsContent>
 
         <TabsContent value="entry" className="mt-4">
