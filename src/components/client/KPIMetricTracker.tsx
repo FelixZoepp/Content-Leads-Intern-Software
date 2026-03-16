@@ -210,14 +210,14 @@ function KPICard({ config, metrics }: { config: KPIMetricConfig; metrics: any[] 
   );
 }
 
-export function KPIMetricTracker({ configs, metrics }: Props) {
+export function KPIMetricTracker({ configs, metrics, title }: Props) {
   if (!metrics || metrics.length === 0) return null;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <TrendingUp className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-semibold text-foreground">KPI-Tracker & Handlungsempfehlungen</h3>
+        <h3 className="text-sm font-semibold text-foreground">{title || "KPI-Tracker & Handlungsempfehlungen"}</h3>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {configs.map((config) => (
