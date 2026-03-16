@@ -711,19 +711,45 @@ export function BeraterDashboard() {
                             </div>
                           )}
 
-                          {/* Action alerts */}
-                          {detail.overallStatus === "red" && (
-                            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                              <p className="text-xs font-semibold text-destructive mb-1">Sofortmaßnahmen erforderlich</p>
-                              <p className="text-xs text-muted-foreground">{detail.scores.red} rote KPIs. Umgehend Kontakt aufnehmen.</p>
-                            </div>
-                          )}
-                          {detail.overallStatus === "yellow" && (
-                            <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
-                              <p className="text-xs font-semibold text-warning mb-1">Proaktiv beraten</p>
-                              <p className="text-xs text-muted-foreground">Optimierungsbedarf bei {detail.scores.yellow} KPIs. Coaching-Gespräch einplanen.</p>
-                            </div>
-                          )}
+                          {/* ACTION PLAN */}
+                          {(() => {
+                            const actions = generateActionPlan(detail);
+                            if (actions.length === 0) return null;
+                            const priorityStyles = {
+                              high: { bg: "bg-destructive/10", border: "border-destructive/20", badge: "bg-destructive/20 text-destructive", label: "Dringend" },
+                              medium: { bg: "bg-warning/10", border: "border-warning/20", badge: "bg-warning/20 text-warning", label: "Wichtig" },
+                              low: { bg: "bg-muted/50", border: "border-border/30", badge: "bg-secondary text-muted-foreground", label: "Hinweis" },
+                            };
+                            return (
+                              <div className="space-y-2">
+                                <p className="text-xs font-semibold text-foreground flex items-center gap-2">
+                                  <Target className="h-3.5 w-3.5 text-primary" />
+                                  Handlungsplan ({actions.length} Maßnahmen)
+                                </p>
+                                {actions.map((action, ai) => {
+                                  const ps = priorityStyles[action.priority];
+                                  const Icon = action.icon;
+                                  return (
+                                    <div key={ai} className={`p-3 rounded-lg ${ps.bg} border ${ps.border}`}>
+                                      <div className="flex items-start gap-3">
+                                        <Icon className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                                        <div className="flex-1 min-w-0 space-y-1">
+                                          <div className="flex items-center gap-2">
+                                            <p className="text-xs font-semibold text-foreground">{action.title}</p>
+                                            <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${ps.badge}`}>
+                                              {ps.label}
+                                            </span>
+                                          </div>
+                                          <p className="text-xs text-muted-foreground leading-relaxed">{action.description}</p>
+                                          <p className="text-[10px] text-primary/80 font-medium">⚡ Impact: {action.impact}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
                         </div>
                       </motion.div>
                     )}
