@@ -19,6 +19,7 @@ export interface KPIMetricConfig {
 interface Props {
   configs: KPIMetricConfig[];
   metrics: any[];
+  title?: string;
 }
 
 function TrackBadge({ status }: { status: "on-track" | "off-track" | "critical" }) {
