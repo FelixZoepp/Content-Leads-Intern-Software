@@ -9,6 +9,7 @@ import { AdminAISummary } from "@/components/admin/AdminAISummary";
 import { AdminPortfolioTabs } from "@/components/admin/AdminPortfolioTabs";
 import { AdminCSATOverview } from "@/components/admin/AdminCSATOverview";
 import { CustomerAnalysisTable } from "@/components/admin/CustomerAnalysisTable";
+import { BeraterDashboard } from "@/components/admin/BeraterDashboard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Routes, Route } from "react-router-dom";
 
@@ -51,12 +52,10 @@ function AdminCustomerAnalysisPage() {
   );
 }
 
-function AdminOverviewPage({ tenants, alerts, loadAdminData }: { tenants: any[]; alerts: any[]; loadAdminData: () => void }) {
+function AdminOverviewPage() {
   return (
-    <div className="space-y-6 max-w-6xl">
-      <AlertsPanel alerts={alerts} onResolve={loadAdminData} />
-      <AdminPortfolioTabs tenants={tenants} />
-      <AdminAISummary />
+    <div className="space-y-6 max-w-5xl">
+      <BeraterDashboard />
     </div>
   );
 }
@@ -119,7 +118,7 @@ export default function AdminDashboard() {
       subtitle={`Portfolio-Gesamtübersicht · ${tenants.length} aktive Kunden`}
     >
       <Routes>
-        <Route index element={<AdminOverviewPage tenants={tenants} alerts={alerts} loadAdminData={loadAdminData} />} />
+        <Route index element={<AdminOverviewPage />} />
         <Route path="alerts" element={<AdminAlertsPage alerts={alerts} loadAdminData={loadAdminData} />} />
         <Route path="csat" element={<AdminCSATPage tenants={tenants} />} />
         <Route path="ai-summary" element={<AdminAISummaryPage />} />
