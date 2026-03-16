@@ -6,10 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertsPanel } from "@/components/admin/AlertsPanel";
 import { AdminAISummary } from "@/components/admin/AdminAISummary";
-import { AdminPortfolioTabs } from "@/components/admin/AdminPortfolioTabs";
 import { AdminCSATOverview } from "@/components/admin/AdminCSATOverview";
+import { AdminPortfolioTabs } from "@/components/admin/AdminPortfolioTabs";
 import { CustomerAnalysisTable } from "@/components/admin/CustomerAnalysisTable";
-import { BeraterDashboard } from "@/components/admin/BeraterDashboard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Routes, Route } from "react-router-dom";
 
@@ -40,22 +39,11 @@ function AdminAISummaryPage() {
   );
 }
 
-function AdminCustomerAnalysisPage() {
+function AdminPortfolioPage({ tenants }: { tenants: any[] }) {
   return (
     <div className="space-y-6 max-w-7xl">
-      <div>
-        <h2 className="text-xl font-semibold text-foreground">Kundenanalyse</h2>
-        <p className="text-sm text-muted-foreground">Alle 30 Kunden – Fokus-Score, Schwachstellen & Korrelationen</p>
-      </div>
+      <AdminPortfolioTabs tenants={tenants} />
       <CustomerAnalysisTable />
-    </div>
-  );
-}
-
-function AdminOverviewPage() {
-  return (
-    <div className="space-y-6 max-w-5xl">
-      <BeraterDashboard />
     </div>
   );
 }
@@ -118,11 +106,10 @@ export default function AdminDashboard() {
       subtitle={`Portfolio-Gesamtübersicht · ${tenants.length} aktive Kunden`}
     >
       <Routes>
-        <Route index element={<AdminOverviewPage />} />
+        <Route index element={<AdminPortfolioPage tenants={tenants} />} />
         <Route path="alerts" element={<AdminAlertsPage alerts={alerts} loadAdminData={loadAdminData} />} />
         <Route path="csat" element={<AdminCSATPage tenants={tenants} />} />
         <Route path="ai-summary" element={<AdminAISummaryPage />} />
-        <Route path="customer-analysis" element={<AdminCustomerAnalysisPage />} />
       </Routes>
     </DashboardLayout>
   );

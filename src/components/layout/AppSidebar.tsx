@@ -48,7 +48,6 @@ const adminNav = [
   { title: "Alerts", icon: Bell, path: "/dashboard/alerts" },
   { title: "CSAT/NPS", icon: MessageSquare, path: "/dashboard/csat" },
   { title: "KI-Summary", icon: Brain, path: "/dashboard/ai-summary" },
-  { title: "Kundenanalyse", icon: Users, path: "/dashboard/customer-analysis" },
 ];
 
 export function AppSidebar() {
