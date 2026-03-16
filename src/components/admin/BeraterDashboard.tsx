@@ -206,13 +206,13 @@ async function fetchCustomersFromSupabase(): Promise<any[]> {
 
       // Weekly data from aggregated view
       const { data: weeklyView } = await supabase
-        .from("v_metrics_weekly" as any)
+        .from("v_metrics_weekly")
         .select("*")
         .eq("tenant_id", tenant.id)
         .order("period_start", { ascending: false })
         .limit(1);
 
-      const wk = weeklyView?.[0];
+      const wk: any = weeklyView?.[0];
       const weekly: Record<string, any> = {};
       if (wk) {
         weekly.settings_gesamt = wk.settings_planned || 0;
