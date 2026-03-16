@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { BarChart3, PlusCircle } from "lucide-react";
 import { KPIMetricTracker } from "@/components/client/KPIMetricTracker";
-import { salesKPIConfigs } from "@/lib/kpiTrackerConfigs";
+import { salesKPIConfigs, outboundKPIConfigs } from "@/lib/kpiTrackerConfigs";
 
 function SalesKPICards({ metrics }: { metrics: any[] }) {
   const latest = metrics?.[0];
