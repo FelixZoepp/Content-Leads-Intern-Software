@@ -34,7 +34,7 @@ export default function MarketingPage() {
         <TabsContent value="dashboard" className="mt-4 space-y-6">
           <ClientMetricsCards metrics={metrics} timeRange={timeRange} />
           <MarketingCharts metrics={metrics} timeRange={timeRange} />
-          <KPIMetricTracker configs={marketingKPIConfigs} metrics={metrics} />
+          <KPIMetricTracker configs={marketingKPIConfigs} metrics={metrics} title="Inbound-KPIs (LinkedIn Leadposts)" />
           <KPIInsights metrics={metrics} />
         </TabsContent>
 
