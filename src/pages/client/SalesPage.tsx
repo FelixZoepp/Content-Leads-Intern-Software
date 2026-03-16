@@ -2,9 +2,10 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { SalesCharts } from "@/components/client/SalesCharts";
 import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
 import { SalesKPIEntry } from "@/components/dashboard/SalesKPIEntry";
+import { DailyKPIInput } from "@/components/dashboard/DailyKPIInput";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { BarChart3, PlusCircle } from "lucide-react";
+import { BarChart3, PlusCircle, Zap } from "lucide-react";
 import { KPIMetricTracker } from "@/components/client/KPIMetricTracker";
 import { salesKPIConfigs, outboundKPIConfigs } from "@/lib/kpiTrackerConfigs";
 
