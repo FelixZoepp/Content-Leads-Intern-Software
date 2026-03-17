@@ -2,3 +2,6 @@ project_id = "uvoncgwthdzwamiizorl"
 
 [functions.invite-customer]
 verify_jwt = false
+
+[functions.list-customers]
+verify_jwt = false
