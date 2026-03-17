@@ -8,6 +8,7 @@ import { AlertsPanel } from "@/components/admin/AlertsPanel";
 import { AdminAISummary } from "@/components/admin/AdminAISummary";
 import { AdminCSATOverview } from "@/components/admin/AdminCSATOverview";
 import { AdminPortfolioTabs } from "@/components/admin/AdminPortfolioTabs";
+import { CustomerStatusList } from "@/components/admin/CustomerStatusList";
 import { CustomerAnalysisTable } from "@/components/admin/CustomerAnalysisTable";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { InviteCustomerDialog } from "@/components/admin/InviteCustomerDialog";
@@ -47,6 +48,7 @@ function AdminPortfolioPage({ tenants, onReload }: { tenants: any[]; onReload: (
         <div />
         <InviteCustomerDialog onSuccess={onReload} />
       </div>
+      <CustomerStatusList />
       <AdminPortfolioTabs tenants={tenants} />
       <CustomerAnalysisTable />
     </div>
