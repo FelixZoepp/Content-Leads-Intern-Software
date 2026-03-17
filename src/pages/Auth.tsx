@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,8 +13,28 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetMode, setResetMode] = useState(false);
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast({ title: "Bitte E-Mail eingeben", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/set-password`,
+    });
+    setLoading(false);
+    if (error) {
+      toast({ title: "Fehler", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "E-Mail gesendet", description: "Prüfen Sie Ihr Postfach für den Passwort-Reset-Link." });
+      setResetMode(false);
+    }
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,19 +84,40 @@ const Auth = () => {
             </TabsList>
 
             <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4 pt-2">
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email" className="text-sm text-foreground/80">E-Mail</Label>
-                  <Input id="signin-email" type="email" placeholder="ihre@email.de" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-secondary/40 border-border/50 rounded-xl h-11" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password" className="text-sm text-foreground/80">Passwort</Label>
-                  <Input id="signin-password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-secondary/40 border-border/50 rounded-xl h-11" />
-                </div>
-                <Button type="submit" className="w-full h-11 rounded-xl glow-primary" disabled={loading}>
-                  {loading ? "Wird angemeldet..." : "Anmelden"}
-                </Button>
-              </form>
+              {resetMode ? (
+                <form onSubmit={handleForgotPassword} className="space-y-4 pt-2">
+                  <p className="text-sm text-muted-foreground">Geben Sie Ihre E-Mail ein, um einen Passwort-Reset-Link zu erhalten.</p>
+                  <div className="space-y-2">
+                    <Label htmlFor="reset-email" className="text-sm text-foreground/80">E-Mail</Label>
+                    <Input id="reset-email" type="email" placeholder="ihre@email.de" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-secondary/40 border-border/50 rounded-xl h-11" />
+                  </div>
+                  <Button type="submit" className="w-full h-11 rounded-xl glow-primary" disabled={loading}>
+                    {loading ? "Wird gesendet..." : "Reset-Link senden"}
+                  </Button>
+                  <Button type="button" variant="link" className="w-full text-sm" onClick={() => setResetMode(false)}>
+                    Zurück zum Login
+                  </Button>
+                </form>
+              ) : (
+                <form onSubmit={handleSignIn} className="space-y-4 pt-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="signin-email" className="text-sm text-foreground/80">E-Mail</Label>
+                    <Input id="signin-email" type="email" placeholder="ihre@email.de" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-secondary/40 border-border/50 rounded-xl h-11" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="signin-password" className="text-sm text-foreground/80">Passwort</Label>
+                      <button type="button" className="text-xs text-primary hover:underline" onClick={() => setResetMode(true)}>
+                        Passwort vergessen?
+                      </button>
+                    </div>
+                    <Input id="signin-password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-secondary/40 border-border/50 rounded-xl h-11" />
+                  </div>
+                  <Button type="submit" className="w-full h-11 rounded-xl glow-primary" disabled={loading}>
+                    {loading ? "Wird angemeldet..." : "Anmelden"}
+                  </Button>
+                </form>
+              )}
             </TabsContent>
 
             <TabsContent value="signup">

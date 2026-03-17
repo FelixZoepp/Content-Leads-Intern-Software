@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw, UserCheck, Clock, Mail } from "lucide-react";
+import { Loader2, RefreshCw, UserCheck, Clock, Mail, KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface CustomerStatus {
   id: string;
@@ -24,6 +25,23 @@ interface CustomerStatus {
 export function CustomerStatusList() {
   const [customers, setCustomers] = useState<CustomerStatus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [resettingEmail, setResettingEmail] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const sendPasswordReset = async (email: string) => {
+    setResettingEmail(email);
+    try {
+      const { data, error } = await supabase.functions.invoke("reset-password", {
+        body: { email },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Passwort-Reset gesendet", description: `E-Mail an ${email} gesendet.` });
+    } catch (err: any) {
+      toast({ title: "Fehler", description: err.message, variant: "destructive" });
+    }
+    setResettingEmail(null);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -79,6 +97,7 @@ export function CustomerStatusList() {
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Eingeladen am</TableHead>
                   <TableHead className="text-right">Letzter Login</TableHead>
+                  <TableHead className="text-center">Aktion</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -99,6 +118,24 @@ export function CustomerStatusList() {
                       </TableCell>
                       <TableCell className="text-right text-sm">{formatDate(c.created_at)}</TableCell>
                       <TableCell className="text-right text-sm">{formatDate(c.last_sign_in_at)}</TableCell>
+                      <TableCell className="text-center">
+                        {c.email && (!c.last_sign_in_at || !c.email_confirmed_at) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 text-xs"
+                            disabled={resettingEmail === c.email}
+                            onClick={() => sendPasswordReset(c.email!)}
+                          >
+                            {resettingEmail === c.email ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <KeyRound className="h-3 w-3" />
+                            )}
+                            Passwort-Reset
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   );
                 })}
