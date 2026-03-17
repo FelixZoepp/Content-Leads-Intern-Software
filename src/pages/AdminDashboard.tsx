@@ -48,6 +48,7 @@ function AdminPortfolioPage({ tenants, onReload }: { tenants: any[]; onReload: (
         <div />
         <InviteCustomerDialog onSuccess={onReload} />
       </div>
+      <CustomerStatusList />
       <AdminPortfolioTabs tenants={tenants} />
       <CustomerAnalysisTable />
     </div>
