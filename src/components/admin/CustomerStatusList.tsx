@@ -97,7 +97,7 @@ export function CustomerStatusList() {
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Eingeladen am</TableHead>
                   <TableHead className="text-right">Letzter Login</TableHead>
-                </TableRow>
+                  <TableHead className="text-center">Aktion</TableHead>
               </TableHeader>
               <TableBody>
                 {customers.map((c) => {
