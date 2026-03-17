@@ -78,6 +78,7 @@ Deno.serve(async (req) => {
       const { data: inviteData, error: inviteError } =
         await adminClient.auth.admin.inviteUserByEmail(email, {
           data: { full_name: contact_name || company_name },
+          redirectTo: `${req.headers.get("origin") || "https://social-stat-studio.lovable.app"}/set-password`,
         });
 
       if (inviteError) {
