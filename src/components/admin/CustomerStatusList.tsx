@@ -118,6 +118,24 @@ export function CustomerStatusList() {
                       </TableCell>
                       <TableCell className="text-right text-sm">{formatDate(c.created_at)}</TableCell>
                       <TableCell className="text-right text-sm">{formatDate(c.last_sign_in_at)}</TableCell>
+                      <TableCell className="text-center">
+                        {c.email && (!c.last_sign_in_at || !c.email_confirmed_at) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 text-xs"
+                            disabled={resettingEmail === c.email}
+                            onClick={() => sendPasswordReset(c.email!)}
+                          >
+                            {resettingEmail === c.email ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <KeyRound className="h-3 w-3" />
+                            )}
+                            Passwort-Reset
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   );
                 })}
