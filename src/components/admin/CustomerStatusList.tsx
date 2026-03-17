@@ -25,6 +25,23 @@ interface CustomerStatus {
 export function CustomerStatusList() {
   const [customers, setCustomers] = useState<CustomerStatus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [resettingEmail, setResettingEmail] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const sendPasswordReset = async (email: string) => {
+    setResettingEmail(email);
+    try {
+      const { data, error } = await supabase.functions.invoke("reset-password", {
+        body: { email },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Passwort-Reset gesendet", description: `E-Mail an ${email} gesendet.` });
+    } catch (err: any) {
+      toast({ title: "Fehler", description: err.message, variant: "destructive" });
+    }
+    setResettingEmail(null);
+  };
 
   const load = async () => {
     setLoading(true);
