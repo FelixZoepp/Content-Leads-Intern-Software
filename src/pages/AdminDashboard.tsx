@@ -111,7 +111,7 @@ export default function AdminDashboard() {
       subtitle={`Portfolio-Gesamtübersicht · ${tenants.length} aktive Kunden`}
     >
       <Routes>
-        <Route index element={<AdminPortfolioPage tenants={tenants} />} />
+        <Route index element={<AdminPortfolioPage tenants={tenants} onReload={loadAdminData} />} />
         <Route path="alerts" element={<AdminAlertsPage alerts={alerts} loadAdminData={loadAdminData} />} />
         <Route path="csat" element={<AdminCSATPage tenants={tenants} />} />
         <Route path="ai-summary" element={<AdminAISummaryPage />} />
