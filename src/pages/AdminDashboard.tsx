@@ -40,9 +40,13 @@ function AdminAISummaryPage() {
   );
 }
 
-function AdminPortfolioPage({ tenants }: { tenants: any[] }) {
+function AdminPortfolioPage({ tenants, onReload }: { tenants: any[]; onReload: () => void }) {
   return (
     <div className="space-y-6 max-w-7xl">
+      <div className="flex items-center justify-between">
+        <div />
+        <InviteCustomerDialog onSuccess={onReload} />
+      </div>
       <AdminPortfolioTabs tenants={tenants} />
       <CustomerAnalysisTable />
     </div>
