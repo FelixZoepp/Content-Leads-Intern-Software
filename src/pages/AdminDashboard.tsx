@@ -10,6 +10,7 @@ import { AdminCSATOverview } from "@/components/admin/AdminCSATOverview";
 import { AdminPortfolioTabs } from "@/components/admin/AdminPortfolioTabs";
 import { CustomerAnalysisTable } from "@/components/admin/CustomerAnalysisTable";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { InviteCustomerDialog } from "@/components/admin/InviteCustomerDialog";
 import { Routes, Route } from "react-router-dom";
 
 function AdminAlertsPage({ alerts, loadAdminData }: { alerts: any[]; loadAdminData: () => void }) {
