@@ -926,6 +926,77 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_endpoints: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_type: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_type: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      webhook_log: {
+        Row: {
+          created_at: string
+          endpoint_id: string | null
+          error_message: string | null
+          event_type: string
+          id: string
+          payload: Json
+          response_body: string | null
+          status_code: number | null
+        }
+        Insert: {
+          created_at?: string
+          endpoint_id?: string | null
+          error_message?: string | null
+          event_type: string
+          id?: string
+          payload?: Json
+          response_body?: string | null
+          status_code?: number | null
+        }
+        Update: {
+          created_at?: string
+          endpoint_id?: string | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          response_body?: string | null
+          status_code?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_log_endpoint_id_fkey"
+            columns: ["endpoint_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_endpoints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       v_metrics_daily: {
