@@ -29,6 +29,8 @@ const defaultSales = {
   dms_sent: "",
   dms_replies: "",
   words_spoken: "",
+  cold_emails_sent: "",
+  cold_emails_replies: "",
 };
 
 export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
