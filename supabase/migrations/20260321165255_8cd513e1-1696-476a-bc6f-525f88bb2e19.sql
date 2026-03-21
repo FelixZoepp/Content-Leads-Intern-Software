@@ -1,0 +1,1 @@
+ALTER TABLE public.metrics_snapshot ADD COLUMN IF NOT EXISTS dms_replies integer DEFAULT 0;
