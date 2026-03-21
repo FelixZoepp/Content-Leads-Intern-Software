@@ -41,6 +41,31 @@ export function AlertsPanel({ alerts, tenants = [], onResolve }: Props) {
     }
   };
 
+  const getReport = (alert: any) => {
+    const reports: Record<string, { cause: string; action: string }> = {
+      no_posts: {
+        cause: "Keine Content-Aktivität in den letzten 7 Tagen. Ohne regelmäßige Sichtbarkeit sinkt die organische Reichweite und der Algorithmus bestraft Inaktivität.",
+        action: "Posting-Plan erstellen & mindestens 3 Posts/Woche sicherstellen. Content-Batching-Session vereinbaren.",
+      },
+      low_leads: {
+        cause: "Die Lead-Generierung liegt deutlich unter dem Zielwert. Der Top-Funnel liefert nicht genug Volumen für die Pipeline.",
+        action: "Lead-Quellen prüfen (Ads, Outreach, Content). Budget oder Frequenz erhöhen. Zielgruppen-Targeting optimieren.",
+      },
+      revenue_drop: {
+        cause: "Signifikanter Umsatzrückgang gegenüber der Vorwoche. Mögliche Ursachen: weniger Abschlüsse, niedrigere Deal-Values oder saisonale Schwankungen.",
+        action: "Pipeline-Analyse durchführen. Closing-Rate und Deal-Value prüfen. Ggf. Follow-up-Kampagne für warme Leads starten.",
+      },
+      low_health: {
+        cause: "Mehrere KPI-Bereiche performen gleichzeitig unter Ziel. Der Kunde braucht intensive Betreuung, um den Abwärtstrend zu stoppen.",
+        action: "Strategie-Call mit Kunden ansetzen. Schwächste KPIs identifizieren und priorisiert angehen. Ggf. Ressourcen umverteilen.",
+      },
+    };
+    return reports[alert.type] || {
+      cause: "Performance-Abweichung erkannt.",
+      action: "Kundenprofil prüfen und Maßnahmen ableiten.",
+    };
+  };
+
   const openTenant = (tenantId: string) => {
     const tenant = tenants.find(t => t.id === tenantId);
     if (tenant) {
