@@ -102,6 +102,8 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
   const [healthScores, setHealthScores] = useState<any[]>([]);
   const [icpCustomers, setIcpCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     if (tenant && open) loadDetail();
