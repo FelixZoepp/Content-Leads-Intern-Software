@@ -14,6 +14,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { InviteCustomerDialog } from "@/components/admin/InviteCustomerDialog";
 import { AdvisorReport } from "@/components/admin/AdvisorReport";
 import { Routes, Route } from "react-router-dom";
+import { WebhookSettings } from "@/components/admin/WebhookSettings";
 
 function AdminAlertsPage({ alerts, loadAdminData }: { alerts: any[]; loadAdminData: () => void }) {
   return (
@@ -129,6 +130,7 @@ export default function AdminDashboard() {
         <Route path="csat" element={<AdminCSATPage tenants={tenants} />} />
         <Route path="advisor-report" element={<AdminAdvisorReportPage />} />
         <Route path="ai-summary" element={<AdminAISummaryPage />} />
+        <Route path="webhooks" element={<WebhookSettings />} />
       </Routes>
     </DashboardLayout>
   );
