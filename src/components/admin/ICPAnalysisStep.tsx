@@ -318,6 +318,7 @@ function ICPResults({ clients, onBack }: { clients: ICPClient[]; onBack: () => v
             ["Ø Ergebnis", `${avgErg} / 10`],
             ...(avgCloseToOnb !== null ? [["Ø Close → Onboarding", `${avgCloseToOnb} Tage`]] : []),
             ...(avgOnbToProj !== null ? [["Ø Onboarding → Projekt", `${avgOnbToProj} Tage`]] : []),
+            ...(avgFulfillment !== null ? [["Ø Fulfillment-Dauer", `${avgFulfillment} Tage`]] : []),
             ...(avgCloseToProj !== null ? [["Ø Close → Projekt-Start", `${avgCloseToProj} Tage`]] : []),
           ].map(([k, v]) => (
             <div key={k} className="grid grid-cols-[160px_1fr] gap-2 py-2.5 border-b border-border/40 text-sm">
