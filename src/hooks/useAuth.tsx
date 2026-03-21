@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  userRole: 'admin' | 'client' | null;
+  userRole: 'admin' | 'client' | 'advisor' | null;
   tenantId: string | null;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<'admin' | 'client' | null>(null);
+  const [userRole, setUserRole] = useState<'admin' | 'client' | 'advisor' | null>(null);
   const [tenantId, setTenantId] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .maybeSingle();
 
     if (roleData) {
-      setUserRole(roleData.role as 'admin' | 'client');
+      setUserRole(roleData.role as 'admin' | 'client' | 'advisor');
       
       if (roleData.role === 'client') {
         const { data: tenantData } = await supabase

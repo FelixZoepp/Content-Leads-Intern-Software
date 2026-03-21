@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TenantDetailSheet } from "@/components/admin/TenantDetailSheet";
+import { AdvisorAssignment } from "@/components/admin/AdvisorAssignment";
 import { motion } from "framer-motion";
 import {
   Search, Users, TrendingUp, TrendingDown, AlertTriangle,
@@ -27,6 +28,7 @@ interface EnrichedTenant {
   current_revenue_monthly: number;
   goal_revenue_monthly: number;
   is_active: boolean;
+  advisor_id: string | null;
   // Loaded data
   health: any | null;
   fulfillment: any | null;
@@ -411,6 +413,15 @@ export function CustomerAnalysisTable() {
                         <span className="text-[9px] text-muted-foreground">Health</span>
                       </div>
                     )}
+
+                    {/* Berater-Zuweisung */}
+                    <div className="hidden md:block" onClick={(e) => e.stopPropagation()}>
+                      <AdvisorAssignment
+                        tenantId={tenant.id}
+                        currentAdvisorId={tenant.advisor_id}
+                        onUpdate={loadTenants}
+                      />
+                    </div>
 
                     <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
                   </div>
