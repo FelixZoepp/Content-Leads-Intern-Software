@@ -113,6 +113,8 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
       dms_sent: parseInt(form.dms_sent) || 0,
       dms_replies: parseInt(form.dms_replies) || 0,
       words_spoken: parseInt(form.words_spoken) || 0,
+      cold_emails_sent: parseInt(form.cold_emails_sent) || 0,
+      cold_emails_replies: parseInt(form.cold_emails_replies) || 0,
     };
 
     let error;
