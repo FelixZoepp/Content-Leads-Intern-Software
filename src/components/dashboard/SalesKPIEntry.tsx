@@ -262,6 +262,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
                 { label: "Erreichungsquote", value: reachRate, suffix: "%" },
                 { label: "Interesse-Rate", value: interestRate, suffix: "%" },
                 { label: "DM-Antwort-Quote", value: dmReplyRate, suffix: "%" },
+                { label: "Cold Mail Reply", value: coldEmailReplyRate, suffix: "%" },
                 { label: "Setting Show-Rate", value: settingShowRate, suffix: "%" },
                 { label: "Closing Show-Rate", value: closingShowRate, suffix: "%" },
                 { label: "Closing-Rate", value: closingRate, suffix: "%" },
