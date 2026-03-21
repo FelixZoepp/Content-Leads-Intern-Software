@@ -108,7 +108,7 @@ export function CustomerStatusList() {
                     <TableRow key={c.id}>
                       <TableCell className="font-medium">{c.company_name}</TableCell>
                       <TableCell>{c.contact_name || "–"}</TableCell>
-                      <TableCell className="text-muted-foreground text-xs">{c.email || "–"}</TableCell>
+                      <TableCell className="text-sm">{c.email || "–"}</TableCell>
                       <TableCell>{c.industry || "–"}</TableCell>
                       <TableCell>
                         <Badge variant={status.variant} className="gap-1">
