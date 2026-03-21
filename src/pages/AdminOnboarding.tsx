@@ -105,14 +105,9 @@ export default function AdminOnboarding() {
   ]);
 
   // ICP customers
-  type ICPCustomer = {name: string; industry: string; hasPaid: boolean; daysToPayment: string; dealValue: string};
-  const [icpCustomers, setIcpCustomers] = useState<ICPCustomer[]>([
-    { name: "", industry: "", hasPaid: false, daysToPayment: "", dealValue: "" },
-  ]);
-  const addIcpRow = () => setIcpCustomers(prev => [...prev, { name: "", industry: "", hasPaid: false, daysToPayment: "", dealValue: "" }]);
-  const removeIcpRow = (idx: number) => setIcpCustomers(prev => prev.filter((_, i) => i !== idx));
-  const updateIcp = (idx: number, key: keyof ICPCustomer, val: any) =>
-    setIcpCustomers(prev => prev.map((c, i) => i === idx ? { ...c, [key]: val } : c));
+  // ICP customers - detailed analysis
+  const [icpClients, setIcpClients] = useState<ICPClient[]>(Array.from({ length: 10 }, emptyICPClient));
+  const [icpShowResults, setIcpShowResults] = useState(false);
 
   const update = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
   const toggleUnknown = (k: string) => {
