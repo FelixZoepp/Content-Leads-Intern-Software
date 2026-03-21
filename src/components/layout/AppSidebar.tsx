@@ -128,7 +128,12 @@ export function AppSidebar() {
 
       <SidebarSeparator className="opacity-30" />
 
-      <SidebarFooter className="p-3">
+      <SidebarFooter className="p-3 space-y-1">
+        {userRole === "admin" && !collapsed && (
+          <div className="mx-2">
+            <InviteAdvisorDialog />
+          </div>
+        )}
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
