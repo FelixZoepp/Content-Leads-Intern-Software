@@ -19,7 +19,7 @@ export default function FinancePage() {
           </TabsTrigger>
           <TabsTrigger value="entry" className="rounded-xl gap-2">
             <PlusCircle className="h-4 w-4" />
-            Monat erfassen
+            Woche erfassen
           </TabsTrigger>
         </TabsList>
 
