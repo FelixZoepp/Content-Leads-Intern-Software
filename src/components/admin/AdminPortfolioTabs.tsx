@@ -84,12 +84,10 @@ export function AdminPortfolioTabs({ tenants }: Props) {
           trend={totalCashflow >= 0 ? "up" : "down"} />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <SummaryCard icon={Users} label="Aktive Kunden" value={tenants.length} small />
-        <SummaryCard icon={Package} label="Aktive Projekte" value={activeProjects} small />
-        <SummaryCard icon={Package} label="Im Onboarding" value={onboardingProjects} small />
-        <SummaryCard icon={AlertCircle} label="Überfällige Rechnungen" value={overdueInvoices}
-          small trend={overdueInvoices > 0 ? "down" : undefined} />
+        <SummaryCard icon={AlertCircle} label="Überfällige Rechnungen" value={tenants.reduce((s, t) => s + (financials[t.id]?.invoices_overdue_count || 0), 0)}
+          small trend={tenants.reduce((s, t) => s + (financials[t.id]?.invoices_overdue_count || 0), 0) > 0 ? "down" : undefined} />
       </div>
 
       {/* Tabs for detail views */}
