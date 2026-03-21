@@ -104,7 +104,7 @@ export default function AdminOnboarding() {
   ]);
 
   // ICP customers
-  const [icpCustomers, setIcpCustomers] = useState<{name: string; industry: string; hasPaid: boolean; daysToPayment: string; dealValue: string}[]>([
+  type ICPCustomer = {name: string; industry: string; hasPaid: boolean; daysToPayment: string; dealValue: string};
   const [icpCustomers, setIcpCustomers] = useState<ICPCustomer[]>([
     { name: "", industry: "", hasPaid: false, daysToPayment: "", dealValue: "" },
   ]);
