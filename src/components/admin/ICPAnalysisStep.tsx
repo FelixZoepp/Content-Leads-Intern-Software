@@ -253,15 +253,28 @@ function ICPResults({ clients, onBack }: { clients: ICPClient[]; onBack: () => v
   const quelleTop = topCount(valid.map(c => c.leadQuelle));
   const closeTop = topCount(valid.map(c => c.closeDauer));
   let totalDeal = 0, dealN = 0, payGood = 0, payBad = 0;
+  let closeToOnb: number[] = [], onbToProj: number[] = [], closeToProj: number[] = [];
   valid.forEach(c => {
     if (c.dealValue) { totalDeal += parseFloat(c.dealValue) || 0; dealN++; }
     if (c.gezahlt === "Ja, komplett") payGood++;
     if (c.gezahlt === "Nein") payBad++;
+    if (c.closeDate && c.onboardingDate) {
+      closeToOnb.push(Math.round((new Date(c.onboardingDate).getTime() - new Date(c.closeDate).getTime()) / 86400000));
+    }
+    if (c.onboardingDate && c.projectStartDate) {
+      onbToProj.push(Math.round((new Date(c.projectStartDate).getTime() - new Date(c.onboardingDate).getTime()) / 86400000));
+    }
+    if (c.closeDate && c.projectStartDate) {
+      closeToProj.push(Math.round((new Date(c.projectStartDate).getTime() - new Date(c.closeDate).getTime()) / 86400000));
+    }
   });
   const avgDeal = dealN > 0 ? Math.round(totalDeal / dealN) : 0;
   const avgZus = (valid.reduce((s, c) => s + (c.zusammenarbeit || 0), 0) / valid.length).toFixed(1);
   const avgErg = (valid.reduce((s, c) => s + (c.ergebnis || 0), 0) / valid.length).toFixed(1);
   const payRate = valid.length > 0 ? Math.round(payGood / valid.length * 100) : 0;
+  const avgCloseToOnb = closeToOnb.length > 0 ? Math.round(closeToOnb.reduce((a, b) => a + b, 0) / closeToOnb.length) : null;
+  const avgOnbToProj = onbToProj.length > 0 ? Math.round(onbToProj.reduce((a, b) => a + b, 0) / onbToProj.length) : null;
+  const avgCloseToProj = closeToProj.length > 0 ? Math.round(closeToProj.reduce((a, b) => a + b, 0) / closeToProj.length) : null;
 
   const medals = ["🥇", "🥈", "🥉"];
 
