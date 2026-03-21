@@ -103,8 +103,19 @@ function loadSections(): Section[] {
 
 export default function TodayPage() {
   const [sections, setSections] = useState<Section[]>(loadSections);
-  const { metrics } = useDashboardData();
+  const { metrics, tenantId } = useDashboardData();
   const navigate = useNavigate();
+  const [onboardingDate, setOnboardingDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!tenantId) return;
+    supabase
+      .from("fulfillment_tracking")
+      .select("onboarding_completed_at")
+      .eq("tenant_id", tenantId)
+      .maybeSingle()
+      .then(({ data }) => setOnboardingDate(data?.onboarding_completed_at || null));
+  }, [tenantId]);
 
   useEffect(() => {
     localStorage.setItem(TODAY_KEY, JSON.stringify(sections));
