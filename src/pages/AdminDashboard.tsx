@@ -18,9 +18,33 @@ import { Routes, Route } from "react-router-dom";
 import { WebhookSettings } from "@/components/admin/WebhookSettings";
 
 function AdminAlertsPage({ alerts, loadAdminData }: { alerts: any[]; loadAdminData: () => void }) {
+  const { toast } = useToast();
+  const [calculating, setCalculating] = useState(false);
+
+  const recalculate = async () => {
+    setCalculating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("calculate-health", { body: {} });
+      if (error) throw error;
+      toast({ title: "Health Scores berechnet", description: `${data?.processed || 0} Kunden analysiert` });
+      loadAdminData();
+    } catch (err: any) {
+      toast({ title: "Fehler", description: err.message, variant: "destructive" });
+    }
+    setCalculating(false);
+  };
+
   return (
     <div className="space-y-6 max-w-6xl">
-      <h2 className="text-xl font-semibold text-foreground">Alerts</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-foreground">Alerts</h2>
+        <Button onClick={recalculate} disabled={calculating} variant="outline" size="sm">
+          {calculating ? "Berechne..." : "🔄 Health Scores jetzt berechnen"}
+        </Button>
+      </div>
+      <p className="text-sm text-muted-foreground -mt-4">
+        Alerts werden täglich um 7:00 Uhr automatisch generiert, basierend auf den KPI-Daten der letzten 2 Wochen.
+      </p>
       <AlertsPanel alerts={alerts} onResolve={loadAdminData} />
     </div>
   );
