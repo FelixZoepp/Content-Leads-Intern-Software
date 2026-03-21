@@ -267,16 +267,26 @@ export default function AdminOnboarding() {
         if (snapErr) throw snapErr;
       }
 
-      // Insert ICP customers
-      const icpToInsert = icpCustomers
-        .filter(c => c.name.trim())
+      // Insert ICP customers from detailed analysis
+      const icpToInsert = icpClients
+        .filter(c => c.firma.trim() && c.branche)
         .map((c, i) => ({
           tenant_id: tenantId,
-          customer_name: c.name.trim(),
-          industry: c.industry || null,
-          has_paid: c.hasPaid,
-          days_to_payment: c.daysToPayment ? parseInt(c.daysToPayment) : null,
+          customer_name: c.firma.trim(),
+          contact_name: c.name || null,
+          industry: c.branche || null,
+          employee_count: c.mitarbeiter || null,
+          annual_revenue: c.jahresumsatz || null,
+          lead_source: c.leadQuelle || null,
+          close_duration: c.closeDauer || null,
           deal_value: c.dealValue ? parseFloat(c.dealValue) : null,
+          payment_status: c.gezahlt || null,
+          payment_speed: c.zahlungsSpeed || null,
+          collaboration_score: c.zusammenarbeit || 0,
+          result_score: c.ergebnis || 0,
+          problem_awareness: c.problemBewusstsein || null,
+          has_paid: c.gezahlt === "Ja, komplett",
+          notes: c.notizen || null,
           sort_order: i,
         }));
       if (icpToInsert.length > 0) {
