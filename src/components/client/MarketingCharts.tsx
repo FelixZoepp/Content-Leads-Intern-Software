@@ -12,17 +12,20 @@ export function MarketingCharts({ metrics, timeRange = "daily" }: Props) {
 
   const dateKey = timeRange === "daily" ? "period_date" : "period_start";
 
-  const chartData = [...metrics].reverse().map(m => ({
-    date: new Date(m[dateKey]).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" }),
-    Impressionen: parseFloat(m.impressions) || 0,
-    Likes: parseFloat(m.likes) || 0,
-    Kommentare: parseFloat(m.comments) || 0,
-    "Neue Follower": parseFloat(m.new_followers) || 0,
-    Leads: parseFloat(m.leads_total) || 0,
-    MQL: parseFloat(m.leads_qualified) || 0,
-    "MQL-Quote %": parseFloat(m.lead_quality_rate) || 0,
-    "Reach-Rate %": parseFloat(m.reach_rate) || 0,
-  }));
+  const chartData = [...metrics].reverse()
+    .filter(m => (parseFloat(m.followers_current) || 0) > 0 || (parseFloat(m.impressions) || 0) > 0)
+    .map(m => ({
+      date: new Date(m[dateKey]).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" }),
+      Impressionen: parseFloat(m.impressions) || 0,
+      Likes: parseFloat(m.likes) || 0,
+      Kommentare: parseFloat(m.comments) || 0,
+      "Follower gesamt": parseFloat(m.followers_current) || 0,
+      "Neue Follower": parseFloat(m.new_followers) || 0,
+      Leads: parseFloat(m.leads_total) || 0,
+      MQL: parseFloat(m.leads_qualified) || 0,
+      "MQL-Quote %": parseFloat(m.lead_quality_rate) || 0,
+      "Reach-Rate %": parseFloat(m.reach_rate) || 0,
+    }));
 
   const c1 = "hsl(0 85% 55%)";
   const c2 = "hsl(25 90% 55%)";
@@ -61,14 +64,17 @@ export function MarketingCharts({ metrics, timeRange = "daily" }: Props) {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={chartData} barGap={4}>
+            <AreaChart data={chartData.filter(d => d["Follower gesamt"] > 0)}>
+              <defs>
+                <ChartGradient id="gFollower" color={c2} />
+              </defs>
               <CartesianGrid {...glassGridProps} />
               <XAxis dataKey="date" {...glassXAxisProps} />
               <YAxis {...glassYAxisProps} />
               <Tooltip content={<GlassTooltip />} />
               <Legend wrapperStyle={glassLegendStyle} />
-              <Bar dataKey="Neue Follower" fill={c2} radius={barRadius} />
-            </BarChart>
+              <Area type="monotone" dataKey="Follower gesamt" fill="url(#gFollower)" stroke={c2} strokeWidth={2} />
+            </AreaChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
