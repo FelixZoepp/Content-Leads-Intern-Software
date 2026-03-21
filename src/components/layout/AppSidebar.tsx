@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Users,
   Sun,
+  UserPlus,
 } from "lucide-react";
 import {
   Sidebar,
