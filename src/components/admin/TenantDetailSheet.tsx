@@ -175,7 +175,6 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
   if (!tenant) return null;
 
   const health = healthScores[0];
-  const f = fulfillment;
   const fin = financial;
   const m = metrics[0]; // latest period
 
@@ -183,11 +182,6 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
   const costs = n(fin?.costs_ads) + n(fin?.costs_tools) + n(fin?.costs_personnel) + n(fin?.costs_other);
   const cashflow = cash - costs;
   const margin = cash > 0 ? ((cashflow / cash) * 100).toFixed(1) : "–";
-
-  const onbDays = f?.onboarding_started_at
-    ? Math.round((new Date(f.onboarding_completed_at || new Date()).getTime() - new Date(f.onboarding_started_at).getTime()) / 86400000)
-    : null;
-  const progress = f?.milestones_total > 0 ? Math.round((f.milestones_completed / f.milestones_total) * 100) : 0;
 
   const rangeLabel: Record<TimeRange, string> = { daily: "Tage", weekly: "Wochen", monthly: "Monate", custom: "Einträge" };
 
