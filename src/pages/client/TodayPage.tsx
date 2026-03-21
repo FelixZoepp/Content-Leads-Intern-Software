@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { SectionCards } from "@/components/today/SectionCards";
 import { DailyChecklist } from "@/components/today/DailyChecklist";
 import { ProgressRing } from "@/components/today/ProgressRing";
+import { SurveyEngine } from "@/components/client/SurveyEngine";
+import { supabase } from "@/integrations/supabase/client";
 
 const TODAY_KEY = `checklist_${new Date().toISOString().slice(0, 10)}`;
 
@@ -101,8 +103,19 @@ function loadSections(): Section[] {
 
 export default function TodayPage() {
   const [sections, setSections] = useState<Section[]>(loadSections);
-  const { metrics } = useDashboardData();
+  const { metrics, tenantId } = useDashboardData();
   const navigate = useNavigate();
+  const [onboardingDate, setOnboardingDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!tenantId) return;
+    supabase
+      .from("fulfillment_tracking")
+      .select("onboarding_completed_at")
+      .eq("tenant_id", tenantId)
+      .maybeSingle()
+      .then(({ data }) => setOnboardingDate(data?.onboarding_completed_at || null));
+  }, [tenantId]);
 
   useEffect(() => {
     localStorage.setItem(TODAY_KEY, JSON.stringify(sections));
@@ -176,6 +189,11 @@ export default function TodayPage() {
             </div>
           </div>
         </motion.div>
+
+        {/* Survey Banner */}
+        {onboardingDate && (
+          <SurveyEngine tenantId={tenantId} onboardingCompletedAt={onboardingDate} />
+        )}
 
         {/* KPI Strip */}
         <motion.div

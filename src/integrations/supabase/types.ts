@@ -660,6 +660,56 @@ export type Database = {
         }
         Relationships: []
       }
+      survey_responses: {
+        Row: {
+          answers: Json
+          avg_score: number | null
+          created_at: string
+          id: string
+          nps: number | null
+          review_clicked: string | null
+          survey_id: string
+          tags: string[] | null
+          tenant_id: string
+          testimonials: Json | null
+          total_score: number | null
+        }
+        Insert: {
+          answers?: Json
+          avg_score?: number | null
+          created_at?: string
+          id?: string
+          nps?: number | null
+          review_clicked?: string | null
+          survey_id: string
+          tags?: string[] | null
+          tenant_id: string
+          testimonials?: Json | null
+          total_score?: number | null
+        }
+        Update: {
+          answers?: Json
+          avg_score?: number | null
+          created_at?: string
+          id?: string
+          nps?: number | null
+          review_clicked?: string | null
+          survey_id?: string
+          tags?: string[] | null
+          tenant_id?: string
+          testimonials?: Json | null
+          total_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_responses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           ads_spend_monthly: number | null
