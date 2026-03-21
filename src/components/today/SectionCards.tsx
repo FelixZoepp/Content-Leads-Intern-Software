@@ -47,7 +47,7 @@ export function SectionCards() {
             style={{ background: `linear-gradient(90deg, transparent, ${card.badgeColor}66, transparent)` }}
           />
 
-          <div className="relative z-10 p-5 flex flex-col h-full min-h-[260px]">
+          <div className="relative z-10 p-5 flex flex-col h-full min-h-[120px]">
             {/* Badge */}
             <span
               className="text-[11px] font-semibold tracking-wide px-2.5 py-1 rounded-full w-fit mb-3"
@@ -61,19 +61,9 @@ export function SectionCards() {
             </span>
 
             {/* Title */}
-            <h3 className="text-base font-bold text-foreground leading-snug mb-4">
+            <h3 className="text-base font-bold text-foreground leading-snug">
               {card.title}
             </h3>
-
-            {/* Preview Image */}
-            <div className="mt-auto rounded-xl overflow-hidden opacity-70 group-hover:opacity-90 transition-opacity duration-300">
-              <img
-                src={card.image}
-                alt={card.title}
-                className="w-full h-28 object-cover object-top"
-                loading="lazy"
-              />
-            </div>
           </div>
         </motion.button>
       ))}
