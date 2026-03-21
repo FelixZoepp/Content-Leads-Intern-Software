@@ -92,10 +92,9 @@ export function AdminPortfolioTabs({ tenants }: Props) {
 
       {/* Tabs for detail views */}
       <Tabs defaultValue="marketing" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="marketing">📈 Marketing</TabsTrigger>
           <TabsTrigger value="sales">📞 Sales</TabsTrigger>
-          <TabsTrigger value="fulfillment">📦 Fulfillment</TabsTrigger>
           <TabsTrigger value="finance">💰 Finanzen</TabsTrigger>
         </TabsList>
 
