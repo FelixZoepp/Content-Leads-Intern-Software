@@ -225,7 +225,8 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
             </div>
           ) : (
             <Tabs defaultValue="summary" className="w-full">
-              <TabsList className="grid w-full grid-cols-6 bg-secondary/50">
+              <TabsList className="grid w-full grid-cols-7 bg-secondary/50">
+                <TabsTrigger value="profil" className="text-[10px]">📋 Profil</TabsTrigger>
                 <TabsTrigger value="summary" className="text-[10px]">🎯 Analyse</TabsTrigger>
                 <TabsTrigger value="marketing" className="text-[10px]">📈 Mktg</TabsTrigger>
                 <TabsTrigger value="sales" className="text-[10px]">📞 Sales</TabsTrigger>
