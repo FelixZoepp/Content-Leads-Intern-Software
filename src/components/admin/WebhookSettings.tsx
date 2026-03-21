@@ -40,7 +40,7 @@ export function WebhookSettings() {
   const [logs, setLogs] = useState<WebhookLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [newUrl, setNewUrl] = useState("");
-  const [newEvent, setNewEvent] = useState(EVENT_TYPES[0].key);
+  const [newEvent, setNewEvent] = useState<string>(EVENT_TYPES[0].key);
   const [testing, setTesting] = useState<string | null>(null);
 
   useEffect(() => {
