@@ -479,6 +479,121 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
 }
 
 // ═══════════════════════════════════════════
+// PROFIL TAB COMPONENT
+// ═══════════════════════════════════════════
+
+function ProfilRow({ label, value }: { label: string; value: string | number | null | undefined }) {
+  const display = value === null || value === undefined || value === "" ? "–" : String(value);
+  return (
+    <div className="flex justify-between text-xs border-b border-border/30 py-1.5">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium text-right max-w-[55%] truncate">{display}</span>
+    </div>
+  );
+}
+
+function ProfilTabContent({ tenant }: { tenant: any }) {
+  const n = (v: any) => {
+    const p = parseFloat(String(v));
+    return isNaN(p) ? null : p;
+  };
+  const fmt = (v: any) => {
+    const num = n(v);
+    return num !== null ? `${num.toLocaleString("de-DE")}€` : "–";
+  };
+
+  const products = Array.isArray(tenant.product_palette) ? tenant.product_palette : [];
+
+  return (
+    <>
+      {/* Company Info */}
+      <Card className="glass-card">
+        <CardHeader className="py-2 px-3">
+          <CardTitle className="text-xs flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-primary" /> Unternehmen</CardTitle>
+        </CardHeader>
+        <CardContent className="px-3 pb-3 space-y-0">
+          <ProfilRow label="Firma" value={tenant.company_name} />
+          <ProfilRow label="Ansprechpartner" value={tenant.contact_name} />
+          <ProfilRow label="Branche" value={tenant.industry} />
+          <ProfilRow label="Teamgröße" value={tenant.team_size} />
+          <ProfilRow label="Zielgruppe" value={tenant.target_audience} />
+          <ProfilRow label="Website" value={tenant.website_url} />
+          <ProfilRow label="LinkedIn" value={tenant.linkedin_url} />
+          <ProfilRow label="Laufzeit" value={tenant.contract_duration} />
+          <ProfilRow label="Angebotspreis" value={fmt(tenant.offer_price)} />
+        </CardContent>
+      </Card>
+
+      {/* Product Palette */}
+      {products.length > 0 && (
+        <Card className="glass-card">
+          <CardHeader className="py-2 px-3">
+            <CardTitle className="text-xs flex items-center gap-1.5"><Package className="h-3.5 w-3.5 text-primary" /> Produkt-Palette ({products.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="px-3 pb-3 space-y-2">
+            {products.map((p: any, i: number) => (
+              <div key={i} className="rounded-lg border border-border/30 p-2.5 space-y-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-semibold">{p.name || `Produkt ${i + 1}`}</span>
+                  <Badge variant="outline" className="text-[10px]">
+                    {p.price ? `${parseFloat(p.price).toLocaleString("de-DE")}€` : "–"} · {p.duration || "–"}
+                  </Badge>
+                </div>
+                {p.description && <p className="text-[11px] text-muted-foreground">{p.description}</p>}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Baseline KPIs */}
+      <Card className="glass-card">
+        <CardHeader className="py-2 px-3">
+          <CardTitle className="text-xs flex items-center gap-1.5"><BarChart3 className="h-3.5 w-3.5 text-primary" /> Baseline-Kennzahlen</CardTitle>
+        </CardHeader>
+        <CardContent className="px-3 pb-3 space-y-0">
+          <ProfilRow label="Monatl. Umsatz (IST)" value={fmt(tenant.current_revenue_monthly)} />
+          <ProfilRow label="Leads/Monat (IST)" value={n(tenant.current_leads_per_month)} />
+          <ProfilRow label="Conversion-Rate" value={n(tenant.current_conversion_rate) !== null ? `${n(tenant.current_conversion_rate)}%` : "–"} />
+          <ProfilRow label="LinkedIn Follower" value={n(tenant.linkedin_followers_current)} />
+          <ProfilRow label="Bestandskunden" value={n(tenant.existing_customers)} />
+          <ProfilRow label="Neukunden/Monat" value={n(tenant.new_customers_monthly)} />
+          <ProfilRow label="Closing-Rate" value={n(tenant.closing_rate) !== null ? `${n(tenant.closing_rate)}%` : "–"} />
+        </CardContent>
+      </Card>
+
+      {/* Costs */}
+      <Card className="glass-card">
+        <CardHeader className="py-2 px-3">
+          <CardTitle className="text-xs flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5 text-primary" /> Kostenstruktur</CardTitle>
+        </CardHeader>
+        <CardContent className="px-3 pb-3 space-y-0">
+          <ProfilRow label="Ads-Budget" value={fmt(tenant.ads_spend_monthly)} />
+          <ProfilRow label="Tool-Kosten" value={fmt(tenant.tools_costs_monthly)} />
+          <ProfilRow label="Personalkosten" value={fmt(tenant.personnel_costs_monthly)} />
+          <ProfilRow label="Delivery-Kosten" value={fmt(tenant.delivery_costs_monthly)} />
+          <ProfilRow label="Sonstige Kosten" value={fmt(tenant.other_costs_monthly)} />
+          <ProfilRow label="Marge" value={n(tenant.margin_percent) !== null ? `${n(tenant.margin_percent)}%` : "–"} />
+        </CardContent>
+      </Card>
+
+      {/* Goals */}
+      <Card className="glass-card">
+        <CardHeader className="py-2 px-3">
+          <CardTitle className="text-xs flex items-center gap-1.5"><Target className="h-3.5 w-3.5 text-primary" /> Ziele</CardTitle>
+        </CardHeader>
+        <CardContent className="px-3 pb-3 space-y-0">
+          <ProfilRow label="Ziel Leads/Monat" value={n(tenant.goal_leads_monthly)} />
+          <ProfilRow label="Ziel Umsatz/Monat" value={fmt(tenant.goal_revenue_monthly)} />
+          <ProfilRow label="Zeitrahmen" value={tenant.goal_timeframe} />
+          <ProfilRow label="Primäres Ziel" value={tenant.primary_goal} />
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════
 // ICP TAB COMPONENT
 // ═══════════════════════════════════════════
 
