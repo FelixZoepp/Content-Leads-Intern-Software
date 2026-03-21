@@ -25,7 +25,7 @@ const defaultSales = {
   deals: "",
   cash_collected: "",
   deal_volume: "",
-  monthly_retainer: "",
+  
   dms_sent: "",
   dms_replies: "",
   words_spoken: "",
