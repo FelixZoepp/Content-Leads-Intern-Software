@@ -15,6 +15,7 @@ import {
   ArrowLeft, CheckCircle2, UserSearch, Plus, Trash2
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import ICPAnalysisStep, { ICPClient, emptyICPClient } from "@/components/admin/ICPAnalysisStep";
 
 const STEPS = [
   { icon: Mail, label: "Account" },
@@ -104,14 +105,9 @@ export default function AdminOnboarding() {
   ]);
 
   // ICP customers
-  type ICPCustomer = {name: string; industry: string; hasPaid: boolean; daysToPayment: string; dealValue: string};
-  const [icpCustomers, setIcpCustomers] = useState<ICPCustomer[]>([
-    { name: "", industry: "", hasPaid: false, daysToPayment: "", dealValue: "" },
-  ]);
-  const addIcpRow = () => setIcpCustomers(prev => [...prev, { name: "", industry: "", hasPaid: false, daysToPayment: "", dealValue: "" }]);
-  const removeIcpRow = (idx: number) => setIcpCustomers(prev => prev.filter((_, i) => i !== idx));
-  const updateIcp = (idx: number, key: keyof ICPCustomer, val: any) =>
-    setIcpCustomers(prev => prev.map((c, i) => i === idx ? { ...c, [key]: val } : c));
+  // ICP customers - detailed analysis
+  const [icpClients, setIcpClients] = useState<ICPClient[]>(Array.from({ length: 10 }, emptyICPClient));
+  const [icpShowResults, setIcpShowResults] = useState(false);
 
   const update = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
   const toggleUnknown = (k: string) => {
@@ -271,16 +267,26 @@ export default function AdminOnboarding() {
         if (snapErr) throw snapErr;
       }
 
-      // Insert ICP customers
-      const icpToInsert = icpCustomers
-        .filter(c => c.name.trim())
+      // Insert ICP customers from detailed analysis
+      const icpToInsert = icpClients
+        .filter(c => c.firma.trim() && c.branche)
         .map((c, i) => ({
           tenant_id: tenantId,
-          customer_name: c.name.trim(),
-          industry: c.industry || null,
-          has_paid: c.hasPaid,
-          days_to_payment: c.daysToPayment ? parseInt(c.daysToPayment) : null,
+          customer_name: c.firma.trim(),
+          contact_name: c.name || null,
+          industry: c.branche || null,
+          employee_count: c.mitarbeiter || null,
+          annual_revenue: c.jahresumsatz || null,
+          lead_source: c.leadQuelle || null,
+          close_duration: c.closeDauer || null,
           deal_value: c.dealValue ? parseFloat(c.dealValue) : null,
+          payment_status: c.gezahlt || null,
+          payment_speed: c.zahlungsSpeed || null,
+          collaboration_score: c.zusammenarbeit || 0,
+          result_score: c.ergebnis || 0,
+          problem_awareness: c.problemBewusstsein || null,
+          has_paid: c.gezahlt === "Ja, komplett",
+          notes: c.notizen || null,
           sort_order: i,
         }));
       if (icpToInsert.length > 0) {
@@ -589,62 +595,12 @@ export default function AdminOnboarding() {
 
             {/* Step 9: ICP-Analyse */}
             {step === 9 && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">ICP-Analyse – Letzte Kunden</h3>
-                <p className="text-sm text-muted-foreground">
-                  Liste die letzten 10 Kunden auf, damit wir den idealen Kundentyp (ICP) ermitteln können.
-                </p>
-
-                <div className="space-y-3">
-                  {icpCustomers.map((c, idx) => (
-                    <div key={idx} className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold text-primary">Kunde {idx + 1}</p>
-                        {icpCustomers.length > 1 && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeIcpRow(idx)}>
-                            <Trash2 className="h-3 w-3 text-muted-foreground" />
-                          </Button>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="space-y-1">
-                          <Label className="text-[11px]">Kundenname</Label>
-                          <Input value={c.name} onChange={e => updateIcp(idx, "name", e.target.value)} placeholder="Firma GmbH" className="h-8 text-sm" />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[11px]">Branche</Label>
-                          <Select value={c.industry} onValueChange={v => updateIcp(idx, "industry", v)}>
-                            <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Branche" /></SelectTrigger>
-                            <SelectContent>
-                              {INDUSTRIES.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 items-end">
-                        <div className="space-y-1">
-                          <Label className="text-[11px]">Deal-Wert (€)</Label>
-                          <Input type="number" value={c.dealValue} onChange={e => updateIcp(idx, "dealValue", e.target.value)} placeholder="5000" className="h-8 text-sm" />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[11px]">Tage bis Zahlung</Label>
-                          <Input type="number" value={c.daysToPayment} onChange={e => updateIcp(idx, "daysToPayment", e.target.value)} placeholder="14" className="h-8 text-sm" disabled={!c.hasPaid} />
-                        </div>
-                        <div className="flex items-center gap-2 h-8">
-                          <Checkbox checked={c.hasPaid} onCheckedChange={(v) => updateIcp(idx, "hasPaid", !!v)} id={`paid-${idx}`} />
-                          <Label htmlFor={`paid-${idx}`} className="text-[11px] cursor-pointer">Bezahlt</Label>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {icpCustomers.length < 10 && (
-                  <Button variant="outline" size="sm" onClick={addIcpRow} className="gap-1.5">
-                    <Plus className="h-3.5 w-3.5" /> Kunde hinzufügen
-                  </Button>
-                )}
-              </div>
+              <ICPAnalysisStep
+                clients={icpClients}
+                setClients={setIcpClients}
+                showResults={icpShowResults}
+                setShowResults={setIcpShowResults}
+              />
             )}
 
             {/* Step 10: 3-Monats-Historie */}
