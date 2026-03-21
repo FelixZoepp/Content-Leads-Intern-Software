@@ -85,7 +85,7 @@ export function AppSidebar() {
                 ContentLeads
               </span>
               <span className="text-[11px] text-muted-foreground">
-                {userRole === "admin" ? "Admin" : "Dashboard"}
+                {userRole === "admin" ? "Admin" : userRole === "advisor" ? "Berater" : "Dashboard"}
               </span>
             </div>
           )}
