@@ -12,6 +12,7 @@ import { CustomerStatusList } from "@/components/admin/CustomerStatusList";
 import { CustomerAnalysisTable } from "@/components/admin/CustomerAnalysisTable";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { InviteCustomerDialog } from "@/components/admin/InviteCustomerDialog";
+import { AdvisorReport } from "@/components/admin/AdvisorReport";
 import { Routes, Route } from "react-router-dom";
 
 function AdminAlertsPage({ alerts, loadAdminData }: { alerts: any[]; loadAdminData: () => void }) {
@@ -37,6 +38,16 @@ function AdminAISummaryPage() {
     <div className="space-y-6 max-w-6xl">
       <h2 className="text-xl font-semibold text-foreground">KI-Summary</h2>
       <AdminAISummary />
+    </div>
+  );
+}
+
+function AdminAdvisorReportPage() {
+  return (
+    <div className="space-y-6 max-w-6xl">
+      <h2 className="text-xl font-semibold text-foreground">Berater-Report</h2>
+      <p className="text-sm text-muted-foreground">Monatlicher CSAT/NPS-Vergleich pro Kundenberater</p>
+      <AdvisorReport />
     </div>
   );
 }
@@ -116,6 +127,7 @@ export default function AdminDashboard() {
         <Route index element={<AdminPortfolioPage tenants={tenants} onReload={loadAdminData} />} />
         <Route path="alerts" element={<AdminAlertsPage alerts={alerts} loadAdminData={loadAdminData} />} />
         <Route path="csat" element={<AdminCSATPage tenants={tenants} />} />
+        <Route path="advisor-report" element={<AdminAdvisorReportPage />} />
         <Route path="ai-summary" element={<AdminAISummaryPage />} />
       </Routes>
     </DashboardLayout>
