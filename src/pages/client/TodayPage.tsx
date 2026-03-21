@@ -110,11 +110,11 @@ export default function TodayPage() {
   useEffect(() => {
     if (!tenantId) return;
     supabase
-      .from("fulfillment_tracking")
-      .select("onboarding_completed_at")
-      .eq("tenant_id", tenantId)
+      .from("tenants")
+      .select("created_at, onboarding_completed")
+      .eq("id", tenantId)
       .maybeSingle()
-      .then(({ data }) => setOnboardingDate(data?.onboarding_completed_at || null));
+      .then(({ data }) => setOnboardingDate(data?.onboarding_completed ? data.created_at : null));
   }, [tenantId]);
 
   useEffect(() => {
