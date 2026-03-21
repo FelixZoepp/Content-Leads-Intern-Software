@@ -49,14 +49,20 @@ const adminNav = [
   { title: "Neuer Kunde", icon: UserPlus, path: "/admin/onboarding" },
   { title: "Alerts", icon: Bell, path: "/dashboard/alerts" },
   { title: "CSAT/NPS", icon: MessageSquare, path: "/dashboard/csat" },
+  { title: "Berater-Report", icon: Users, path: "/dashboard/advisor-report" },
   { title: "KI-Summary", icon: Brain, path: "/dashboard/ai-summary" },
+];
+
+const advisorNav = [
+  { title: "Meine Kunden", icon: LayoutDashboard, path: "/dashboard" },
+  { title: "CSAT/NPS", icon: MessageSquare, path: "/dashboard/csat" },
 ];
 
 export function AppSidebar() {
   const { userRole } = useAuth();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const nav = userRole === "admin" ? adminNav : clientNav;
+  const nav = userRole === "admin" ? adminNav : userRole === "advisor" ? advisorNav : clientNav;
   const location = useLocation();
   const navigate = useNavigate();
 

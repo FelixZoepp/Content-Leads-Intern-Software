@@ -28,6 +28,7 @@ function DashboardRouter() {
   }
 
   if (userRole === "admin") return <AdminDashboard />;
+  if (userRole === "advisor") return <AdminDashboard />;
   if (userRole === "client") return <ClientDashboard />;
   return <Navigate to="/auth" replace />;
 }
