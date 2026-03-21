@@ -37,15 +37,8 @@ export function AdminPortfolioTabs({ tenants }: Props) {
     (metricsData || []).forEach((m: any) => { metricsMap[m.tenant_id] = m; });
     setMonthlyMetrics(metricsMap);
 
-    // Fulfillment
-    const { data: fulData } = await supabase
-      .from("fulfillment_tracking")
-      .select("*")
-      .in("tenant_id", tenantIds);
 
-    const fulMap: Record<string, any> = {};
-    (fulData || []).forEach((f: any) => { fulMap[f.tenant_id] = f; });
-    setFulfillment(fulMap);
+
 
     // Financial (current month)
     const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
