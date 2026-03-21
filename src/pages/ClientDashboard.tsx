@@ -9,7 +9,7 @@ import TodayPage from "./client/TodayPage";
 import OverviewPage from "./client/OverviewPage";
 import MarketingPage from "./client/MarketingPage";
 import SalesPage from "./client/SalesPage";
-import FulfillmentPage from "./client/FulfillmentPage";
+
 import FinancePage from "./client/FinancePage";
 import AIPage from "./client/AIPage";
 import CSATPage from "./client/CSATPage";
