@@ -41,7 +41,7 @@ const clientNav = [
   { title: "Fulfillment", icon: Package, path: "/dashboard/fulfillment" },
   { title: "Finanzen", icon: DollarSign, path: "/dashboard/finance" },
   { title: "KI-Briefing", icon: Brain, path: "/dashboard/ai" },
-  { title: "CSAT/NPS", icon: MessageSquare, path: "/dashboard/csat" },
+  { title: "Feedback", icon: MessageSquare, path: "/dashboard/csat" },
   { title: "Reports", icon: FileText, path: "/dashboard/reports" },
 ];
 
