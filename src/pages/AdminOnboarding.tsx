@@ -371,26 +371,13 @@ export default function AdminOnboarding() {
                   <Label>Ansprechpartner</Label>
                   <Input value={form.contactName} onChange={e => update("contactName", e.target.value)} placeholder="Max Mustermann" disabled={!!tenantId} />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
+                <div className="space-y-1.5">
                     <Label>Branche</Label>
                     <Select value={form.industry} onValueChange={v => update("industry", v)} disabled={!!tenantId}>
                       <SelectTrigger><SelectValue placeholder="Wählen" /></SelectTrigger>
                       <SelectContent>{INDUSTRIES.map(i => <SelectItem key={i} value={i}>{i}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label>Laufzeit</Label>
-                    <Select value={form.contractDuration} onValueChange={v => update("contractDuration", v)} disabled={!!tenantId}>
-                      <SelectTrigger><SelectValue placeholder="Wählen" /></SelectTrigger>
-                      <SelectContent>{DURATIONS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Angebotspreis (€ netto)</Label>
-                  <Input type="number" value={form.offerPrice} onChange={e => update("offerPrice", e.target.value)} placeholder="5000" disabled={!!tenantId} />
-                </div>
               </div>
             )}
 
