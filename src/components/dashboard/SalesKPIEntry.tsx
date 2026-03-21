@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Save, TrendingUp, Phone, Target, Handshake, MessageSquare } from "lucide-react";
+import { Save, TrendingUp, Phone, Target, Handshake, MessageSquare, Mail } from "lucide-react";
 
 interface Props {
   tenantId: string;
@@ -29,6 +29,8 @@ const defaultSales = {
   dms_sent: "",
   dms_replies: "",
   words_spoken: "",
+  cold_emails_sent: "",
+  cold_emails_replies: "",
 };
 
 export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
@@ -66,6 +68,8 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
         dms_sent: data.dms_sent ? String(data.dms_sent) : "",
         dms_replies: (data as any).dms_replies ? String((data as any).dms_replies) : "",
         words_spoken: data.words_spoken ? String(data.words_spoken) : "",
+        cold_emails_sent: (data as any).cold_emails_sent ? String((data as any).cold_emails_sent) : "",
+        cold_emails_replies: (data as any).cold_emails_replies ? String((data as any).cold_emails_replies) : "",
       }));
     } else {
       setExistingId(null);
@@ -85,6 +89,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
   const closingShowRate = num(form.closings_planned) > 0 ? ((num(form.closings_held) / num(form.closings_planned)) * 100).toFixed(1) : "–";
   const closingRate = num(form.closings_held) > 0 ? ((num(form.deals) / num(form.closings_held)) * 100).toFixed(1) : "–";
   const dmReplyRate = num(form.dms_sent) > 0 ? ((num(form.dms_replies) / num(form.dms_sent)) * 100).toFixed(1) : "–";
+  const coldEmailReplyRate = num(form.cold_emails_sent) > 0 ? ((num(form.cold_emails_replies) / num(form.cold_emails_sent)) * 100).toFixed(1) : "–";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +113,8 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
       dms_sent: parseInt(form.dms_sent) || 0,
       dms_replies: parseInt(form.dms_replies) || 0,
       words_spoken: parseInt(form.words_spoken) || 0,
+      cold_emails_sent: parseInt(form.cold_emails_sent) || 0,
+      cold_emails_replies: parseInt(form.cold_emails_replies) || 0,
     };
 
     let error;
@@ -191,7 +198,21 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
             )}
           </section>
 
-          {/* Setting */}
+          {/* Cold Mail Outreach (optional) */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+              <Mail className="h-4 w-4" /> Cold Mail Outreach <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <Field id="cold_emails_sent" label="Cold Mails versendet" value={form.cold_emails_sent} onChange={v => n("cold_emails_sent", v)} />
+              <Field id="cold_emails_replies" label="Antworten erhalten" value={form.cold_emails_replies} onChange={v => n("cold_emails_replies", v)} />
+            </div>
+            {num(form.cold_emails_sent) > 0 && (
+              <div className="flex flex-wrap gap-4 text-xs bg-muted/40 rounded-lg px-3 py-2 text-muted-foreground">
+                <span>Antwort-Quote: <strong className="text-foreground">{coldEmailReplyRate}%</strong></span>
+              </div>
+            )}
+          </section>
           <section className="space-y-3">
             <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
               <Target className="h-4 w-4" /> Opening – Terminierung
@@ -241,6 +262,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
                 { label: "Erreichungsquote", value: reachRate, suffix: "%" },
                 { label: "Interesse-Rate", value: interestRate, suffix: "%" },
                 { label: "DM-Antwort-Quote", value: dmReplyRate, suffix: "%" },
+                { label: "Cold Mail Reply", value: coldEmailReplyRate, suffix: "%" },
                 { label: "Setting Show-Rate", value: settingShowRate, suffix: "%" },
                 { label: "Closing Show-Rate", value: closingShowRate, suffix: "%" },
                 { label: "Closing-Rate", value: closingRate, suffix: "%" },

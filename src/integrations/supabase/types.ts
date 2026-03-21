@@ -586,6 +586,8 @@ export type Database = {
           closings: number | null
           closings_held: number | null
           closings_planned: number | null
+          cold_emails_replies: number | null
+          cold_emails_sent: number | null
           comments: number | null
           created_at: string | null
           deal_volume: number | null
@@ -621,6 +623,8 @@ export type Database = {
           closings?: number | null
           closings_held?: number | null
           closings_planned?: number | null
+          cold_emails_replies?: number | null
+          cold_emails_sent?: number | null
           comments?: number | null
           created_at?: string | null
           deal_volume?: number | null
@@ -656,6 +660,8 @@ export type Database = {
           closings?: number | null
           closings_held?: number | null
           closings_planned?: number | null
+          cold_emails_replies?: number | null
+          cold_emails_sent?: number | null
           comments?: number | null
           created_at?: string | null
           deal_volume?: number | null
