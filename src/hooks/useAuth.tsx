@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .maybeSingle();
 
     if (roleData) {
-      setUserRole(roleData.role as 'admin' | 'client');
+      setUserRole(roleData.role as 'admin' | 'client' | 'advisor');
       
       if (roleData.role === 'client') {
         const { data: tenantData } = await supabase
