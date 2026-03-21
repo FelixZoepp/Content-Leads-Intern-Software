@@ -191,7 +191,7 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
     : null;
   const progress = f?.milestones_total > 0 ? Math.round((f.milestones_completed / f.milestones_total) * 100) : 0;
 
-  const rangeLabel: Record<TimeRange, string> = { daily: "Tage", weekly: "Wochen", monthly: "Monate" };
+  const rangeLabel: Record<TimeRange, string> = { daily: "Tage", weekly: "Wochen", monthly: "Monate", custom: "Einträge" };
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
