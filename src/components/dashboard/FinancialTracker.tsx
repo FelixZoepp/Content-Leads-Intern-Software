@@ -13,7 +13,6 @@ interface Props {
   tenantId: string;
 }
 
-// Get Monday of current week
 function getMonday(d: Date): Date {
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
@@ -45,24 +44,21 @@ export function FinancialTracker({ tenantId }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Store as Monday of current week
   const [currentWeek, setCurrentWeek] = useState(
     getMonday(new Date()).toISOString().slice(0, 10)
   );
 
   const [form, setForm] = useState({
-    cash_collected: 0,
-    revenue_recurring: 0,
-    revenue_onetime: 0,
-    costs_ads: 0,
-    costs_tools: 0,
-    costs_personnel: 0,
-    costs_other: 0,
-    invoices_open_count: 0,
-    invoices_open_amount: 0,
-    invoices_overdue_count: 0,
-    invoices_overdue_amount: 0,
-    avg_days_to_payment: 0,
+    revenue_recurring: "",
+    revenue_onetime: "",
+    costs_ads: "",
+    costs_tools: "",
+    costs_personnel: "",
+    costs_other: "",
+    invoices_open_count: "",
+    invoices_open_amount: "",
+    invoices_overdue_count: "",
+    invoices_overdue_amount: "",
     notes: "",
   });
 
@@ -77,7 +73,6 @@ export function FinancialTracker({ tenantId }: Props) {
       .eq("period_month", currentWeek)
       .maybeSingle();
 
-    // Previous week for comparison
     const prevMon = new Date(currentWeek);
     prevMon.setDate(prevMon.getDate() - 7);
     const prevStr = prevMon.toISOString().slice(0, 10);
@@ -92,45 +87,43 @@ export function FinancialTracker({ tenantId }: Props) {
     if (row) {
       setData(row);
       setForm({
-        cash_collected: parseFloat(String(row.cash_collected)) || 0,
-        revenue_recurring: parseFloat(String(row.revenue_recurring)) || 0,
-        revenue_onetime: parseFloat(String(row.revenue_onetime)) || 0,
-        costs_ads: parseFloat(String(row.costs_ads)) || 0,
-        costs_tools: parseFloat(String(row.costs_tools)) || 0,
-        costs_personnel: parseFloat(String(row.costs_personnel)) || 0,
-        costs_other: parseFloat(String(row.costs_other)) || 0,
-        invoices_open_count: row.invoices_open_count || 0,
-        invoices_open_amount: parseFloat(String(row.invoices_open_amount)) || 0,
-        invoices_overdue_count: row.invoices_overdue_count || 0,
-        invoices_overdue_amount: parseFloat(String(row.invoices_overdue_amount)) || 0,
-        avg_days_to_payment: row.avg_days_to_payment || 0,
+        revenue_recurring: row.revenue_recurring ? String(row.revenue_recurring) : "",
+        revenue_onetime: row.revenue_onetime ? String(row.revenue_onetime) : "",
+        costs_ads: row.costs_ads ? String(row.costs_ads) : "",
+        costs_tools: row.costs_tools ? String(row.costs_tools) : "",
+        costs_personnel: row.costs_personnel ? String(row.costs_personnel) : "",
+        costs_other: row.costs_other ? String(row.costs_other) : "",
+        invoices_open_count: row.invoices_open_count ? String(row.invoices_open_count) : "",
+        invoices_open_amount: row.invoices_open_amount ? String(row.invoices_open_amount) : "",
+        invoices_overdue_count: row.invoices_overdue_count ? String(row.invoices_overdue_count) : "",
+        invoices_overdue_amount: row.invoices_overdue_amount ? String(row.invoices_overdue_amount) : "",
         notes: row.notes || "",
       });
     } else {
       setData(null);
       setForm({
-        cash_collected: 0, revenue_recurring: 0, revenue_onetime: 0,
-        costs_ads: 0, costs_tools: 0, costs_personnel: 0, costs_other: 0,
-        invoices_open_count: 0, invoices_open_amount: 0,
-        invoices_overdue_count: 0, invoices_overdue_amount: 0,
-        avg_days_to_payment: 0, notes: "",
+        revenue_recurring: "", revenue_onetime: "",
+        costs_ads: "", costs_tools: "", costs_personnel: "", costs_other: "",
+        invoices_open_count: "", invoices_open_amount: "",
+        invoices_overdue_count: "", invoices_overdue_amount: "",
+        notes: "",
       });
     }
     setLoading(false);
   };
 
-  const set = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
-  const setNum = (field: string, raw: string, decimal = false) =>
-    set(field, decimal ? (parseFloat(raw) || 0) : (parseInt(raw) || 0));
+  const set = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
+  const num = (v: string) => parseFloat(v) || 0;
 
-  const totalRevenue = form.cash_collected;
-  const totalCosts = form.costs_ads + form.costs_tools + form.costs_personnel + form.costs_other;
-  const cashflow = totalRevenue - totalCosts;
-  const margin = totalRevenue > 0 ? ((cashflow / totalRevenue) * 100).toFixed(1) : "–";
+  // Cash Collected = recurring + onetime (auto-calculated)
+  const cashCollected = num(form.revenue_recurring) + num(form.revenue_onetime);
+  const totalCosts = num(form.costs_ads) + num(form.costs_tools) + num(form.costs_personnel) + num(form.costs_other);
+  const cashflow = cashCollected - totalCosts;
+  const margin = cashCollected > 0 ? ((cashflow / cashCollected) * 100).toFixed(1) : "–";
 
   const prevCashflow = prevData
-    ? (parseFloat(prevData.cash_collected) || 0) - 
-      ((parseFloat(prevData.costs_ads) || 0) + (parseFloat(prevData.costs_tools) || 0) + 
+    ? ((parseFloat(prevData.revenue_recurring) || 0) + (parseFloat(prevData.revenue_onetime) || 0)) -
+      ((parseFloat(prevData.costs_ads) || 0) + (parseFloat(prevData.costs_tools) || 0) +
        (parseFloat(prevData.costs_personnel) || 0) + (parseFloat(prevData.costs_other) || 0))
     : null;
 
@@ -145,7 +138,19 @@ export function FinancialTracker({ tenantId }: Props) {
     const payload: any = {
       tenant_id: tenantId,
       period_month: currentWeek,
-      ...form,
+      cash_collected: cashCollected,
+      revenue_recurring: num(form.revenue_recurring),
+      revenue_onetime: num(form.revenue_onetime),
+      costs_ads: num(form.costs_ads),
+      costs_tools: num(form.costs_tools),
+      costs_personnel: num(form.costs_personnel),
+      costs_other: num(form.costs_other),
+      invoices_open_count: parseInt(form.invoices_open_count) || 0,
+      invoices_open_amount: num(form.invoices_open_amount),
+      invoices_overdue_count: parseInt(form.invoices_overdue_count) || 0,
+      invoices_overdue_amount: num(form.invoices_overdue_amount),
+      avg_days_to_payment: 0,
+      notes: form.notes,
     };
 
     const { error } = data
@@ -161,8 +166,6 @@ export function FinancialTracker({ tenantId }: Props) {
       loadData();
     }
   };
-
-  // NumField moved outside component to prevent focus loss
 
   if (loading) return null;
 
@@ -188,11 +191,10 @@ export function FinancialTracker({ tenantId }: Props) {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* KPI Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            <KPICard label="Cash Collected" value={`${totalRevenue.toLocaleString("de-DE")}€`} />
-            <KPICard label="Wiederkehrend" value={`${form.revenue_recurring.toLocaleString("de-DE")}€`} />
-            <KPICard label="Einmalig" value={`${form.revenue_onetime.toLocaleString("de-DE")}€`} />
+            <KPICard label="Cash Collected" value={`${cashCollected.toLocaleString("de-DE")}€`} />
+            <KPICard label="Wiederkehrend" value={`${num(form.revenue_recurring).toLocaleString("de-DE")}€`} />
+            <KPICard label="Einmalig" value={`${num(form.revenue_onetime).toLocaleString("de-DE")}€`} />
             <KPICard label="Gesamtkosten" value={`${totalCosts.toLocaleString("de-DE")}€`} />
             <KPICard label="Cashflow" value={`${cashflow.toLocaleString("de-DE")}€`}
               trend={cashflow >= 0 ? "up" : "down"} />
@@ -200,37 +202,30 @@ export function FinancialTracker({ tenantId }: Props) {
               trend={parseFloat(margin as string) >= 0 ? "up" : "down"} />
           </div>
 
-          {/* Cost breakdown */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <KPICard label="Ads" value={`${form.costs_ads.toLocaleString("de-DE")}€`} small />
-            <KPICard label="Tools" value={`${form.costs_tools.toLocaleString("de-DE")}€`} small />
-            <KPICard label="Personal" value={`${form.costs_personnel.toLocaleString("de-DE")}€`} small />
-            <KPICard label="Sonstige" value={`${form.costs_other.toLocaleString("de-DE")}€`} small />
+            <KPICard label="Ads" value={`${num(form.costs_ads).toLocaleString("de-DE")}€`} small />
+            <KPICard label="Tools" value={`${num(form.costs_tools).toLocaleString("de-DE")}€`} small />
+            <KPICard label="Personal" value={`${num(form.costs_personnel).toLocaleString("de-DE")}€`} small />
+            <KPICard label="Sonstige" value={`${num(form.costs_other).toLocaleString("de-DE")}€`} small />
           </div>
 
-          {/* Invoices */}
+          {/* Außenstände */}
           <div className="flex flex-wrap gap-3">
-            {form.invoices_open_count > 0 && (
+            {parseInt(form.invoices_open_count) > 0 && (
               <Badge variant="outline">
-                {form.invoices_open_count} offene Rechnungen ({form.invoices_open_amount.toLocaleString("de-DE")}€)
+                {form.invoices_open_count} offene Kundenrechnungen ({num(form.invoices_open_amount).toLocaleString("de-DE")}€ Außenstand)
               </Badge>
             )}
-            {form.invoices_overdue_count > 0 && (
+            {parseInt(form.invoices_overdue_count) > 0 && (
               <Badge variant="outline" className="border-destructive/50 text-destructive">
-                {form.invoices_overdue_count} überfällig ({form.invoices_overdue_amount.toLocaleString("de-DE")}€)
-              </Badge>
-            )}
-            {form.avg_days_to_payment > 0 && (
-              <Badge variant="outline">
-                ⌀ {form.avg_days_to_payment} Tage bis Zahlung
+                {form.invoices_overdue_count} überfällig ({num(form.invoices_overdue_amount).toLocaleString("de-DE")}€)
               </Badge>
             )}
           </div>
 
-          {/* Vormonatsvergleich */}
           {prevCashflow !== null && (
             <div className="text-xs text-muted-foreground bg-muted/30 rounded px-3 py-2">
-              Vormonat Cashflow: <strong className="text-foreground">{prevCashflow.toLocaleString("de-DE")}€</strong>
+              Vorwoche Cashflow: <strong className="text-foreground">{prevCashflow.toLocaleString("de-DE")}€</strong>
               {" → "}
               <span className={cashflow > prevCashflow ? "text-green-600" : cashflow < prevCashflow ? "text-destructive" : ""}>
                 {cashflow > prevCashflow ? "↑" : cashflow < prevCashflow ? "↓" : "="} {Math.abs(cashflow - prevCashflow).toLocaleString("de-DE")}€
@@ -253,7 +248,7 @@ export function FinancialTracker({ tenantId }: Props) {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg">💰 Finanzen – {weekLabel(currentWeek)}</CardTitle>
-            <CardDescription>Wöchentliche Einnahmen, Kosten, Rechnungen und Cashflow</CardDescription>
+            <CardDescription>Wöchentliche Einnahmen, Kosten und Außenstände</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigateWeek(-1)}>
@@ -270,13 +265,14 @@ export function FinancialTracker({ tenantId }: Props) {
           {/* Revenue */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-primary">📥 Einnahmen</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <NumField id="cash_collected" label="Cash Collected (gesamt)" value={form.cash_collected}
-                onChange={(v) => setNum("cash_collected", v, true)} decimal prefix="€" />
-              <NumField id="revenue_recurring" label="Wiederkehrend (MRR)" value={form.revenue_recurring}
-                onChange={(v) => setNum("revenue_recurring", v, true)} decimal prefix="€" />
-              <NumField id="revenue_onetime" label="Einmalig" value={form.revenue_onetime}
-                onChange={(v) => setNum("revenue_onetime", v, true)} decimal prefix="€" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <NumField id="revenue_recurring" label="Wiederkehrende Einnahmen (MRR)" value={form.revenue_recurring}
+                onChange={(v) => set("revenue_recurring", v)} prefix="€" />
+              <NumField id="revenue_onetime" label="Einmalige Einnahmen" value={form.revenue_onetime}
+                onChange={(v) => set("revenue_onetime", v)} prefix="€" />
+            </div>
+            <div className="text-xs bg-muted/40 rounded-lg px-3 py-2 text-muted-foreground">
+              Cash Collected (Summe): <strong className="text-foreground">{cashCollected.toLocaleString("de-DE")}€</strong>
             </div>
           </div>
 
@@ -285,30 +281,29 @@ export function FinancialTracker({ tenantId }: Props) {
             <h3 className="text-sm font-semibold text-primary">📤 Kosten</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <NumField id="costs_ads" label="Werbung / Ads" value={form.costs_ads}
-                onChange={(v) => setNum("costs_ads", v, true)} decimal prefix="€" />
+                onChange={(v) => set("costs_ads", v)} prefix="€" />
               <NumField id="costs_tools" label="Tools / Software" value={form.costs_tools}
-                onChange={(v) => setNum("costs_tools", v, true)} decimal prefix="€" />
+                onChange={(v) => set("costs_tools", v)} prefix="€" />
               <NumField id="costs_personnel" label="Personal" value={form.costs_personnel}
-                onChange={(v) => setNum("costs_personnel", v, true)} decimal prefix="€" />
+                onChange={(v) => set("costs_personnel", v)} prefix="€" />
               <NumField id="costs_other" label="Sonstiges" value={form.costs_other}
-                onChange={(v) => setNum("costs_other", v, true)} decimal prefix="€" />
+                onChange={(v) => set("costs_other", v)} prefix="€" />
             </div>
           </div>
 
-          {/* Invoices */}
+          {/* Außenstände */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-primary">🧾 Rechnungen</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <NumField id="invoices_open_count" label="Offene Rechnungen" value={form.invoices_open_count}
-                onChange={(v) => setNum("invoices_open_count", v)} />
-              <NumField id="invoices_open_amount" label="Offener Betrag" value={form.invoices_open_amount}
-                onChange={(v) => setNum("invoices_open_amount", v, true)} decimal prefix="€" />
+            <h3 className="text-sm font-semibold text-primary">🧾 Außenstände (Kundenrechnungen)</h3>
+            <p className="text-xs text-muted-foreground -mt-1">Wie viel steht bei deinen Kunden noch offen?</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <NumField id="invoices_open_count" label="Offene Rechnungen (Anzahl)" value={form.invoices_open_count}
+                onChange={(v) => set("invoices_open_count", v)} />
+              <NumField id="invoices_open_amount" label="Offener Gesamtbetrag" value={form.invoices_open_amount}
+                onChange={(v) => set("invoices_open_amount", v)} prefix="€" />
               <NumField id="invoices_overdue_count" label="Überfällige Rechnungen" value={form.invoices_overdue_count}
-                onChange={(v) => setNum("invoices_overdue_count", v)} />
+                onChange={(v) => set("invoices_overdue_count", v)} />
               <NumField id="invoices_overdue_amount" label="Überfälliger Betrag" value={form.invoices_overdue_amount}
-                onChange={(v) => setNum("invoices_overdue_amount", v, true)} decimal prefix="€" />
-              <NumField id="avg_days_to_payment" label="⌀ Tage bis Zahlung" value={form.avg_days_to_payment}
-                onChange={(v) => setNum("avg_days_to_payment", v)} />
+                onChange={(v) => set("invoices_overdue_amount", v)} prefix="€" />
             </div>
           </div>
 
@@ -319,6 +314,10 @@ export function FinancialTracker({ tenantId }: Props) {
               Berechnete Kennzahlen (live)
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-background rounded-md p-3 text-center">
+                <div className="text-xs text-muted-foreground">Cash Collected</div>
+                <div className="text-lg font-bold text-primary">{cashCollected.toLocaleString("de-DE")}€</div>
+              </div>
               <div className="bg-background rounded-md p-3 text-center">
                 <div className="text-xs text-muted-foreground">Gesamtkosten</div>
                 <div className="text-lg font-bold text-primary">{totalCosts.toLocaleString("de-DE")}€</div>
@@ -333,12 +332,6 @@ export function FinancialTracker({ tenantId }: Props) {
                 <div className="text-xs text-muted-foreground">Marge</div>
                 <div className={`text-lg font-bold ${parseFloat(margin as string) >= 0 ? "text-green-600" : "text-destructive"}`}>
                   {margin === "–" ? "–" : `${margin}%`}
-                </div>
-              </div>
-              <div className="bg-background rounded-md p-3 text-center">
-                <div className="text-xs text-muted-foreground">Offene Beträge</div>
-                <div className="text-lg font-bold text-primary">
-                  {form.invoices_open_amount.toLocaleString("de-DE")}€
                 </div>
               </div>
             </div>
@@ -366,17 +359,16 @@ export function FinancialTracker({ tenantId }: Props) {
   );
 }
 
-function NumField({ id, label, value, onChange, decimal, prefix }: {
-  id: string; label: string; value: number; onChange: (v: string) => void;
-  decimal?: boolean; prefix?: string;
+function NumField({ id, label, value, onChange, prefix }: {
+  id: string; label: string; value: string; onChange: (v: string) => void; prefix?: string;
 }) {
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id} className="text-xs font-medium">{label}</Label>
       <div className="relative">
         {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{prefix}</span>}
-        <Input id={id} type="number" min="0" step={decimal ? "0.01" : "1"}
-          inputMode={decimal ? "decimal" : "numeric"}
+        <Input id={id} type="number" min="0" step="0.01"
+          inputMode="decimal"
           className={prefix ? "pl-7" : ""}
           value={value} onChange={(e) => onChange(e.target.value)} />
       </div>
