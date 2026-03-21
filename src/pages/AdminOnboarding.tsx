@@ -262,7 +262,6 @@ export default function AdminOnboarding() {
           closings: parseInt(m.closings) || 0,
           deals: parseInt(m.deals) || 0,
           revenue: parseFloat(m.revenue) || 0,
-          cash_collected: parseFloat(m.cashCollected) || 0,
           deal_volume: parseFloat(m.dealVolume) || 0,
         };
       }).filter(s => Object.entries(s).some(([k, v]) => !["tenant_id", "period_date", "period_type"].includes(k) && v !== 0));
@@ -270,6 +269,23 @@ export default function AdminOnboarding() {
       if (snapshots.length > 0) {
         const { error: snapErr } = await supabase.from("metrics_snapshot").insert(snapshots);
         if (snapErr) throw snapErr;
+      }
+
+      // Insert ICP customers
+      const icpToInsert = icpCustomers
+        .filter(c => c.name.trim())
+        .map((c, i) => ({
+          tenant_id: tenantId,
+          customer_name: c.name.trim(),
+          industry: c.industry || null,
+          has_paid: c.hasPaid,
+          days_to_payment: c.daysToPayment ? parseInt(c.daysToPayment) : null,
+          deal_value: c.dealValue ? parseFloat(c.dealValue) : null,
+          sort_order: i,
+        }));
+      if (icpToInsert.length > 0) {
+        const { error: icpErr } = await supabase.from("icp_customers").insert(icpToInsert);
+        if (icpErr) throw icpErr;
       }
 
       toast({ title: "Onboarding abgeschlossen ✓", description: `${form.companyName} wurde vollständig eingerichtet.` });
