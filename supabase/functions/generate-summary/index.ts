@@ -12,7 +12,60 @@ serve(async (req) => {
   }
 
   try {
-    const { tenantId, scope } = await req.json();
+    const { tenantId, scope, prompt: customPrompt } = await req.json();
+
+    // Handle admin portfolio report (no tenantId needed)
+    if (scope === "admin_portfolio" && customPrompt) {
+      const supabaseClient = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      );
+
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: "Du bist ein Portfolio-Manager für eine LinkedIn-Agentur. Erstelle strukturierte, priorisierte Reports auf Deutsch." },
+            { role: "user", content: customPrompt },
+          ],
+        }),
+      });
+
+      if (aiResponse.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limit erreicht." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (aiResponse.status === 402) {
+        return new Response(JSON.stringify({ error: "AI-Credits aufgebraucht." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (!aiResponse.ok) throw new Error("AI Gateway Error");
+
+      const aiData = await aiResponse.json();
+      const summaryText = aiData.choices[0].message.content;
+
+      const { data: summary, error: summaryError } = await supabaseClient
+        .from("ai_summaries")
+        .insert({ tenant_id: null, scope: "admin_portfolio", summary_text: summaryText })
+        .select()
+        .single();
+
+      if (summaryError) throw summaryError;
+
+      return new Response(JSON.stringify({ summary }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
