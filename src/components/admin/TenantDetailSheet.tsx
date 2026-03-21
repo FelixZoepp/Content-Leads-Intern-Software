@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   BarChart3, Phone, Package, DollarSign, TrendingUp, TrendingDown,
   Calendar, Users, Target, Activity, ArrowUpRight, ArrowDownRight,
-  AlertTriangle, CheckCircle2, XCircle,
+  AlertTriangle, CheckCircle2, XCircle, UserSearch, Trophy,
 } from "lucide-react";
 import {
   outboundKPIConfigs, marketingKPIConfigs, salesKPIConfigs, financeKPIConfigs,
