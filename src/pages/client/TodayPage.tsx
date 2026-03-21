@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { SectionCards } from "@/components/today/SectionCards";
 import { DailyChecklist } from "@/components/today/DailyChecklist";
 import { ProgressRing } from "@/components/today/ProgressRing";
+import { SurveyEngine } from "@/components/client/SurveyEngine";
+import { supabase } from "@/integrations/supabase/client";
 
 const TODAY_KEY = `checklist_${new Date().toISOString().slice(0, 10)}`;
 
