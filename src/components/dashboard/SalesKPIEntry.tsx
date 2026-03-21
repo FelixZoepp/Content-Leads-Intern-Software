@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Save, TrendingUp, Phone, Target, Handshake, MessageSquare } from "lucide-react";
+import { Save, TrendingUp, Phone, Target, Handshake, MessageSquare, Mail } from "lucide-react";
 
 interface Props {
   tenantId: string;
