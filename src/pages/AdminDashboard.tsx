@@ -14,6 +14,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { InviteCustomerDialog } from "@/components/admin/InviteCustomerDialog";
 import { AdvisorReport } from "@/components/admin/AdvisorReport";
 import { Routes, Route } from "react-router-dom";
+import { WebhookSettings } from "@/components/admin/WebhookSettings";
 
 function AdminAlertsPage({ alerts, loadAdminData }: { alerts: any[]; loadAdminData: () => void }) {
   return (
