@@ -137,16 +137,14 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
       metricsQuery = metricsQuery.limit(limit);
     }
 
-    const [mRes, fRes, finRes, hRes, icpRes] = await Promise.all([
+    const [mRes, finRes, hRes, icpRes] = await Promise.all([
       metricsQuery,
-      supabase.from("fulfillment_tracking").select("*").eq("tenant_id", tenant.id).maybeSingle(),
       supabase.from("financial_tracking").select("*").eq("tenant_id", tenant.id).eq("period_month", currentMonth).maybeSingle(),
       supabase.from("health_scores").select("*").eq("tenant_id", tenant.id).order("created_at", { ascending: false }).limit(5),
       supabase.from("icp_customers").select("*").eq("tenant_id", tenant.id).order("sort_order"),
     ]);
 
     setMetrics((mRes.data as any) || []);
-    setFulfillment(fRes.data);
     setFinancial(finRes.data);
     setHealthScores(hRes.data || []);
     setIcpCustomers(icpRes.data || []);
