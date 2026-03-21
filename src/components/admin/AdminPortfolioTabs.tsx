@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
+
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, TrendingDown, Users, Target, Phone, DollarSign, Package, AlertCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, Target, Phone, DollarSign, AlertCircle } from "lucide-react";
 import { TenantDetailSheet } from "./TenantDetailSheet";
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
 
 export function AdminPortfolioTabs({ tenants }: Props) {
   const [monthlyMetrics, setMonthlyMetrics] = useState<Record<string, any>>({});
-  const [fulfillment, setFulfillment] = useState<Record<string, any>>({});
+  
   const [financials, setFinancials] = useState<Record<string, any>>({});
   const [selectedTenant, setSelectedTenant] = useState<any | null>(null);
 
@@ -37,15 +37,8 @@ export function AdminPortfolioTabs({ tenants }: Props) {
     (metricsData || []).forEach((m: any) => { metricsMap[m.tenant_id] = m; });
     setMonthlyMetrics(metricsMap);
 
-    // Fulfillment
-    const { data: fulData } = await supabase
-      .from("fulfillment_tracking")
-      .select("*")
-      .in("tenant_id", tenantIds);
 
-    const fulMap: Record<string, any> = {};
-    (fulData || []).forEach((f: any) => { fulMap[f.tenant_id] = f; });
-    setFulfillment(fulMap);
+
 
     // Financial (current month)
     const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
@@ -75,9 +68,8 @@ export function AdminPortfolioTabs({ tenants }: Props) {
   }, 0);
   const totalCashflow = totalRevenue - totalCosts;
 
-  const activeProjects = tenants.filter(t => fulfillment[t.id]?.project_status === "active").length;
-  const onboardingProjects = tenants.filter(t => fulfillment[t.id]?.project_status === "onboarding").length;
-  const overdueInvoices = tenants.reduce((s, t) => s + (financials[t.id]?.invoices_overdue_count || 0), 0);
+
+
 
   return (
     <div className="space-y-6">
@@ -92,20 +84,17 @@ export function AdminPortfolioTabs({ tenants }: Props) {
           trend={totalCashflow >= 0 ? "up" : "down"} />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <SummaryCard icon={Users} label="Aktive Kunden" value={tenants.length} small />
-        <SummaryCard icon={Package} label="Aktive Projekte" value={activeProjects} small />
-        <SummaryCard icon={Package} label="Im Onboarding" value={onboardingProjects} small />
-        <SummaryCard icon={AlertCircle} label="Überfällige Rechnungen" value={overdueInvoices}
-          small trend={overdueInvoices > 0 ? "down" : undefined} />
+        <SummaryCard icon={AlertCircle} label="Überfällige Rechnungen" value={tenants.reduce((s, t) => s + (financials[t.id]?.invoices_overdue_count || 0), 0)}
+          small trend={tenants.reduce((s, t) => s + (financials[t.id]?.invoices_overdue_count || 0), 0) > 0 ? "down" : undefined} />
       </div>
 
       {/* Tabs for detail views */}
       <Tabs defaultValue="marketing" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="marketing">📈 Marketing</TabsTrigger>
           <TabsTrigger value="sales">📞 Sales</TabsTrigger>
-          <TabsTrigger value="fulfillment">📦 Fulfillment</TabsTrigger>
           <TabsTrigger value="finance">💰 Finanzen</TabsTrigger>
         </TabsList>
 
@@ -209,77 +198,8 @@ export function AdminPortfolioTabs({ tenants }: Props) {
           </Card>
         </TabsContent>
 
-        {/* Fulfillment Tab */}
-        <TabsContent value="fulfillment">
-          <Card>
-            <CardHeader><CardTitle className="text-base">Fulfillment-Übersicht</CardTitle></CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-2">Kunde</th>
-                      <th className="text-center p-2">Status</th>
-                      <th className="text-right p-2">Onb. Dauer</th>
-                      <th className="text-right p-2">Laufzeit</th>
-                      <th className="text-center p-2">Fortschritt</th>
-                      <th className="text-right p-2">CSAT</th>
-                      <th className="text-right p-2">NPS</th>
-                      <th className="text-right p-2">Vertrag bis</th>
-                      <th className="text-center p-2">Verlängert</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tenants.map(t => {
-                      const f = fulfillment[t.id];
-                      const onbDays = f?.onboarding_started_at
-                        ? Math.round((new Date(f.onboarding_completed_at || new Date()).getTime() - new Date(f.onboarding_started_at).getTime()) / 86400000)
-                        : null;
-                      const projDays = f?.project_start_date
-                        ? Math.round((new Date(f.project_actual_end || new Date()).getTime() - new Date(f.project_start_date).getTime()) / 86400000)
-                        : null;
-                      const progress = f?.milestones_total > 0
-                        ? Math.round((f.milestones_completed / f.milestones_total) * 100) : 0;
 
-                      return (
-                        <tr key={t.id} className="border-b hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => setSelectedTenant(t)}>
-                          <td className="p-2 font-medium">{t.company_name}</td>
-                          <td className="p-2 text-center">
-                            <StatusBadge status={f?.project_status} />
-                          </td>
-                          <td className="p-2 text-right">{onbDays !== null ? `${onbDays}d` : "–"}</td>
-                          <td className="p-2 text-right">{projDays !== null ? `${projDays}d` : "–"}</td>
-                          <td className="p-2">
-                            {f?.milestones_total > 0 ? (
-                              <div className="flex items-center gap-2">
-                                <Progress value={progress} className="h-2 flex-1" />
-                                <span className="text-xs text-muted-foreground w-8">{progress}%</span>
-                              </div>
-                            ) : "–"}
-                          </td>
-                          <td className="p-2 text-right">
-                            {f?.csat_score ? (
-                              <span className={n(f.csat_score) >= 4 ? "text-green-600" : n(f.csat_score) >= 3 ? "text-foreground" : "text-destructive"}>
-                                {n(f.csat_score)}/5
-                              </span>
-                            ) : "–"}
-                          </td>
-                          <td className="p-2 text-right">{f?.nps_score != null ? f.nps_score : "–"}</td>
-                          <td className="p-2 text-right text-xs">
-                            {f?.contract_end ? new Date(f.contract_end).toLocaleDateString("de-DE") : "–"}
-                          </td>
-                          <td className="p-2 text-center">
-                            {f?.contract_renewed ? "✓" : f ? "–" : ""}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+
 
         {/* Finance Tab */}
         <TabsContent value="finance">
@@ -353,7 +273,7 @@ export function AdminPortfolioTabs({ tenants }: Props) {
                         {tenants.reduce((s, t) => s + (financials[t.id]?.invoices_open_count || 0), 0) || "–"}
                       </td>
                       <td className="p-2 text-right text-destructive">
-                        {overdueInvoices > 0 ? overdueInvoices : "–"}
+                        {(() => { const ov = tenants.reduce((s, t) => s + (financials[t.id]?.invoices_overdue_count || 0), 0); return ov > 0 ? ov : "–"; })()}
                       </td>
                       <td className="p-2"></td>
                     </tr>

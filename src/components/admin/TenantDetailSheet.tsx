@@ -97,7 +97,7 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
   const [timeRange, setTimeRange] = useState<TimeRange>("weekly");
   const [activeTab, setActiveTab] = useState("profil");
   const [metrics, setMetrics] = useState<any[]>([]);
-  const [fulfillment, setFulfillment] = useState<any>(null);
+  
   const [financial, setFinancial] = useState<any>(null);
   const [healthScores, setHealthScores] = useState<any[]>([]);
   const [icpCustomers, setIcpCustomers] = useState<any[]>([]);
@@ -137,16 +137,14 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
       metricsQuery = metricsQuery.limit(limit);
     }
 
-    const [mRes, fRes, finRes, hRes, icpRes] = await Promise.all([
+    const [mRes, finRes, hRes, icpRes] = await Promise.all([
       metricsQuery,
-      supabase.from("fulfillment_tracking").select("*").eq("tenant_id", tenant.id).maybeSingle(),
       supabase.from("financial_tracking").select("*").eq("tenant_id", tenant.id).eq("period_month", currentMonth).maybeSingle(),
       supabase.from("health_scores").select("*").eq("tenant_id", tenant.id).order("created_at", { ascending: false }).limit(5),
       supabase.from("icp_customers").select("*").eq("tenant_id", tenant.id).order("sort_order"),
     ]);
 
     setMetrics((mRes.data as any) || []);
-    setFulfillment(fRes.data);
     setFinancial(finRes.data);
     setHealthScores(hRes.data || []);
     setIcpCustomers(icpRes.data || []);
@@ -177,7 +175,6 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
   if (!tenant) return null;
 
   const health = healthScores[0];
-  const f = fulfillment;
   const fin = financial;
   const m = metrics[0]; // latest period
 
@@ -185,11 +182,6 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
   const costs = n(fin?.costs_ads) + n(fin?.costs_tools) + n(fin?.costs_personnel) + n(fin?.costs_other);
   const cashflow = cash - costs;
   const margin = cash > 0 ? ((cashflow / cash) * 100).toFixed(1) : "–";
-
-  const onbDays = f?.onboarding_started_at
-    ? Math.round((new Date(f.onboarding_completed_at || new Date()).getTime() - new Date(f.onboarding_started_at).getTime()) / 86400000)
-    : null;
-  const progress = f?.milestones_total > 0 ? Math.round((f.milestones_completed / f.milestones_total) * 100) : 0;
 
   const rangeLabel: Record<TimeRange, string> = { daily: "Tage", weekly: "Wochen", monthly: "Monate", custom: "Einträge" };
 
@@ -227,12 +219,11 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
             </div>
           ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-7 bg-secondary/50">
+              <TabsList className="grid w-full grid-cols-6 bg-secondary/50">
                 <TabsTrigger value="profil" className="text-[10px]">📋 Profil</TabsTrigger>
                 <TabsTrigger value="summary" className="text-[10px]">🎯 Analyse</TabsTrigger>
                 <TabsTrigger value="marketing" className="text-[10px]">📈 Mktg</TabsTrigger>
                 <TabsTrigger value="sales" className="text-[10px]">📞 Sales</TabsTrigger>
-                <TabsTrigger value="fulfillment" className="text-[10px]">📦 Fulfm.</TabsTrigger>
                 <TabsTrigger value="finance" className="text-[10px]">💰 Fin.</TabsTrigger>
                 <TabsTrigger value="icp" className="text-[10px]">👤 ICP</TabsTrigger>
               </TabsList>
@@ -417,56 +408,7 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
                 )}
               </TabsContent>
 
-              {/* ═══ FULFILLMENT TAB ═══ */}
-              <TabsContent value="fulfillment" className="space-y-4 mt-4">
-                {f ? (
-                  <>
-                    <div className="grid grid-cols-2 gap-3">
-                      <KpiCard label="Status" value={
-                        f.project_status === "active" ? "Aktiv" :
-                        f.project_status === "onboarding" ? "Onboarding" :
-                        f.project_status === "paused" ? "Pausiert" :
-                        f.project_status === "completed" ? "Fertig" : f.project_status
-                      } icon={Package}
-                        good={f.project_status === "active"} />
-                      <KpiCard label="Onboarding" value={onbDays !== null ? `${onbDays} Tage` : "–"} icon={Calendar} />
-                      <KpiCard label="CSAT" value={f.csat_score ? `${n(f.csat_score)}/5` : "–"} icon={Activity}
-                        good={n(f.csat_score) >= 4} bad={n(f.csat_score) > 0 && n(f.csat_score) < 3} />
-                      <KpiCard label="NPS" value={f.nps_score != null ? f.nps_score : "–"} icon={TrendingUp}
-                        good={n(f.nps_score) >= 8} bad={n(f.nps_score) > 0 && n(f.nps_score) < 6} />
-                    </div>
 
-                    {f.milestones_total > 0 && (
-                      <Card className="glass-card">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-muted-foreground">Meilensteine</span>
-                            <span className="text-sm font-medium">{f.milestones_completed}/{f.milestones_total}</span>
-                          </div>
-                          <Progress value={progress} className="h-2" />
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <KpiCard label="Vertrag bis" value={f.contract_end ? new Date(f.contract_end).toLocaleDateString("de-DE") : "–"} icon={Calendar} />
-                      <KpiCard label="Verlängert" value={f.contract_renewed ? "✓ Ja" : "Nein"} icon={Activity}
-                        good={f.contract_renewed} />
-                    </div>
-
-                    {f.notes && (
-                      <Card className="glass-card">
-                        <CardContent className="p-4">
-                          <p className="text-xs text-muted-foreground mb-1">Notizen</p>
-                          <p className="text-sm">{f.notes}</p>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-8">Keine Fulfillment-Daten vorhanden</p>
-                )}
-              </TabsContent>
 
               {/* ═══ FINANCE TAB ═══ */}
               <TabsContent value="finance" className="space-y-4 mt-4">

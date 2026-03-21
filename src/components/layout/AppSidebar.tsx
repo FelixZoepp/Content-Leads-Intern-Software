@@ -6,7 +6,7 @@ import {
   LayoutDashboard,
   BarChart3,
   Phone,
-  Package,
+  
   DollarSign,
   Brain,
   MessageSquare,
@@ -39,7 +39,6 @@ const clientNav = [
   { title: "Übersicht", icon: LayoutDashboard, path: "/dashboard/overview" },
   { title: "Marketing", icon: BarChart3, path: "/dashboard/marketing" },
   { title: "Sales", icon: Phone, path: "/dashboard/sales" },
-  { title: "Fulfillment", icon: Package, path: "/dashboard/fulfillment" },
   { title: "Finanzen", icon: DollarSign, path: "/dashboard/finance" },
   { title: "KI-Briefing", icon: Brain, path: "/dashboard/ai" },
   { title: "Feedback", icon: MessageSquare, path: "/dashboard/csat" },

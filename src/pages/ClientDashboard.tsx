@@ -9,7 +9,7 @@ import TodayPage from "./client/TodayPage";
 import OverviewPage from "./client/OverviewPage";
 import MarketingPage from "./client/MarketingPage";
 import SalesPage from "./client/SalesPage";
-import FulfillmentPage from "./client/FulfillmentPage";
+
 import FinancePage from "./client/FinancePage";
 import AIPage from "./client/AIPage";
 import CSATPage from "./client/CSATPage";
@@ -36,7 +36,7 @@ function ClientDashboardInner() {
         <Route path="overview" element={<OverviewPage />} />
         <Route path="marketing" element={<MarketingPage />} />
         <Route path="sales" element={<SalesPage />} />
-        <Route path="fulfillment" element={<FulfillmentPage />} />
+        
         <Route path="finance" element={<FinancePage />} />
         <Route path="ai" element={<AIPage />} />
         <Route path="csat" element={<CSATPage />} />
