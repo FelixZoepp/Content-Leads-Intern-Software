@@ -18,7 +18,7 @@ import { AdvisorReport } from "@/components/admin/AdvisorReport";
 import { Routes, Route } from "react-router-dom";
 import { WebhookSettings } from "@/components/admin/WebhookSettings";
 
-function AdminAlertsPage({ alerts, loadAdminData }: { alerts: any[]; loadAdminData: () => void }) {
+function AdminAlertsPage({ alerts, tenants, loadAdminData }: { alerts: any[]; tenants: any[]; loadAdminData: () => void }) {
   const { toast } = useToast();
   const [calculating, setCalculating] = useState(false);
 
@@ -46,7 +46,7 @@ function AdminAlertsPage({ alerts, loadAdminData }: { alerts: any[]; loadAdminDa
       <p className="text-sm text-muted-foreground -mt-4">
         Alerts werden täglich um 7:00 Uhr automatisch generiert, basierend auf den KPI-Daten der letzten 2 Wochen.
       </p>
-      <AlertsPanel alerts={alerts} onResolve={loadAdminData} />
+      <AlertsPanel alerts={alerts} tenants={tenants} onResolve={loadAdminData} />
     </div>
   );
 }
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
     >
       <Routes>
         <Route index element={<AdminPortfolioPage tenants={tenants} onReload={loadAdminData} />} />
-        <Route path="alerts" element={<AdminAlertsPage alerts={alerts} loadAdminData={loadAdminData} />} />
+        <Route path="alerts" element={<AdminAlertsPage alerts={alerts} tenants={tenants} loadAdminData={loadAdminData} />} />
         <Route path="csat" element={<AdminCSATPage tenants={tenants} />} />
         <Route path="advisor-report" element={<AdminAdvisorReportPage />} />
         <Route path="ai-summary" element={<AdminAISummaryPage />} />
