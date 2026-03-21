@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TenantDetailSheet } from "@/components/admin/TenantDetailSheet";
+import { AdvisorAssignment } from "@/components/admin/AdvisorAssignment";
 import { motion } from "framer-motion";
 import {
   Search, Users, TrendingUp, TrendingDown, AlertTriangle,
