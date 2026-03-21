@@ -198,77 +198,8 @@ export function AdminPortfolioTabs({ tenants }: Props) {
           </Card>
         </TabsContent>
 
-        {/* Fulfillment Tab */}
-        <TabsContent value="fulfillment">
-          <Card>
-            <CardHeader><CardTitle className="text-base">Fulfillment-Übersicht</CardTitle></CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-2">Kunde</th>
-                      <th className="text-center p-2">Status</th>
-                      <th className="text-right p-2">Onb. Dauer</th>
-                      <th className="text-right p-2">Laufzeit</th>
-                      <th className="text-center p-2">Fortschritt</th>
-                      <th className="text-right p-2">CSAT</th>
-                      <th className="text-right p-2">NPS</th>
-                      <th className="text-right p-2">Vertrag bis</th>
-                      <th className="text-center p-2">Verlängert</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tenants.map(t => {
-                      const f = fulfillment[t.id];
-                      const onbDays = f?.onboarding_started_at
-                        ? Math.round((new Date(f.onboarding_completed_at || new Date()).getTime() - new Date(f.onboarding_started_at).getTime()) / 86400000)
-                        : null;
-                      const projDays = f?.project_start_date
-                        ? Math.round((new Date(f.project_actual_end || new Date()).getTime() - new Date(f.project_start_date).getTime()) / 86400000)
-                        : null;
-                      const progress = f?.milestones_total > 0
-                        ? Math.round((f.milestones_completed / f.milestones_total) * 100) : 0;
 
-                      return (
-                        <tr key={t.id} className="border-b hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => setSelectedTenant(t)}>
-                          <td className="p-2 font-medium">{t.company_name}</td>
-                          <td className="p-2 text-center">
-                            <StatusBadge status={f?.project_status} />
-                          </td>
-                          <td className="p-2 text-right">{onbDays !== null ? `${onbDays}d` : "–"}</td>
-                          <td className="p-2 text-right">{projDays !== null ? `${projDays}d` : "–"}</td>
-                          <td className="p-2">
-                            {f?.milestones_total > 0 ? (
-                              <div className="flex items-center gap-2">
-                                <Progress value={progress} className="h-2 flex-1" />
-                                <span className="text-xs text-muted-foreground w-8">{progress}%</span>
-                              </div>
-                            ) : "–"}
-                          </td>
-                          <td className="p-2 text-right">
-                            {f?.csat_score ? (
-                              <span className={n(f.csat_score) >= 4 ? "text-green-600" : n(f.csat_score) >= 3 ? "text-foreground" : "text-destructive"}>
-                                {n(f.csat_score)}/5
-                              </span>
-                            ) : "–"}
-                          </td>
-                          <td className="p-2 text-right">{f?.nps_score != null ? f.nps_score : "–"}</td>
-                          <td className="p-2 text-right text-xs">
-                            {f?.contract_end ? new Date(f.contract_end).toLocaleDateString("de-DE") : "–"}
-                          </td>
-                          <td className="p-2 text-center">
-                            {f?.contract_renewed ? "✓" : f ? "–" : ""}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+
 
         {/* Finance Tab */}
         <TabsContent value="finance">
