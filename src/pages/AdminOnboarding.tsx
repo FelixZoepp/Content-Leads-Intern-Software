@@ -587,8 +587,68 @@ export default function AdminOnboarding() {
               </div>
             )}
 
-            {/* Step 9: 3-Monats-Historie */}
+            {/* Step 9: ICP-Analyse */}
             {step === 9 && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">ICP-Analyse – Letzte Kunden</h3>
+                <p className="text-sm text-muted-foreground">
+                  Liste die letzten 10 Kunden auf, damit wir den idealen Kundentyp (ICP) ermitteln können.
+                </p>
+
+                <div className="space-y-3">
+                  {icpCustomers.map((c, idx) => (
+                    <div key={idx} className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-primary">Kunde {idx + 1}</p>
+                        {icpCustomers.length > 1 && (
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeIcpRow(idx)}>
+                            <Trash2 className="h-3 w-3 text-muted-foreground" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Kundenname</Label>
+                          <Input value={c.name} onChange={e => updateIcp(idx, "name", e.target.value)} placeholder="Firma GmbH" className="h-8 text-sm" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Branche</Label>
+                          <Select value={c.industry} onValueChange={v => updateIcp(idx, "industry", v)}>
+                            <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Branche" /></SelectTrigger>
+                            <SelectContent>
+                              {INDUSTRIES.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 items-end">
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Deal-Wert (€)</Label>
+                          <Input type="number" value={c.dealValue} onChange={e => updateIcp(idx, "dealValue", e.target.value)} placeholder="5000" className="h-8 text-sm" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Tage bis Zahlung</Label>
+                          <Input type="number" value={c.daysToPayment} onChange={e => updateIcp(idx, "daysToPayment", e.target.value)} placeholder="14" className="h-8 text-sm" disabled={!c.hasPaid} />
+                        </div>
+                        <div className="flex items-center gap-2 h-8">
+                          <Checkbox checked={c.hasPaid} onCheckedChange={(v) => updateIcp(idx, "hasPaid", !!v)} id={`paid-${idx}`} />
+                          <Label htmlFor={`paid-${idx}`} className="text-[11px] cursor-pointer">Bezahlt</Label>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {icpCustomers.length < 10 && (
+                  <Button variant="outline" size="sm" onClick={addIcpRow} className="gap-1.5">
+                    <Plus className="h-3.5 w-3.5" /> Kunde hinzufügen
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Step 10: 3-Monats-Historie */}
+            {step === 10 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">3-Monats-Historie</h3>
                 <p className="text-sm text-muted-foreground">Trage die Werte der letzten 3 Monate ein – so können wir Trends berechnen. Leere Felder = 0.</p>
@@ -596,6 +656,16 @@ export default function AdminOnboarding() {
                 {history.map((month, idx) => (
                   <div key={idx} className="p-4 rounded-lg border border-border/60 bg-muted/20 space-y-3">
                     <p className="text-sm font-semibold text-primary">{month.label}</p>
+
+                    <p className="text-xs font-semibold text-muted-foreground uppercase">Leads</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([["Leads gesamt", "leadsTotal"], ["Qualifizierte Leads", "leadsQualified"]] as const).map(([l, k]) => (
+                        <div key={k} className="space-y-1">
+                          <Label className="text-[11px]">{l}</Label>
+                          <Input type="number" value={(month as any)[k]} onChange={e => updateHistory(idx, k, e.target.value)} placeholder="0" className="h-8 text-sm" />
+                        </div>
+                      ))}
+                    </div>
 
                     <p className="text-xs font-semibold text-muted-foreground uppercase">Marketing</p>
                     <div className="grid grid-cols-4 gap-2">
@@ -609,8 +679,8 @@ export default function AdminOnboarding() {
 
                     <p className="text-xs font-semibold text-muted-foreground uppercase">Sales & Outbound</p>
                     <div className="grid grid-cols-4 gap-2">
-                      {([["Anwahlen", "callsMade"], ["Erreicht", "callsReached"], ["Interesse", "callsInterested"], ["Leads", "leadsTotal"],
-                        ["Qual. Leads", "leadsQualified"], ["Termine", "appointments"], ["Settings gepl.", "settingsPlanned"], ["Settings gehalten", "settingsHeld"],
+                      {([["Anwahlen", "callsMade"], ["Erreicht", "callsReached"], ["Interesse", "callsInterested"],
+                        ["Termine", "appointments"], ["Settings gepl.", "settingsPlanned"], ["Settings gehalten", "settingsHeld"],
                         ["Closings gepl.", "closingsPlanned"], ["Closings gehalten", "closingsHeld"], ["Abschlüsse", "closings"], ["Deals", "deals"]] as const).map(([l, k]) => (
                         <div key={k} className="space-y-1">
                           <Label className="text-[11px]">{l}</Label>
@@ -620,8 +690,8 @@ export default function AdminOnboarding() {
                     </div>
 
                     <p className="text-xs font-semibold text-muted-foreground uppercase">Finanzen</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {([["Umsatz (€)", "revenue"], ["Cash Collected (€)", "cashCollected"], ["Deal-Volumen (€)", "dealVolume"]] as const).map(([l, k]) => (
+                    <div className="grid grid-cols-2 gap-2">
+                      {([["Umsatz (€)", "revenue"], ["Deal-Volumen (€)", "dealVolume"]] as const).map(([l, k]) => (
                         <div key={k} className="space-y-1">
                           <Label className="text-[11px]">{l}</Label>
                           <Input type="number" value={(month as any)[k]} onChange={e => updateHistory(idx, k, e.target.value)} placeholder="0" className="h-8 text-sm" />
