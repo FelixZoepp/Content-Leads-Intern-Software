@@ -36,7 +36,7 @@ function ClientDashboardInner() {
         <Route path="overview" element={<OverviewPage />} />
         <Route path="marketing" element={<MarketingPage />} />
         <Route path="sales" element={<SalesPage />} />
-        <Route path="fulfillment" element={<FulfillmentPage />} />
+        
         <Route path="finance" element={<FinancePage />} />
         <Route path="ai" element={<AIPage />} />
         <Route path="csat" element={<CSATPage />} />
