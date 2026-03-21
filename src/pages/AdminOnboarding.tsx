@@ -26,6 +26,7 @@ const STEPS = [
   { icon: TrendingUp, label: "Vertrieb" },
   { icon: BarChart3, label: "KPIs" },
   { icon: Target, label: "Ziele" },
+  { icon: UserSearch, label: "ICP-Analyse" },
   { icon: CalendarDays, label: "3-Monats-Historie" },
 ];
 
