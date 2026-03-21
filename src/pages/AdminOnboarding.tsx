@@ -154,8 +154,6 @@ export default function AdminOnboarding() {
           company_name: form.companyName.trim(),
           contact_name: form.contactName.trim() || null,
           industry: form.industry || null,
-          contract_duration: form.contractDuration || null,
-          offer_price: form.offerPrice || null,
         },
       });
       if (error) throw error;
