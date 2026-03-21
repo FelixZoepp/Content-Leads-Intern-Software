@@ -993,6 +993,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_advisor: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "client" | "advisor"
