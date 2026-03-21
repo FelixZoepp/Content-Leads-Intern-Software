@@ -225,12 +225,13 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
             </div>
           ) : (
             <Tabs defaultValue="summary" className="w-full">
-              <TabsList className="grid w-full grid-cols-5 bg-secondary/50">
+              <TabsList className="grid w-full grid-cols-6 bg-secondary/50">
                 <TabsTrigger value="summary" className="text-[10px]">🎯 Analyse</TabsTrigger>
                 <TabsTrigger value="marketing" className="text-[10px]">📈 Mktg</TabsTrigger>
                 <TabsTrigger value="sales" className="text-[10px]">📞 Sales</TabsTrigger>
                 <TabsTrigger value="fulfillment" className="text-[10px]">📦 Fulfm.</TabsTrigger>
                 <TabsTrigger value="finance" className="text-[10px]">💰 Fin.</TabsTrigger>
+                <TabsTrigger value="icp" className="text-[10px]">👤 ICP</TabsTrigger>
               </TabsList>
 
               {/* ═══ KPI SUMMARY / WEAKNESS TAB ═══ */}
