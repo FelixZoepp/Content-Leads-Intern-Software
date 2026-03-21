@@ -1,9 +1,18 @@
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, BarChart3, TrendingUp, Users } from "lucide-react";
 
 const Landing = () => {
   const navigate = useNavigate();
+
+  // Detect Supabase auth tokens in URL hash and redirect to set-password
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && (hash.includes("type=recovery") || hash.includes("type=invite") || hash.includes("type=signup"))) {
+      navigate(`/set-password${hash}`, { replace: true });
+    }
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
