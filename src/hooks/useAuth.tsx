@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<'admin' | 'client' | null>(null);
+  const [userRole, setUserRole] = useState<'admin' | 'client' | 'advisor' | null>(null);
   const [tenantId, setTenantId] = useState<string | null>(null);
   const navigate = useNavigate();
 
