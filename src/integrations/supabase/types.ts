@@ -457,6 +457,7 @@ export type Database = {
           payment_speed: string | null
           payment_status: string | null
           problem_awareness: string | null
+          project_end_date: string | null
           project_start_date: string | null
           result_score: number | null
           sort_order: number | null
@@ -482,6 +483,7 @@ export type Database = {
           payment_speed?: string | null
           payment_status?: string | null
           problem_awareness?: string | null
+          project_end_date?: string | null
           project_start_date?: string | null
           result_score?: number | null
           sort_order?: number | null
@@ -507,6 +509,7 @@ export type Database = {
           payment_speed?: string | null
           payment_status?: string | null
           problem_awareness?: string | null
+          project_end_date?: string | null
           project_start_date?: string | null
           result_score?: number | null
           sort_order?: number | null

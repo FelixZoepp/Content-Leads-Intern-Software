@@ -1,0 +1,1 @@
+ALTER TABLE public.icp_customers ADD COLUMN project_end_date date;
