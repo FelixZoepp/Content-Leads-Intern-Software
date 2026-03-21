@@ -443,10 +443,56 @@ export default function AdminOnboarding() {
             {/* Step 3: Angebot */}
             {step === 3 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Aktuelles Angebot</h3>
-                <div className="space-y-1.5">
-                  <Label>Was verkauft der Kunde? (Offer)</Label>
-                  <Textarea value={form.currentOffer} onChange={e => update("currentOffer", e.target.value)} placeholder="z.B. LinkedIn-Marketing-Paket..." rows={3} />
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Produkt-Palette</h3>
+                <p className="text-sm text-muted-foreground">Trage alle Angebote / Produkte ein, die der Kunde verkauft.</p>
+
+                <div className="space-y-3">
+                  {products.map((p, idx) => (
+                    <div key={idx} className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-primary">Produkt {idx + 1}</p>
+                        {products.length > 1 && (
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeProduct(idx)}>
+                            <Trash2 className="h-3 w-3 text-muted-foreground" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Angebotsname *</Label>
+                          <Input value={p.name} onChange={e => updateProduct(idx, "name", e.target.value)} placeholder="z.B. LinkedIn-Coaching" className="h-8 text-sm" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Preis (€ netto)</Label>
+                          <Input type="number" value={p.price} onChange={e => updateProduct(idx, "price", e.target.value)} placeholder="5000" className="h-8 text-sm" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Laufzeit</Label>
+                          <Select value={p.duration} onValueChange={v => updateProduct(idx, "duration", v)}>
+                            <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Wählen" /></SelectTrigger>
+                            <SelectContent>{DURATIONS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Beschreibung</Label>
+                          <Input value={p.description} onChange={e => updateProduct(idx, "description", e.target.value)} placeholder="Kurzbeschreibung" className="h-8 text-sm" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {products.length < 10 && (
+                  <Button variant="outline" size="sm" onClick={addProduct} className="gap-1.5">
+                    <Plus className="h-3.5 w-3.5" /> Produkt hinzufügen
+                  </Button>
+                )}
+
+                <div className="space-y-1.5 pt-2 border-t border-border/40">
+                  <Label>Sonstiges zum Angebot</Label>
+                  <Textarea value={form.currentOffer} onChange={e => update("currentOffer", e.target.value)} placeholder="Zusätzliche Infos zum Offer…" rows={2} />
                 </div>
                 <NumField label="Closing-Rate" fieldKey="closingRate" placeholder="25" unit="%" formData={form} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
               </div>
