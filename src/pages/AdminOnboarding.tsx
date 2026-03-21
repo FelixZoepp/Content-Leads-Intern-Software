@@ -105,6 +105,14 @@ export default function AdminOnboarding() {
   ]);
 
   // ICP customers
+  // Product palette
+  type Product = { name: string; description: string; price: string; duration: string };
+  const [products, setProducts] = useState<Product[]>([{ name: "", description: "", price: "", duration: "" }]);
+  const addProduct = () => setProducts(prev => [...prev, { name: "", description: "", price: "", duration: "" }]);
+  const removeProduct = (idx: number) => setProducts(prev => prev.filter((_, i) => i !== idx));
+  const updateProduct = (idx: number, key: keyof Product, val: string) =>
+    setProducts(prev => prev.map((p, i) => i === idx ? { ...p, [key]: val } : p));
+
   // ICP customers - detailed analysis
   const [icpClients, setIcpClients] = useState<ICPClient[]>(Array.from({ length: 10 }, emptyICPClient));
   const [icpShowResults, setIcpShowResults] = useState(false);
