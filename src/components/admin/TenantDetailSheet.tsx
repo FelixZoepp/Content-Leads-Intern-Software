@@ -408,56 +408,7 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
                 )}
               </TabsContent>
 
-              {/* ═══ FULFILLMENT TAB ═══ */}
-              <TabsContent value="fulfillment" className="space-y-4 mt-4">
-                {f ? (
-                  <>
-                    <div className="grid grid-cols-2 gap-3">
-                      <KpiCard label="Status" value={
-                        f.project_status === "active" ? "Aktiv" :
-                        f.project_status === "onboarding" ? "Onboarding" :
-                        f.project_status === "paused" ? "Pausiert" :
-                        f.project_status === "completed" ? "Fertig" : f.project_status
-                      } icon={Package}
-                        good={f.project_status === "active"} />
-                      <KpiCard label="Onboarding" value={onbDays !== null ? `${onbDays} Tage` : "–"} icon={Calendar} />
-                      <KpiCard label="CSAT" value={f.csat_score ? `${n(f.csat_score)}/5` : "–"} icon={Activity}
-                        good={n(f.csat_score) >= 4} bad={n(f.csat_score) > 0 && n(f.csat_score) < 3} />
-                      <KpiCard label="NPS" value={f.nps_score != null ? f.nps_score : "–"} icon={TrendingUp}
-                        good={n(f.nps_score) >= 8} bad={n(f.nps_score) > 0 && n(f.nps_score) < 6} />
-                    </div>
 
-                    {f.milestones_total > 0 && (
-                      <Card className="glass-card">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-muted-foreground">Meilensteine</span>
-                            <span className="text-sm font-medium">{f.milestones_completed}/{f.milestones_total}</span>
-                          </div>
-                          <Progress value={progress} className="h-2" />
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <KpiCard label="Vertrag bis" value={f.contract_end ? new Date(f.contract_end).toLocaleDateString("de-DE") : "–"} icon={Calendar} />
-                      <KpiCard label="Verlängert" value={f.contract_renewed ? "✓ Ja" : "Nein"} icon={Activity}
-                        good={f.contract_renewed} />
-                    </div>
-
-                    {f.notes && (
-                      <Card className="glass-card">
-                        <CardContent className="p-4">
-                          <p className="text-xs text-muted-foreground mb-1">Notizen</p>
-                          <p className="text-sm">{f.notes}</p>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-8">Keine Fulfillment-Daten vorhanden</p>
-                )}
-              </TabsContent>
 
               {/* ═══ FINANCE TAB ═══ */}
               <TabsContent value="finance" className="space-y-4 mt-4">
