@@ -436,6 +436,53 @@ export type Database = {
           },
         ]
       }
+      icp_customers: {
+        Row: {
+          created_at: string
+          customer_name: string
+          days_to_payment: number | null
+          deal_value: number | null
+          has_paid: boolean | null
+          id: string
+          industry: string | null
+          notes: string | null
+          sort_order: number | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          days_to_payment?: number | null
+          deal_value?: number | null
+          has_paid?: boolean | null
+          id?: string
+          industry?: string | null
+          notes?: string | null
+          sort_order?: number | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          days_to_payment?: number | null
+          deal_value?: number | null
+          has_paid?: boolean | null
+          id?: string
+          industry?: string | null
+          notes?: string | null
+          sort_order?: number | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "icp_customers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kpi_entries: {
         Row: {
           appointments_scheduled: number | null

@@ -12,8 +12,9 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Loader2, Mail, Building2, Linkedin, BarChart3, Target, ChevronRight, ChevronLeft,
   Sparkles, DollarSign, ShoppingBag, HelpCircle, Users, TrendingUp, Phone, CalendarDays,
-  ArrowLeft, CheckCircle2
+  ArrowLeft, CheckCircle2, UserSearch, Plus, Trash2
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const STEPS = [
   { icon: Mail, label: "Account" },
@@ -25,6 +26,7 @@ const STEPS = [
   { icon: TrendingUp, label: "Vertrieb" },
   { icon: BarChart3, label: "KPIs" },
   { icon: Target, label: "Ziele" },
+  { icon: UserSearch, label: "ICP-Analyse" },
   { icon: CalendarDays, label: "3-Monats-Historie" },
 ];
 
@@ -96,10 +98,20 @@ export default function AdminOnboarding() {
 
   // 3-month history: each month has marketing + sales + finance KPIs
   const [history, setHistory] = useState([
-    { label: "Vor 3 Monaten", impressions: "", likes: "", comments: "", newFollowers: "", callsMade: "", callsReached: "", callsInterested: "", leadsTotal: "", leadsQualified: "", appointments: "", settingsPlanned: "", settingsHeld: "", closingsPlanned: "", closingsHeld: "", closings: "", deals: "", revenue: "", cashCollected: "", dealVolume: "" },
-    { label: "Vor 2 Monaten", impressions: "", likes: "", comments: "", newFollowers: "", callsMade: "", callsReached: "", callsInterested: "", leadsTotal: "", leadsQualified: "", appointments: "", settingsPlanned: "", settingsHeld: "", closingsPlanned: "", closingsHeld: "", closings: "", deals: "", revenue: "", cashCollected: "", dealVolume: "" },
-    { label: "Letzter Monat", impressions: "", likes: "", comments: "", newFollowers: "", callsMade: "", callsReached: "", callsInterested: "", leadsTotal: "", leadsQualified: "", appointments: "", settingsPlanned: "", settingsHeld: "", closingsPlanned: "", closingsHeld: "", closings: "", deals: "", revenue: "", cashCollected: "", dealVolume: "" },
+    { label: "Vor 3 Monaten", impressions: "", likes: "", comments: "", newFollowers: "", leadsTotal: "", leadsQualified: "", callsMade: "", callsReached: "", callsInterested: "", appointments: "", settingsPlanned: "", settingsHeld: "", closingsPlanned: "", closingsHeld: "", closings: "", deals: "", revenue: "", dealVolume: "" },
+    { label: "Vor 2 Monaten", impressions: "", likes: "", comments: "", newFollowers: "", leadsTotal: "", leadsQualified: "", callsMade: "", callsReached: "", callsInterested: "", appointments: "", settingsPlanned: "", settingsHeld: "", closingsPlanned: "", closingsHeld: "", closings: "", deals: "", revenue: "", dealVolume: "" },
+    { label: "Letzter Monat", impressions: "", likes: "", comments: "", newFollowers: "", leadsTotal: "", leadsQualified: "", callsMade: "", callsReached: "", callsInterested: "", appointments: "", settingsPlanned: "", settingsHeld: "", closingsPlanned: "", closingsHeld: "", closings: "", deals: "", revenue: "", dealVolume: "" },
   ]);
+
+  // ICP customers
+  type ICPCustomer = {name: string; industry: string; hasPaid: boolean; daysToPayment: string; dealValue: string};
+  const [icpCustomers, setIcpCustomers] = useState<ICPCustomer[]>([
+    { name: "", industry: "", hasPaid: false, daysToPayment: "", dealValue: "" },
+  ]);
+  const addIcpRow = () => setIcpCustomers(prev => [...prev, { name: "", industry: "", hasPaid: false, daysToPayment: "", dealValue: "" }]);
+  const removeIcpRow = (idx: number) => setIcpCustomers(prev => prev.filter((_, i) => i !== idx));
+  const updateIcp = (idx: number, key: keyof ICPCustomer, val: any) =>
+    setIcpCustomers(prev => prev.map((c, i) => i === idx ? { ...c, [key]: val } : c));
 
   const update = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
   const toggleUnknown = (k: string) => {
@@ -250,7 +262,6 @@ export default function AdminOnboarding() {
           closings: parseInt(m.closings) || 0,
           deals: parseInt(m.deals) || 0,
           revenue: parseFloat(m.revenue) || 0,
-          cash_collected: parseFloat(m.cashCollected) || 0,
           deal_volume: parseFloat(m.dealVolume) || 0,
         };
       }).filter(s => Object.entries(s).some(([k, v]) => !["tenant_id", "period_date", "period_type"].includes(k) && v !== 0));
@@ -258,6 +269,23 @@ export default function AdminOnboarding() {
       if (snapshots.length > 0) {
         const { error: snapErr } = await supabase.from("metrics_snapshot").insert(snapshots);
         if (snapErr) throw snapErr;
+      }
+
+      // Insert ICP customers
+      const icpToInsert = icpCustomers
+        .filter(c => c.name.trim())
+        .map((c, i) => ({
+          tenant_id: tenantId,
+          customer_name: c.name.trim(),
+          industry: c.industry || null,
+          has_paid: c.hasPaid,
+          days_to_payment: c.daysToPayment ? parseInt(c.daysToPayment) : null,
+          deal_value: c.dealValue ? parseFloat(c.dealValue) : null,
+          sort_order: i,
+        }));
+      if (icpToInsert.length > 0) {
+        const { error: icpErr } = await supabase.from("icp_customers").insert(icpToInsert);
+        if (icpErr) throw icpErr;
       }
 
       toast({ title: "Onboarding abgeschlossen ✓", description: `${form.companyName} wurde vollständig eingerichtet.` });
@@ -559,8 +587,68 @@ export default function AdminOnboarding() {
               </div>
             )}
 
-            {/* Step 9: 3-Monats-Historie */}
+            {/* Step 9: ICP-Analyse */}
             {step === 9 && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">ICP-Analyse – Letzte Kunden</h3>
+                <p className="text-sm text-muted-foreground">
+                  Liste die letzten 10 Kunden auf, damit wir den idealen Kundentyp (ICP) ermitteln können.
+                </p>
+
+                <div className="space-y-3">
+                  {icpCustomers.map((c, idx) => (
+                    <div key={idx} className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-primary">Kunde {idx + 1}</p>
+                        {icpCustomers.length > 1 && (
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeIcpRow(idx)}>
+                            <Trash2 className="h-3 w-3 text-muted-foreground" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Kundenname</Label>
+                          <Input value={c.name} onChange={e => updateIcp(idx, "name", e.target.value)} placeholder="Firma GmbH" className="h-8 text-sm" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Branche</Label>
+                          <Select value={c.industry} onValueChange={v => updateIcp(idx, "industry", v)}>
+                            <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Branche" /></SelectTrigger>
+                            <SelectContent>
+                              {INDUSTRIES.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 items-end">
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Deal-Wert (€)</Label>
+                          <Input type="number" value={c.dealValue} onChange={e => updateIcp(idx, "dealValue", e.target.value)} placeholder="5000" className="h-8 text-sm" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Tage bis Zahlung</Label>
+                          <Input type="number" value={c.daysToPayment} onChange={e => updateIcp(idx, "daysToPayment", e.target.value)} placeholder="14" className="h-8 text-sm" disabled={!c.hasPaid} />
+                        </div>
+                        <div className="flex items-center gap-2 h-8">
+                          <Checkbox checked={c.hasPaid} onCheckedChange={(v) => updateIcp(idx, "hasPaid", !!v)} id={`paid-${idx}`} />
+                          <Label htmlFor={`paid-${idx}`} className="text-[11px] cursor-pointer">Bezahlt</Label>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {icpCustomers.length < 10 && (
+                  <Button variant="outline" size="sm" onClick={addIcpRow} className="gap-1.5">
+                    <Plus className="h-3.5 w-3.5" /> Kunde hinzufügen
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Step 10: 3-Monats-Historie */}
+            {step === 10 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">3-Monats-Historie</h3>
                 <p className="text-sm text-muted-foreground">Trage die Werte der letzten 3 Monate ein – so können wir Trends berechnen. Leere Felder = 0.</p>
@@ -568,6 +656,16 @@ export default function AdminOnboarding() {
                 {history.map((month, idx) => (
                   <div key={idx} className="p-4 rounded-lg border border-border/60 bg-muted/20 space-y-3">
                     <p className="text-sm font-semibold text-primary">{month.label}</p>
+
+                    <p className="text-xs font-semibold text-muted-foreground uppercase">Leads</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([["Leads gesamt", "leadsTotal"], ["Qualifizierte Leads", "leadsQualified"]] as const).map(([l, k]) => (
+                        <div key={k} className="space-y-1">
+                          <Label className="text-[11px]">{l}</Label>
+                          <Input type="number" value={(month as any)[k]} onChange={e => updateHistory(idx, k, e.target.value)} placeholder="0" className="h-8 text-sm" />
+                        </div>
+                      ))}
+                    </div>
 
                     <p className="text-xs font-semibold text-muted-foreground uppercase">Marketing</p>
                     <div className="grid grid-cols-4 gap-2">
@@ -581,8 +679,8 @@ export default function AdminOnboarding() {
 
                     <p className="text-xs font-semibold text-muted-foreground uppercase">Sales & Outbound</p>
                     <div className="grid grid-cols-4 gap-2">
-                      {([["Anwahlen", "callsMade"], ["Erreicht", "callsReached"], ["Interesse", "callsInterested"], ["Leads", "leadsTotal"],
-                        ["Qual. Leads", "leadsQualified"], ["Termine", "appointments"], ["Settings gepl.", "settingsPlanned"], ["Settings gehalten", "settingsHeld"],
+                      {([["Anwahlen", "callsMade"], ["Erreicht", "callsReached"], ["Interesse", "callsInterested"],
+                        ["Termine", "appointments"], ["Settings gepl.", "settingsPlanned"], ["Settings gehalten", "settingsHeld"],
                         ["Closings gepl.", "closingsPlanned"], ["Closings gehalten", "closingsHeld"], ["Abschlüsse", "closings"], ["Deals", "deals"]] as const).map(([l, k]) => (
                         <div key={k} className="space-y-1">
                           <Label className="text-[11px]">{l}</Label>
@@ -592,8 +690,8 @@ export default function AdminOnboarding() {
                     </div>
 
                     <p className="text-xs font-semibold text-muted-foreground uppercase">Finanzen</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {([["Umsatz (€)", "revenue"], ["Cash Collected (€)", "cashCollected"], ["Deal-Volumen (€)", "dealVolume"]] as const).map(([l, k]) => (
+                    <div className="grid grid-cols-2 gap-2">
+                      {([["Umsatz (€)", "revenue"], ["Deal-Volumen (€)", "dealVolume"]] as const).map(([l, k]) => (
                         <div key={k} className="space-y-1">
                           <Label className="text-[11px]">{l}</Label>
                           <Input type="number" value={(month as any)[k]} onChange={e => updateHistory(idx, k, e.target.value)} placeholder="0" className="h-8 text-sm" />
