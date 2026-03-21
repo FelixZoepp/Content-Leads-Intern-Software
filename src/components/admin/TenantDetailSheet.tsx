@@ -90,6 +90,7 @@ function formatKPIValue(value: number, unit: string): string {
 
 export function TenantDetailSheet({ tenant, open, onClose }: Props) {
   const [timeRange, setTimeRange] = useState<TimeRange>("weekly");
+  const [activeTab, setActiveTab] = useState("profil");
   const [metrics, setMetrics] = useState<any[]>([]);
   const [fulfillment, setFulfillment] = useState<any>(null);
   const [financial, setFinancial] = useState<any>(null);
