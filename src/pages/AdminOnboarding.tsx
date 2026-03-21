@@ -21,7 +21,7 @@ const STEPS = [
   { icon: Mail, label: "Account" },
   { icon: Building2, label: "Firma" },
   { icon: Linkedin, label: "LinkedIn" },
-  { icon: ShoppingBag, label: "Angebot" },
+  { icon: ShoppingBag, label: "Produkte" },
   { icon: DollarSign, label: "Finanzen" },
   { icon: Users, label: "Kunden" },
   { icon: TrendingUp, label: "Vertrieb" },
@@ -75,7 +75,7 @@ export default function AdminOnboarding() {
 
   const [form, setForm] = useState({
     // Account
-    email: "", companyName: "", contactName: "", industry: "", contractDuration: "", offerPrice: "",
+    email: "", companyName: "", contactName: "", industry: "",
     // Firma
     teamSize: "", targetAudience: "", websiteUrl: "",
     // LinkedIn
@@ -105,6 +105,14 @@ export default function AdminOnboarding() {
   ]);
 
   // ICP customers
+  // Product palette
+  type Product = { name: string; description: string; price: string; duration: string };
+  const [products, setProducts] = useState<Product[]>([{ name: "", description: "", price: "", duration: "" }]);
+  const addProduct = () => setProducts(prev => [...prev, { name: "", description: "", price: "", duration: "" }]);
+  const removeProduct = (idx: number) => setProducts(prev => prev.filter((_, i) => i !== idx));
+  const updateProduct = (idx: number, key: keyof Product, val: string) =>
+    setProducts(prev => prev.map((p, i) => i === idx ? { ...p, [key]: val } : p));
+
   // ICP customers - detailed analysis
   const [icpClients, setIcpClients] = useState<ICPClient[]>(Array.from({ length: 10 }, emptyICPClient));
   const [icpShowResults, setIcpShowResults] = useState(false);
@@ -129,7 +137,8 @@ export default function AdminOnboarding() {
   const totalCosts = useMemo(() => [form.adsSpendMonthly, form.toolsCostsMonthly, form.personnelCostsMonthly, form.deliveryCostsMonthly, form.otherCostsMonthly].reduce((s, v) => s + (parseFloat(v) || 0), 0), [form.adsSpendMonthly, form.toolsCostsMonthly, form.personnelCostsMonthly, form.deliveryCostsMonthly, form.otherCostsMonthly]);
   const profit = totalRevenue - totalCosts;
   const marginPercent = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
-  const aovNewAuto = useMemo(() => { const m = parseFloat(form.aovNewCustomer); if (!isNaN(m) && form.aovNewCustomer) return m; return parseFloat(form.offerPrice) || 0; }, [form.aovNewCustomer, form.offerPrice]);
+  const avgProductPrice = useMemo(() => { const prices = products.filter(p => p.price).map(p => parseFloat(p.price)); return prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0; }, [products]);
+  const aovNewAuto = useMemo(() => { const m = parseFloat(form.aovNewCustomer); if (!isNaN(m) && form.aovNewCustomer) return m; return avgProductPrice; }, [form.aovNewCustomer, avgProductPrice]);
   const aovExistingAuto = useMemo(() => { const m = parseFloat(form.aovExistingCustomer); if (!isNaN(m) && form.aovExistingCustomer) return m; const mrr = parseFloat(form.revenueRecurring) || 0; const ex = parseFloat(form.existingCustomers) || 0; return mrr > 0 && ex > 0 ? Math.round(mrr / ex) : 0; }, [form.aovExistingCustomer, form.revenueRecurring, form.existingCustomers]);
   const newCustomerVolume = useMemo(() => { const c = parseFloat(form.newCustomersMonthly) || 0; return aovNewAuto > 0 && c > 0 ? aovNewAuto * c : 0; }, [aovNewAuto, form.newCustomersMonthly]);
   const existingCustomerVolume = useMemo(() => { const c = parseFloat(form.existingCustomers) || 0; return aovExistingAuto > 0 && c > 0 ? aovExistingAuto * c : 0; }, [aovExistingAuto, form.existingCustomers]);
@@ -154,8 +163,6 @@ export default function AdminOnboarding() {
           company_name: form.companyName.trim(),
           contact_name: form.contactName.trim() || null,
           industry: form.industry || null,
-          contract_duration: form.contractDuration || null,
-          offer_price: form.offerPrice || null,
         },
       });
       if (error) throw error;
@@ -184,8 +191,8 @@ export default function AdminOnboarding() {
         posting_frequency: form.postingFrequency || null,
         linkedin_experience: form.linkedinExperience || null,
         current_offer: form.currentOffer || null,
-        offer_price: val("offerPrice"),
-        contract_duration: form.contractDuration || null,
+        offer_price: avgProductPrice > 0 ? avgProductPrice : null,
+        product_palette: products.filter(p => p.name.trim()).length > 0 ? products.filter(p => p.name.trim()) : null,
         closing_rate: val("closingRate"),
         revenue_recurring: val("revenueRecurring"),
         revenue_onetime: val("revenueOnetime"),
@@ -373,26 +380,13 @@ export default function AdminOnboarding() {
                   <Label>Ansprechpartner</Label>
                   <Input value={form.contactName} onChange={e => update("contactName", e.target.value)} placeholder="Max Mustermann" disabled={!!tenantId} />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
+                <div className="space-y-1.5">
                     <Label>Branche</Label>
                     <Select value={form.industry} onValueChange={v => update("industry", v)} disabled={!!tenantId}>
                       <SelectTrigger><SelectValue placeholder="Wählen" /></SelectTrigger>
                       <SelectContent>{INDUSTRIES.map(i => <SelectItem key={i} value={i}>{i}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label>Laufzeit</Label>
-                    <Select value={form.contractDuration} onValueChange={v => update("contractDuration", v)} disabled={!!tenantId}>
-                      <SelectTrigger><SelectValue placeholder="Wählen" /></SelectTrigger>
-                      <SelectContent>{DURATIONS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Angebotspreis (€ netto)</Label>
-                  <Input type="number" value={form.offerPrice} onChange={e => update("offerPrice", e.target.value)} placeholder="5000" disabled={!!tenantId} />
-                </div>
               </div>
             )}
 
@@ -449,10 +443,56 @@ export default function AdminOnboarding() {
             {/* Step 3: Angebot */}
             {step === 3 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Aktuelles Angebot</h3>
-                <div className="space-y-1.5">
-                  <Label>Was verkauft der Kunde? (Offer)</Label>
-                  <Textarea value={form.currentOffer} onChange={e => update("currentOffer", e.target.value)} placeholder="z.B. LinkedIn-Marketing-Paket..." rows={3} />
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Produkt-Palette</h3>
+                <p className="text-sm text-muted-foreground">Trage alle Angebote / Produkte ein, die der Kunde verkauft.</p>
+
+                <div className="space-y-3">
+                  {products.map((p, idx) => (
+                    <div key={idx} className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-primary">Produkt {idx + 1}</p>
+                        {products.length > 1 && (
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeProduct(idx)}>
+                            <Trash2 className="h-3 w-3 text-muted-foreground" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Angebotsname *</Label>
+                          <Input value={p.name} onChange={e => updateProduct(idx, "name", e.target.value)} placeholder="z.B. LinkedIn-Coaching" className="h-8 text-sm" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Preis (€ netto)</Label>
+                          <Input type="number" value={p.price} onChange={e => updateProduct(idx, "price", e.target.value)} placeholder="5000" className="h-8 text-sm" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Laufzeit</Label>
+                          <Select value={p.duration} onValueChange={v => updateProduct(idx, "duration", v)}>
+                            <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Wählen" /></SelectTrigger>
+                            <SelectContent>{DURATIONS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Beschreibung</Label>
+                          <Input value={p.description} onChange={e => updateProduct(idx, "description", e.target.value)} placeholder="Kurzbeschreibung" className="h-8 text-sm" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {products.length < 10 && (
+                  <Button variant="outline" size="sm" onClick={addProduct} className="gap-1.5">
+                    <Plus className="h-3.5 w-3.5" /> Produkt hinzufügen
+                  </Button>
+                )}
+
+                <div className="space-y-1.5 pt-2 border-t border-border/40">
+                  <Label>Sonstiges zum Angebot</Label>
+                  <Textarea value={form.currentOffer} onChange={e => update("currentOffer", e.target.value)} placeholder="Zusätzliche Infos zum Offer…" rows={2} />
                 </div>
                 <NumField label="Closing-Rate" fieldKey="closingRate" placeholder="25" unit="%" formData={form} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
               </div>

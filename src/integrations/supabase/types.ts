@@ -838,6 +838,7 @@ export type Database = {
           personnel_costs_monthly: number | null
           posting_frequency: string | null
           primary_goal: string | null
+          product_palette: Json | null
           revenue_onetime: number | null
           revenue_recurring: number | null
           sales_gross_salary: number | null
@@ -902,6 +903,7 @@ export type Database = {
           personnel_costs_monthly?: number | null
           posting_frequency?: string | null
           primary_goal?: string | null
+          product_palette?: Json | null
           revenue_onetime?: number | null
           revenue_recurring?: number | null
           sales_gross_salary?: number | null
@@ -966,6 +968,7 @@ export type Database = {
           personnel_costs_monthly?: number | null
           posting_frequency?: string | null
           primary_goal?: string | null
+          product_palette?: Json | null
           revenue_onetime?: number | null
           revenue_recurring?: number | null
           sales_gross_salary?: number | null
