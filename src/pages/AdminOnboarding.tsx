@@ -295,6 +295,9 @@ export default function AdminOnboarding() {
           has_paid: c.gezahlt === "Ja, komplett",
           notes: c.notizen || null,
           sort_order: i,
+          close_date: c.closeDate || null,
+          onboarding_date: c.onboardingDate || null,
+          project_start_date: c.projectStartDate || null,
         }));
       if (icpToInsert.length > 0) {
         const { error: icpErr } = await supabase.from("icp_customers").insert(icpToInsert);
