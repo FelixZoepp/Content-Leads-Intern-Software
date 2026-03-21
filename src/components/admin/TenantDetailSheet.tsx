@@ -637,18 +637,41 @@ function ICPTabContent({ customers }: { customers: any[] }) {
   const closeTop = topOf(valid.map(c => c.close_duration));
 
   let totalDeal = 0, dealN = 0, payGood = 0;
+  let fulfillmentDurations: number[] = [];
+  let longFulfillmentClients: { name: string; days: number }[] = [];
   valid.forEach(c => {
     const dv = parseFloat(c.deal_value) || 0;
     if (dv > 0) { totalDeal += dv; dealN++; }
     if (c.payment_status === "Ja, komplett" || c.has_paid) payGood++;
+    if (c.project_start_date && c.project_end_date) {
+      const days = Math.round((new Date(c.project_end_date).getTime() - new Date(c.project_start_date).getTime()) / 86400000);
+      fulfillmentDurations.push(days);
+      if (days > 60) longFulfillmentClients.push({ name: c.customer_name, days });
+    }
   });
   const avgDeal = dealN > 0 ? Math.round(totalDeal / dealN) : 0;
   const payRate = valid.length > 0 ? Math.round(payGood / valid.length * 100) : 0;
+  const avgFulfillment = fulfillmentDurations.length > 0 ? Math.round(fulfillmentDurations.reduce((a, b) => a + b, 0) / fulfillmentDurations.length) : null;
 
   const medals = ["🥇", "🥈", "🥉"];
 
   return (
     <>
+      {/* Fulfillment Warning */}
+      {longFulfillmentClients.length > 0 && (
+        <div className="rounded-lg border border-warning/30 bg-warning/10 p-3 space-y-1">
+          <p className="text-xs font-bold flex items-center gap-1.5 text-warning">⚠️ Lange Fulfillment-Zeit erkannt</p>
+          <p className="text-[11px] text-muted-foreground">Stau-Gefahr: Folgende Kunden hatten eine Projektdauer von über 60 Tagen:</p>
+          {longFulfillmentClients.map(c => (
+            <div key={c.name} className="flex justify-between text-xs">
+              <span>{c.name}</span>
+              <span className="font-semibold text-destructive">{c.days} Tage</span>
+            </div>
+          ))}
+          <p className="text-[10px] text-muted-foreground mt-1">💡 Tipp: Onboarding & Projektstart straffen, um Engpässe zu vermeiden.</p>
+        </div>
+      )}
+
       <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-1.5">
         <p className="text-xs font-bold flex items-center gap-1.5"><Target className="h-3.5 w-3.5 text-primary" /> Idealer Wunschkunde</p>
         {[
@@ -657,6 +680,7 @@ function ICPTabContent({ customers }: { customers: any[] }) {
           ["Beste Quelle", quelleTop[0]?.[0] || "—"],
           ["Close-Dauer", closeTop[0]?.[0] || "—"],
           ["Zahlungsquote", `${payGood}/${valid.length} (${payRate}%)`],
+          ...(avgFulfillment !== null ? [["Ø Fulfillment-Dauer", `${avgFulfillment} Tage`]] : []),
         ].map(([k, v]) => (
           <div key={k} className="flex justify-between text-xs border-b border-border/30 py-1.5">
             <span className="text-muted-foreground">{k}</span>
