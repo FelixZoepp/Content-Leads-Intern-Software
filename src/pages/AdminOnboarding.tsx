@@ -15,6 +15,7 @@ import {
   ArrowLeft, CheckCircle2, UserSearch, Plus, Trash2
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import ICPAnalysisStep, { ICPClient, emptyICPClient } from "@/components/admin/ICPAnalysisStep";
 
 const STEPS = [
   { icon: Mail, label: "Account" },
