@@ -6,7 +6,7 @@ import {
   LayoutDashboard,
   BarChart3,
   Phone,
-  Package,
+  
   DollarSign,
   Brain,
   MessageSquare,
