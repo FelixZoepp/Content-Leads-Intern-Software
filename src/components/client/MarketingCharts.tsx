@@ -64,14 +64,17 @@ export function MarketingCharts({ metrics, timeRange = "daily" }: Props) {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={chartData} barGap={4}>
+            <AreaChart data={chartData.filter(d => d["Follower gesamt"] > 0)}>
+              <defs>
+                <ChartGradient id="gFollower" color={c2} />
+              </defs>
               <CartesianGrid {...glassGridProps} />
               <XAxis dataKey="date" {...glassXAxisProps} />
               <YAxis {...glassYAxisProps} />
               <Tooltip content={<GlassTooltip />} />
               <Legend wrapperStyle={glassLegendStyle} />
-              <Bar dataKey="Neue Follower" fill={c2} radius={barRadius} />
-            </BarChart>
+              <Area type="monotone" dataKey="Follower gesamt" fill="url(#gFollower)" stroke={c2} strokeWidth={2} />
+            </AreaChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
