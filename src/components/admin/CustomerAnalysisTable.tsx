@@ -27,6 +27,7 @@ interface EnrichedTenant {
   current_revenue_monthly: number;
   goal_revenue_monthly: number;
   is_active: boolean;
+  advisor_id: string | null;
   // Loaded data
   health: any | null;
   fulfillment: any | null;
