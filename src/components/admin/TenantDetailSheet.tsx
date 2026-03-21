@@ -384,8 +384,8 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
                   <KpiCard label="Anwahlen" value={n(m?.calls_made)} icon={Phone} />
                   <KpiCard label="Erreicht" value={n(m?.calls_reached)} icon={Phone} />
                   <KpiCard label="Erreichungsquote" value={n(m?.reach_rate) > 0 ? `${n(m?.reach_rate).toFixed(1)}%` : "–"} icon={TrendingUp} />
-                  <KpiCard label="Settings geplant" value={n(m?.settings_planned)} icon={Calendar} />
-                  <KpiCard label="Settings gehalten" value={n(m?.settings_held)} icon={Calendar} />
+                  <KpiCard label="Settings geplant" value={n(m?.settings_planned)} icon={Target} />
+                  <KpiCard label="Settings gehalten" value={n(m?.settings_held)} icon={Target} />
                   <KpiCard label="Setting Show" value={n(m?.setting_show_rate) > 0 ? `${n(m?.setting_show_rate).toFixed(1)}%` : "–"} icon={TrendingUp}
                     good={n(m?.setting_show_rate) >= 70} bad={n(m?.setting_show_rate) > 0 && n(m?.setting_show_rate) < 70} />
                   <KpiCard label="Closings geplant" value={n(m?.closings_planned)} icon={Target} />
