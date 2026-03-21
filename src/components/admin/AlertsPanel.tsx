@@ -101,38 +101,53 @@ export function AlertsPanel({ alerts, tenants = [], onResolve }: Props) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {alerts.map(alert => (
-            <div
-              key={alert.id}
-              className="flex items-start justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors"
-            >
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <Badge variant={alert.severity === 'high' ? 'destructive' : 'secondary'}>
-                    {alert.severity}
-                  </Badge>
-                  <button
-                    onClick={() => openTenant(alert.tenant_id)}
-                    className="font-medium text-primary hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    {alert.tenants?.company_name || "Unbekannt"}
-                    <ExternalLink className="h-3 w-3" />
-                  </button>
-                </div>
-                <p className="text-sm text-muted-foreground">{alert.message}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {new Date(alert.created_at).toLocaleString('de-DE')}
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => resolveAlert(alert.id)}
+          {alerts.map(alert => {
+            const report = getReport(alert);
+            return (
+              <div
+                key={alert.id}
+                className="p-3 border rounded-lg hover:bg-muted/30 transition-colors space-y-2"
               >
-                Erledigt
-              </Button>
-            </div>
-          ))}
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant={alert.severity === 'high' ? 'destructive' : 'secondary'}>
+                        {alert.severity}
+                      </Badge>
+                      <button
+                        onClick={() => openTenant(alert.tenant_id)}
+                        className="font-medium text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        {alert.tenants?.company_name || "Unbekannt"}
+                        <ExternalLink className="h-3 w-3" />
+                      </button>
+                    </div>
+                    <p className="text-sm font-medium">{alert.message}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {new Date(alert.created_at).toLocaleString('de-DE')}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => resolveAlert(alert.id)}
+                  >
+                    Erledigt
+                  </Button>
+                </div>
+                <div className="rounded-md bg-muted/50 p-2.5 space-y-1.5 text-xs">
+                  <div>
+                    <span className="font-semibold text-destructive">⚠️ Problem: </span>
+                    <span className="text-muted-foreground">{report.cause}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-primary">💡 Empfehlung: </span>
+                    <span className="text-muted-foreground">{report.action}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
 
