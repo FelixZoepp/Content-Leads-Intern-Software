@@ -438,38 +438,68 @@ export type Database = {
       }
       icp_customers: {
         Row: {
+          annual_revenue: string | null
+          close_duration: string | null
+          collaboration_score: number | null
+          contact_name: string | null
           created_at: string
           customer_name: string
           days_to_payment: number | null
           deal_value: number | null
+          employee_count: string | null
           has_paid: boolean | null
           id: string
           industry: string | null
+          lead_source: string | null
           notes: string | null
+          payment_speed: string | null
+          payment_status: string | null
+          problem_awareness: string | null
+          result_score: number | null
           sort_order: number | null
           tenant_id: string
         }
         Insert: {
+          annual_revenue?: string | null
+          close_duration?: string | null
+          collaboration_score?: number | null
+          contact_name?: string | null
           created_at?: string
           customer_name: string
           days_to_payment?: number | null
           deal_value?: number | null
+          employee_count?: string | null
           has_paid?: boolean | null
           id?: string
           industry?: string | null
+          lead_source?: string | null
           notes?: string | null
+          payment_speed?: string | null
+          payment_status?: string | null
+          problem_awareness?: string | null
+          result_score?: number | null
           sort_order?: number | null
           tenant_id: string
         }
         Update: {
+          annual_revenue?: string | null
+          close_duration?: string | null
+          collaboration_score?: number | null
+          contact_name?: string | null
           created_at?: string
           customer_name?: string
           days_to_payment?: number | null
           deal_value?: number | null
+          employee_count?: string | null
           has_paid?: boolean | null
           id?: string
           industry?: string | null
+          lead_source?: string | null
           notes?: string | null
+          payment_speed?: string | null
+          payment_status?: string | null
+          problem_awareness?: string | null
+          result_score?: number | null
           sort_order?: number | null
           tenant_id?: string
         }
