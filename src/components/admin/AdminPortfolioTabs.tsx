@@ -13,7 +13,7 @@ interface Props {
 
 export function AdminPortfolioTabs({ tenants }: Props) {
   const [monthlyMetrics, setMonthlyMetrics] = useState<Record<string, any>>({});
-  const [fulfillment, setFulfillment] = useState<Record<string, any>>({});
+  
   const [financials, setFinancials] = useState<Record<string, any>>({});
   const [selectedTenant, setSelectedTenant] = useState<any | null>(null);
 
