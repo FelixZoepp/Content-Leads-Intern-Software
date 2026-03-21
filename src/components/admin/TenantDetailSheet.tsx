@@ -446,10 +446,10 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
 
                     <p className="text-xs text-muted-foreground font-medium mt-2">Rechnungen</p>
                     <div className="grid grid-cols-2 gap-3">
-                      <KpiCard label="Offen" value={fin.invoices_open_count > 0 ? `${fin.invoices_open_count} (${n(fin.invoices_open_amount).toLocaleString("de-DE")}€)` : "–"} icon={Calendar} />
-                      <KpiCard label="Überfällig" value={fin.invoices_overdue_count > 0 ? `${fin.invoices_overdue_count} (${n(fin.invoices_overdue_amount).toLocaleString("de-DE")}€)` : "–"} icon={Calendar}
+                      <KpiCard label="Offen" value={fin.invoices_open_count > 0 ? `${fin.invoices_open_count} (${n(fin.invoices_open_amount).toLocaleString("de-DE")}€)` : "–"} icon={CalendarIcon} />
+                      <KpiCard label="Überfällig" value={fin.invoices_overdue_count > 0 ? `${fin.invoices_overdue_count} (${n(fin.invoices_overdue_amount).toLocaleString("de-DE")}€)` : "–"} icon={CalendarIcon}
                         bad={fin.invoices_overdue_count > 0} />
-                      <KpiCard label="⌀ Zahlungsziel" value={fin.avg_days_to_payment > 0 ? `${fin.avg_days_to_payment} Tage` : "–"} icon={Calendar} />
+                      <KpiCard label="⌀ Zahlungsziel" value={fin.avg_days_to_payment > 0 ? `${fin.avg_days_to_payment} Tage` : "–"} icon={CalendarIcon} />
                     </div>
                   </>
                 ) : (
