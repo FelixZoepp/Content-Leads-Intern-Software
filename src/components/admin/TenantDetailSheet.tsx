@@ -217,7 +217,27 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
                 <TabsTrigger value="icp" className="text-[10px]">👤 ICP</TabsTrigger>
               </TabsList>
 
-
+              {/* Time range selector for data tabs */}
+              {["summary", "marketing", "sales", "finance"].includes(activeTab) && (
+                <div className="mt-3">
+                  <div className="flex items-center gap-1 bg-secondary/50 rounded-xl p-1">
+                    {(["daily", "weekly", "monthly"] as const).map((r) => (
+                      <Button
+                        key={r}
+                        variant={timeRange === r ? "default" : "ghost"}
+                        size="sm"
+                        className={`flex-1 text-xs rounded-lg h-7 ${timeRange === r ? "" : "text-muted-foreground"}`}
+                        onClick={() => setTimeRange(r)}
+                      >
+                        {r === "daily" ? "📅 Täglich" : r === "weekly" ? "📊 Wöchentlich" : "📈 Monatlich"}
+                      </Button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1 text-center">
+                    {metrics.length} {rangeLabel[timeRange]} geladen
+                  </p>
+                </div>
+              )}
               {/* ═══ PROFIL / ONBOARDING TAB ═══ */}
               <TabsContent value="profil" className="space-y-4 mt-4">
                 <ProfilTabContent tenant={tenant} />
