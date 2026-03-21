@@ -17,9 +17,7 @@ export function MarketingCharts({ metrics, timeRange = "daily" }: Props) {
     Impressionen: parseFloat(m.impressions) || 0,
     Likes: parseFloat(m.likes) || 0,
     Kommentare: parseFloat(m.comments) || 0,
-    "Link Clicks": parseFloat(m.link_clicks) || 0,
     "Neue Follower": parseFloat(m.new_followers) || 0,
-    "DMs gesendet": parseFloat(m.dms_sent) || 0,
     Leads: parseFloat(m.leads_total) || 0,
     MQL: parseFloat(m.leads_qualified) || 0,
     "MQL-Quote %": parseFloat(m.lead_quality_rate) || 0,
@@ -29,7 +27,6 @@ export function MarketingCharts({ metrics, timeRange = "daily" }: Props) {
   const c1 = "hsl(0 85% 55%)";
   const c2 = "hsl(25 90% 55%)";
   const c3 = "hsl(38 92% 55%)";
-  const c4 = "hsl(0 70% 45%)";
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -44,7 +41,6 @@ export function MarketingCharts({ metrics, timeRange = "daily" }: Props) {
                 <ChartGradient id="gImp" color={c1} />
                 <ChartGradient id="gLike" color={c2} />
                 <ChartGradient id="gComm" color={c3} />
-                <ChartGradient id="gLink" color={c4} />
               </defs>
               <CartesianGrid {...glassGridProps} />
               <XAxis dataKey="date" {...glassXAxisProps} />
@@ -54,7 +50,6 @@ export function MarketingCharts({ metrics, timeRange = "daily" }: Props) {
               <Area type="monotone" dataKey="Impressionen" fill="url(#gImp)" stroke={c1} strokeWidth={2} />
               <Area type="monotone" dataKey="Likes" fill="url(#gLike)" stroke={c2} strokeWidth={2} />
               <Area type="monotone" dataKey="Kommentare" fill="url(#gComm)" stroke={c3} strokeWidth={2} />
-              <Area type="monotone" dataKey="Link Clicks" fill="url(#gLink)" stroke={c4} strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>
@@ -73,7 +68,6 @@ export function MarketingCharts({ metrics, timeRange = "daily" }: Props) {
               <Tooltip content={<GlassTooltip />} />
               <Legend wrapperStyle={glassLegendStyle} />
               <Bar dataKey="Neue Follower" fill={c2} radius={barRadius} />
-              <Bar dataKey="DMs gesendet" fill={c4} radius={barRadius} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
