@@ -29,14 +29,14 @@ export type ICPClient = {
   firma: string; name: string; branche: string; mitarbeiter: string; jahresumsatz: string;
   leadQuelle: string; closeDauer: string; dealValue: string; gezahlt: string;
   zahlungsSpeed: string; zusammenarbeit: number; ergebnis: number; problemBewusstsein: string; notizen: string;
-  closeDate: string; onboardingDate: string; projectStartDate: string;
+  closeDate: string; onboardingDate: string; projectStartDate: string; projectEndDate: string;
 };
 
 export const emptyICPClient = (): ICPClient => ({
   firma: "", name: "", branche: "", mitarbeiter: "", jahresumsatz: "",
   leadQuelle: "", closeDauer: "", dealValue: "", gezahlt: "",
   zahlungsSpeed: "", zusammenarbeit: 0, ergebnis: 0, problemBewusstsein: "", notizen: "",
-  closeDate: "", onboardingDate: "", projectStartDate: ""
+  closeDate: "", onboardingDate: "", projectStartDate: "", projectEndDate: ""
 });
 
 function scoreClient(c: ICPClient) {
@@ -206,7 +206,7 @@ function ClientCard({ index, client, update, isOpen, toggle }: {
 
           <div className="pt-2 border-t border-border/50">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">📅 Projekt-Timeline</p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="space-y-1">
                 <Label className="text-[11px]">Close-Datum</Label>
                 <Input type="date" value={client.closeDate} onChange={e => update("closeDate", e.target.value)} className="h-9" />
@@ -219,15 +219,24 @@ function ClientCard({ index, client, update, isOpen, toggle }: {
                 <Label className="text-[11px]">Projekt-Start</Label>
                 <Input type="date" value={client.projectStartDate} onChange={e => update("projectStartDate", e.target.value)} className="h-9" />
               </div>
+              <div className="space-y-1">
+                <Label className="text-[11px]">Projektabschluss</Label>
+                <Input type="date" value={client.projectEndDate} onChange={e => update("projectEndDate", e.target.value)} className="h-9" />
+              </div>
             </div>
             {client.closeDate && client.onboardingDate && (
-              <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                 <span>Close → Onboarding: <strong className="text-foreground">{Math.round((new Date(client.onboardingDate).getTime() - new Date(client.closeDate).getTime()) / 86400000)} Tage</strong></span>
                 {client.projectStartDate && (
                   <span>Onboarding → Projekt: <strong className="text-foreground">{Math.round((new Date(client.projectStartDate).getTime() - new Date(client.onboardingDate).getTime()) / 86400000)} Tage</strong></span>
                 )}
-                {client.projectStartDate && (
-                  <span>Close → Projekt: <strong className="text-foreground">{Math.round((new Date(client.projectStartDate).getTime() - new Date(client.closeDate).getTime()) / 86400000)} Tage</strong></span>
+                {client.projectStartDate && client.projectEndDate && (
+                  <span>Fulfillment-Dauer: <strong className={`${
+                    Math.round((new Date(client.projectEndDate).getTime() - new Date(client.projectStartDate).getTime()) / 86400000) > 60 ? "text-destructive" : "text-foreground"
+                  }`}>{Math.round((new Date(client.projectEndDate).getTime() - new Date(client.projectStartDate).getTime()) / 86400000)} Tage</strong></span>
+                )}
+                {client.closeDate && client.projectEndDate && (
+                  <span>Gesamt (Close → Abschluss): <strong className="text-foreground">{Math.round((new Date(client.projectEndDate).getTime() - new Date(client.closeDate).getTime()) / 86400000)} Tage</strong></span>
                 )}
               </div>
             )}
@@ -253,7 +262,7 @@ function ICPResults({ clients, onBack }: { clients: ICPClient[]; onBack: () => v
   const quelleTop = topCount(valid.map(c => c.leadQuelle));
   const closeTop = topCount(valid.map(c => c.closeDauer));
   let totalDeal = 0, dealN = 0, payGood = 0, payBad = 0;
-  let closeToOnb: number[] = [], onbToProj: number[] = [], closeToProj: number[] = [];
+  let closeToOnb: number[] = [], onbToProj: number[] = [], closeToProj: number[] = [], fulfillmentDur: number[] = [];
   valid.forEach(c => {
     if (c.dealValue) { totalDeal += parseFloat(c.dealValue) || 0; dealN++; }
     if (c.gezahlt === "Ja, komplett") payGood++;
@@ -267,6 +276,9 @@ function ICPResults({ clients, onBack }: { clients: ICPClient[]; onBack: () => v
     if (c.closeDate && c.projectStartDate) {
       closeToProj.push(Math.round((new Date(c.projectStartDate).getTime() - new Date(c.closeDate).getTime()) / 86400000));
     }
+    if (c.projectStartDate && c.projectEndDate) {
+      fulfillmentDur.push(Math.round((new Date(c.projectEndDate).getTime() - new Date(c.projectStartDate).getTime()) / 86400000));
+    }
   });
   const avgDeal = dealN > 0 ? Math.round(totalDeal / dealN) : 0;
   const avgZus = (valid.reduce((s, c) => s + (c.zusammenarbeit || 0), 0) / valid.length).toFixed(1);
@@ -275,6 +287,7 @@ function ICPResults({ clients, onBack }: { clients: ICPClient[]; onBack: () => v
   const avgCloseToOnb = closeToOnb.length > 0 ? Math.round(closeToOnb.reduce((a, b) => a + b, 0) / closeToOnb.length) : null;
   const avgOnbToProj = onbToProj.length > 0 ? Math.round(onbToProj.reduce((a, b) => a + b, 0) / onbToProj.length) : null;
   const avgCloseToProj = closeToProj.length > 0 ? Math.round(closeToProj.reduce((a, b) => a + b, 0) / closeToProj.length) : null;
+  const avgFulfillment = fulfillmentDur.length > 0 ? Math.round(fulfillmentDur.reduce((a, b) => a + b, 0) / fulfillmentDur.length) : null;
 
   const medals = ["🥇", "🥈", "🥉"];
 
@@ -305,6 +318,7 @@ function ICPResults({ clients, onBack }: { clients: ICPClient[]; onBack: () => v
             ["Ø Ergebnis", `${avgErg} / 10`],
             ...(avgCloseToOnb !== null ? [["Ø Close → Onboarding", `${avgCloseToOnb} Tage`]] : []),
             ...(avgOnbToProj !== null ? [["Ø Onboarding → Projekt", `${avgOnbToProj} Tage`]] : []),
+            ...(avgFulfillment !== null ? [["Ø Fulfillment-Dauer", `${avgFulfillment} Tage`]] : []),
             ...(avgCloseToProj !== null ? [["Ø Close → Projekt-Start", `${avgCloseToProj} Tage`]] : []),
           ].map(([k, v]) => (
             <div key={k} className="grid grid-cols-[160px_1fr] gap-2 py-2.5 border-b border-border/40 text-sm">
