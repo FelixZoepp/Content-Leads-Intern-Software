@@ -25,7 +25,7 @@ const defaultSales = {
   deals: "",
   cash_collected: "",
   deal_volume: "",
-  monthly_retainer: "",
+  
   dms_sent: "",
   dms_replies: "",
   words_spoken: "",
@@ -62,7 +62,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
         deals: data.deals ? String(data.deals) : "",
         cash_collected: data.cash_collected ? String(data.cash_collected) : "",
         deal_volume: data.deal_volume ? String(data.deal_volume) : "",
-        monthly_retainer: data.monthly_retainer ? String(data.monthly_retainer) : "",
+        
         dms_sent: data.dms_sent ? String(data.dms_sent) : "",
         dms_replies: (data as any).dms_replies ? String((data as any).dms_replies) : "",
         words_spoken: data.words_spoken ? String(data.words_spoken) : "",
@@ -104,7 +104,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
       cash_collected: parseFloat(form.cash_collected) || 0,
       revenue: parseFloat(form.cash_collected) || 0,
       deal_volume: parseFloat(form.deal_volume) || 0,
-      monthly_retainer: parseFloat(form.monthly_retainer) || 0,
+      
       dms_sent: parseInt(form.dms_sent) || 0,
       dms_replies: parseInt(form.dms_replies) || 0,
       words_spoken: parseInt(form.words_spoken) || 0,
@@ -222,8 +222,6 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
                 onChange={v => n("cash_collected", v)} decimal prefix="€" />
               <Field id="deal_volume" label="Auftragsvolumen" value={form.deal_volume}
                 onChange={v => n("deal_volume", v)} decimal prefix="€" />
-              <Field id="monthly_retainer" label="Monatlicher Retainer" value={form.monthly_retainer}
-                onChange={v => n("monthly_retainer", v)} decimal prefix="€" />
             </div>
             {num(form.closings_planned) > 0 && (
               <div className="flex flex-wrap gap-4 text-xs bg-muted/40 rounded-lg px-3 py-2 text-muted-foreground">
