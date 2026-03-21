@@ -595,62 +595,12 @@ export default function AdminOnboarding() {
 
             {/* Step 9: ICP-Analyse */}
             {step === 9 && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">ICP-Analyse – Letzte Kunden</h3>
-                <p className="text-sm text-muted-foreground">
-                  Liste die letzten 10 Kunden auf, damit wir den idealen Kundentyp (ICP) ermitteln können.
-                </p>
-
-                <div className="space-y-3">
-                  {icpCustomers.map((c, idx) => (
-                    <div key={idx} className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold text-primary">Kunde {idx + 1}</p>
-                        {icpCustomers.length > 1 && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeIcpRow(idx)}>
-                            <Trash2 className="h-3 w-3 text-muted-foreground" />
-                          </Button>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="space-y-1">
-                          <Label className="text-[11px]">Kundenname</Label>
-                          <Input value={c.name} onChange={e => updateIcp(idx, "name", e.target.value)} placeholder="Firma GmbH" className="h-8 text-sm" />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[11px]">Branche</Label>
-                          <Select value={c.industry} onValueChange={v => updateIcp(idx, "industry", v)}>
-                            <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Branche" /></SelectTrigger>
-                            <SelectContent>
-                              {INDUSTRIES.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 items-end">
-                        <div className="space-y-1">
-                          <Label className="text-[11px]">Deal-Wert (€)</Label>
-                          <Input type="number" value={c.dealValue} onChange={e => updateIcp(idx, "dealValue", e.target.value)} placeholder="5000" className="h-8 text-sm" />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[11px]">Tage bis Zahlung</Label>
-                          <Input type="number" value={c.daysToPayment} onChange={e => updateIcp(idx, "daysToPayment", e.target.value)} placeholder="14" className="h-8 text-sm" disabled={!c.hasPaid} />
-                        </div>
-                        <div className="flex items-center gap-2 h-8">
-                          <Checkbox checked={c.hasPaid} onCheckedChange={(v) => updateIcp(idx, "hasPaid", !!v)} id={`paid-${idx}`} />
-                          <Label htmlFor={`paid-${idx}`} className="text-[11px] cursor-pointer">Bezahlt</Label>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {icpCustomers.length < 10 && (
-                  <Button variant="outline" size="sm" onClick={addIcpRow} className="gap-1.5">
-                    <Plus className="h-3.5 w-3.5" /> Kunde hinzufügen
-                  </Button>
-                )}
-              </div>
+              <ICPAnalysisStep
+                clients={icpClients}
+                setClients={setIcpClients}
+                showResults={icpShowResults}
+                setShowResults={setIcpShowResults}
+              />
             )}
 
             {/* Step 10: 3-Monats-Historie */}
