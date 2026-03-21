@@ -68,9 +68,8 @@ export function AdminPortfolioTabs({ tenants }: Props) {
   }, 0);
   const totalCashflow = totalRevenue - totalCosts;
 
-  const activeProjects = tenants.filter(t => fulfillment[t.id]?.project_status === "active").length;
-  const onboardingProjects = tenants.filter(t => fulfillment[t.id]?.project_status === "onboarding").length;
-  const overdueInvoices = tenants.reduce((s, t) => s + (financials[t.id]?.invoices_overdue_count || 0), 0);
+
+
 
   return (
     <div className="space-y-6">
