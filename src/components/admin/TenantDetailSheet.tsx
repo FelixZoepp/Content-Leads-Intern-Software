@@ -239,9 +239,9 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
 
               {/* Time range selector for data tabs */}
               {["summary", "marketing", "sales", "finance"].includes(activeTab) && (
-                <div className="mt-3">
+                <div className="mt-3 space-y-2">
                   <div className="flex items-center gap-1 bg-secondary/50 rounded-xl p-1">
-                    {(["daily", "weekly", "monthly"] as const).map((r) => (
+                    {(["daily", "weekly", "monthly", "custom"] as const).map((r) => (
                       <Button
                         key={r}
                         variant={timeRange === r ? "default" : "ghost"}
@@ -249,11 +249,38 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
                         className={`flex-1 text-xs rounded-lg h-7 ${timeRange === r ? "" : "text-muted-foreground"}`}
                         onClick={() => setTimeRange(r)}
                       >
-                        {r === "daily" ? "📅 Täglich" : r === "weekly" ? "📊 Wöchentlich" : "📈 Monatlich"}
+                        {r === "daily" ? "📅 Täglich" : r === "weekly" ? "📊 Wöchentlich" : r === "monthly" ? "📈 Monatlich" : "📆 Zeitraum"}
                       </Button>
                     ))}
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-1 text-center">
+                  {timeRange === "custom" && (
+                    <div className="flex items-center gap-2">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className={cn("flex-1 justify-start text-left text-xs h-8", !dateFrom && "text-muted-foreground")}>
+                            <CalendarIcon className="mr-1.5 h-3 w-3" />
+                            {dateFrom ? format(dateFrom, "dd.MM.yyyy", { locale: de }) : "Von"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className={cn("p-3 pointer-events-auto")} locale={de} />
+                        </PopoverContent>
+                      </Popover>
+                      <span className="text-xs text-muted-foreground">–</span>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className={cn("flex-1 justify-start text-left text-xs h-8", !dateTo && "text-muted-foreground")}>
+                            <CalendarIcon className="mr-1.5 h-3 w-3" />
+                            {dateTo ? format(dateTo, "dd.MM.yyyy", { locale: de }) : "Bis"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className={cn("p-3 pointer-events-auto")} locale={de} />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  )}
+                  <p className="text-[10px] text-muted-foreground text-center">
                     {metrics.length} {rangeLabel[timeRange]} geladen
                   </p>
                 </div>
