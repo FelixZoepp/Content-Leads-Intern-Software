@@ -115,18 +115,20 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
 
     const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
 
-    const [mRes, fRes, finRes, hRes] = await Promise.all([
+    const [mRes, fRes, finRes, hRes, icpRes] = await Promise.all([
       supabase.from(viewMap[timeRange] as any).select("*").eq("tenant_id", tenant.id)
         .order(dateCol, { ascending: false }).limit(limit),
       supabase.from("fulfillment_tracking").select("*").eq("tenant_id", tenant.id).maybeSingle(),
       supabase.from("financial_tracking").select("*").eq("tenant_id", tenant.id).eq("period_month", currentMonth).maybeSingle(),
       supabase.from("health_scores").select("*").eq("tenant_id", tenant.id).order("created_at", { ascending: false }).limit(5),
+      supabase.from("icp_customers").select("*").eq("tenant_id", tenant.id).order("sort_order"),
     ]);
 
     setMetrics((mRes.data as any) || []);
     setFulfillment(fRes.data);
     setFinancial(finRes.data);
     setHealthScores(hRes.data || []);
+    setIcpCustomers(icpRes.data || []);
     setLoading(false);
   };
 
