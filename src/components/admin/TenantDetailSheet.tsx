@@ -94,6 +94,7 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
   const [fulfillment, setFulfillment] = useState<any>(null);
   const [financial, setFinancial] = useState<any>(null);
   const [healthScores, setHealthScores] = useState<any[]>([]);
+  const [icpCustomers, setIcpCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
