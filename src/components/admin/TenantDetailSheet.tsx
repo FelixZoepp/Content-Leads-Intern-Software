@@ -199,33 +199,14 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
 
         <Separator className="opacity-30" />
 
-        {/* Time Range Selector */}
-        <div className="px-6 pt-4 pb-2">
-          <div className="flex items-center gap-1 bg-secondary/50 rounded-xl p-1">
-            {(["daily", "weekly", "monthly"] as const).map((r) => (
-              <Button
-                key={r}
-                variant={timeRange === r ? "default" : "ghost"}
-                size="sm"
-                className={`flex-1 text-xs rounded-lg h-8 ${timeRange === r ? "" : "text-muted-foreground"}`}
-                onClick={() => setTimeRange(r)}
-              >
-                {r === "daily" ? "📅 Täglich" : r === "weekly" ? "📊 Wöchentlich" : "📈 Monatlich"}
-              </Button>
-            ))}
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
-            {metrics.length} {rangeLabel[timeRange]} geladen
-          </p>
-        </div>
 
-        <div className="p-6 pt-2 space-y-6">
+        <div className="p-6 pt-4 space-y-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
             </div>
           ) : (
-            <Tabs defaultValue="summary" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-7 bg-secondary/50">
                 <TabsTrigger value="profil" className="text-[10px]">📋 Profil</TabsTrigger>
                 <TabsTrigger value="summary" className="text-[10px]">🎯 Analyse</TabsTrigger>
