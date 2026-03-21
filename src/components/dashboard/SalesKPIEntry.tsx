@@ -222,8 +222,6 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
                 onChange={v => n("cash_collected", v)} decimal prefix="€" />
               <Field id="deal_volume" label="Auftragsvolumen" value={form.deal_volume}
                 onChange={v => n("deal_volume", v)} decimal prefix="€" />
-              <Field id="monthly_retainer" label="Monatlicher Retainer" value={form.monthly_retainer}
-                onChange={v => n("monthly_retainer", v)} decimal prefix="€" />
             </div>
             {num(form.closings_planned) > 0 && (
               <div className="flex flex-wrap gap-4 text-xs bg-muted/40 rounded-lg px-3 py-2 text-muted-foreground">
