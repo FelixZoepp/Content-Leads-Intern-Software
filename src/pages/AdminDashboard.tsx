@@ -131,6 +131,7 @@ export default function AdminDashboard() {
         <Route path="csat" element={<AdminCSATPage tenants={tenants} />} />
         <Route path="advisor-report" element={<AdminAdvisorReportPage />} />
         <Route path="ai-summary" element={<AdminAISummaryPage />} />
+        <Route path="icp" element={<div className="space-y-6 max-w-7xl"><h2 className="text-xl font-semibold text-foreground">ICP-Analyse</h2><p className="text-sm text-muted-foreground">Ideal Customer Profile über alle Mandanten</p><ICPOverview /></div>} />
         <Route path="webhooks" element={<WebhookSettings />} />
       </Routes>
     </DashboardLayout>

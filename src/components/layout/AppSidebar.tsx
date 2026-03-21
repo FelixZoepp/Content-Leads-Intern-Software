@@ -49,6 +49,7 @@ const clientNav = [
 const adminNav = [
   { title: "Portfolio", icon: LayoutDashboard, path: "/dashboard" },
   { title: "Neuer Kunde", icon: UserPlus, path: "/admin/onboarding" },
+  { title: "ICP-Analyse", icon: TrendingUp, path: "/dashboard/icp" },
   { title: "Alerts", icon: Bell, path: "/dashboard/alerts" },
   { title: "CSAT/NPS", icon: MessageSquare, path: "/dashboard/csat" },
   { title: "Berater-Report", icon: Users, path: "/dashboard/advisor-report" },
