@@ -13,7 +13,7 @@ import { CustomerAnalysisTable } from "@/components/admin/CustomerAnalysisTable"
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { InviteCustomerDialog } from "@/components/admin/InviteCustomerDialog";
 import { AdvisorReport } from "@/components/admin/AdvisorReport";
-import { ICPOverview } from "@/components/admin/ICPOverview";
+
 import { Routes, Route } from "react-router-dom";
 import { WebhookSettings } from "@/components/admin/WebhookSettings";
 
