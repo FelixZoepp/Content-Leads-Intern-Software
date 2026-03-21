@@ -75,7 +75,7 @@ export default function AdminOnboarding() {
 
   const [form, setForm] = useState({
     // Account
-    email: "", companyName: "", contactName: "", industry: "", contractDuration: "", offerPrice: "",
+    email: "", companyName: "", contactName: "", industry: "",
     // Firma
     teamSize: "", targetAudience: "", websiteUrl: "",
     // LinkedIn
