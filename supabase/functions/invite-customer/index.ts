@@ -138,6 +138,30 @@ Deno.serve(async (req) => {
       company_name,
     }, { onConflict: "user_id" });
 
+    // Fire customer_invited webhook
+    const { data: webhookEndpoints } = await adminClient
+      .from("webhook_endpoints")
+      .select("url")
+      .eq("event_type", "customer_invited")
+      .eq("is_active", true);
+
+    if (webhookEndpoints && webhookEndpoints.length > 0) {
+      const webhookPayload = JSON.stringify({
+        event: "customer_invited",
+        timestamp: new Date().toISOString(),
+        data: { tenant_id: tenant.id, company_name, email, contact_name },
+      });
+      for (const ep of webhookEndpoints) {
+        try {
+          await fetch(ep.url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: webhookPayload,
+          });
+        } catch (e) { console.error("Webhook failed:", e); }
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
