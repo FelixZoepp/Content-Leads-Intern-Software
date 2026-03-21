@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  userRole: 'admin' | 'client' | null;
+  userRole: 'admin' | 'client' | 'advisor' | null;
   tenantId: string | null;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
