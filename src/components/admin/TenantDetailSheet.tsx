@@ -235,6 +235,12 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
                 <TabsTrigger value="icp" className="text-[10px]">👤 ICP</TabsTrigger>
               </TabsList>
 
+
+              {/* ═══ PROFIL / ONBOARDING TAB ═══ */}
+              <TabsContent value="profil" className="space-y-4 mt-4">
+                <ProfilTabContent tenant={tenant} />
+              </TabsContent>
+
               {/* ═══ KPI SUMMARY / WEAKNESS TAB ═══ */}
               <TabsContent value="summary" className="space-y-4 mt-4">
                 {kpiAnalysis.length === 0 ? (
