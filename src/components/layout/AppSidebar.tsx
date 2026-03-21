@@ -53,6 +53,7 @@ const adminNav = [
   { title: "CSAT/NPS", icon: MessageSquare, path: "/dashboard/csat" },
   { title: "Berater-Report", icon: Users, path: "/dashboard/advisor-report" },
   { title: "KI-Summary", icon: Brain, path: "/dashboard/ai-summary" },
+  { title: "Webhooks", icon: Webhook, path: "/dashboard/webhooks" },
 ];
 
 const advisorNav = [

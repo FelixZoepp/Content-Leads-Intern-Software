@@ -130,6 +130,7 @@ export default function AdminDashboard() {
         <Route path="csat" element={<AdminCSATPage tenants={tenants} />} />
         <Route path="advisor-report" element={<AdminAdvisorReportPage />} />
         <Route path="ai-summary" element={<AdminAISummaryPage />} />
+        <Route path="webhooks" element={<WebhookSettings />} />
       </Routes>
     </DashboardLayout>
   );
