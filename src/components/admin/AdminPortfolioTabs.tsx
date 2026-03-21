@@ -273,7 +273,7 @@ export function AdminPortfolioTabs({ tenants }: Props) {
                         {tenants.reduce((s, t) => s + (financials[t.id]?.invoices_open_count || 0), 0) || "–"}
                       </td>
                       <td className="p-2 text-right text-destructive">
-                        {overdueInvoices > 0 ? overdueInvoices : "–"}
+                        {(() => { const ov = tenants.reduce((s, t) => s + (financials[t.id]?.invoices_overdue_count || 0), 0); return ov > 0 ? ov : "–"; })()}
                       </td>
                       <td className="p-2"></td>
                     </tr>
