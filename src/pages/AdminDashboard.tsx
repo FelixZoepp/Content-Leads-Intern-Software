@@ -46,7 +46,7 @@ function AdminAlertsPage({ alerts, tenants, loadAdminData }: { alerts: any[]; te
       <p className="text-sm text-muted-foreground -mt-4">
         Alerts werden täglich um 7:00 Uhr automatisch generiert, basierend auf den KPI-Daten der letzten 2 Wochen.
       </p>
-      <AlertsPanel alerts={alerts} onResolve={loadAdminData} />
+      <AlertsPanel alerts={alerts} tenants={tenants} onResolve={loadAdminData} />
     </div>
   );
 }
