@@ -458,6 +458,11 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
                   <p className="text-sm text-muted-foreground text-center py-8">Keine Finanzdaten für diesen Monat</p>
                 )}
               </TabsContent>
+
+              {/* ═══ ICP TAB ═══ */}
+              <TabsContent value="icp" className="space-y-4 mt-4">
+                <ICPTabContent customers={icpCustomers} />
+              </TabsContent>
             </Tabs>
           )}
         </div>
