@@ -18,7 +18,7 @@ import { AdvisorReport } from "@/components/admin/AdvisorReport";
 import { Routes, Route } from "react-router-dom";
 import { WebhookSettings } from "@/components/admin/WebhookSettings";
 
-function AdminAlertsPage({ alerts, loadAdminData }: { alerts: any[]; loadAdminData: () => void }) {
+function AdminAlertsPage({ alerts, tenants, loadAdminData }: { alerts: any[]; tenants: any[]; loadAdminData: () => void }) {
   const { toast } = useToast();
   const [calculating, setCalculating] = useState(false);
 
