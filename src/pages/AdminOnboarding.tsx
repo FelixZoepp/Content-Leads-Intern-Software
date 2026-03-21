@@ -21,7 +21,7 @@ const STEPS = [
   { icon: Mail, label: "Account" },
   { icon: Building2, label: "Firma" },
   { icon: Linkedin, label: "LinkedIn" },
-  { icon: ShoppingBag, label: "Angebot" },
+  { icon: ShoppingBag, label: "Produkte" },
   { icon: DollarSign, label: "Finanzen" },
   { icon: Users, label: "Kunden" },
   { icon: TrendingUp, label: "Vertrieb" },
