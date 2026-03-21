@@ -107,25 +107,38 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
 
   useEffect(() => {
     if (tenant && open) loadDetail();
-  }, [tenant, open, timeRange]);
+  }, [tenant, open, timeRange, dateFrom, dateTo]);
 
   const loadDetail = async () => {
     if (!tenant) return;
     setLoading(true);
 
-    const viewMap: Record<TimeRange, string> = {
+    const effectiveRange = timeRange === "custom" ? "daily" : timeRange;
+    const viewMap: Record<string, string> = {
       daily: "v_metrics_daily",
       weekly: "v_metrics_weekly",
       monthly: "v_metrics_monthly",
     };
-    const dateCol = timeRange === "daily" ? "period_date" : "period_start";
-    const limit = timeRange === "daily" ? 30 : timeRange === "weekly" ? 12 : 6;
+    const dateCol = effectiveRange === "daily" ? "period_date" : "period_start";
+    const limit = timeRange === "custom" ? 1000 : effectiveRange === "daily" ? 30 : effectiveRange === "weekly" ? 12 : 6;
 
     const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
 
+    let metricsQuery = supabase.from(viewMap[effectiveRange] as any).select("*").eq("tenant_id", tenant.id)
+      .order(dateCol, { ascending: false });
+
+    if (timeRange === "custom" && dateFrom) {
+      metricsQuery = metricsQuery.gte(dateCol, format(dateFrom, "yyyy-MM-dd"));
+    }
+    if (timeRange === "custom" && dateTo) {
+      metricsQuery = metricsQuery.lte(dateCol, format(dateTo, "yyyy-MM-dd"));
+    }
+    if (timeRange !== "custom") {
+      metricsQuery = metricsQuery.limit(limit);
+    }
+
     const [mRes, fRes, finRes, hRes, icpRes] = await Promise.all([
-      supabase.from(viewMap[timeRange] as any).select("*").eq("tenant_id", tenant.id)
-        .order(dateCol, { ascending: false }).limit(limit),
+      metricsQuery,
       supabase.from("fulfillment_tracking").select("*").eq("tenant_id", tenant.id).maybeSingle(),
       supabase.from("financial_tracking").select("*").eq("tenant_id", tenant.id).eq("period_month", currentMonth).maybeSingle(),
       supabase.from("health_scores").select("*").eq("tenant_id", tenant.id).order("created_at", { ascending: false }).limit(5),
