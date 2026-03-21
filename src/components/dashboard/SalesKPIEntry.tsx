@@ -104,7 +104,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
       cash_collected: parseFloat(form.cash_collected) || 0,
       revenue: parseFloat(form.cash_collected) || 0,
       deal_volume: parseFloat(form.deal_volume) || 0,
-      monthly_retainer: parseFloat(form.monthly_retainer) || 0,
+      
       dms_sent: parseInt(form.dms_sent) || 0,
       dms_replies: parseInt(form.dms_replies) || 0,
       words_spoken: parseInt(form.words_spoken) || 0,
