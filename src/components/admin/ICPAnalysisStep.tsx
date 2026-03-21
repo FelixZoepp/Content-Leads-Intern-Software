@@ -29,14 +29,14 @@ export type ICPClient = {
   firma: string; name: string; branche: string; mitarbeiter: string; jahresumsatz: string;
   leadQuelle: string; closeDauer: string; dealValue: string; gezahlt: string;
   zahlungsSpeed: string; zusammenarbeit: number; ergebnis: number; problemBewusstsein: string; notizen: string;
-  closeDate: string; onboardingDate: string; projectStartDate: string;
+  closeDate: string; onboardingDate: string; projectStartDate: string; projectEndDate: string;
 };
 
 export const emptyICPClient = (): ICPClient => ({
   firma: "", name: "", branche: "", mitarbeiter: "", jahresumsatz: "",
   leadQuelle: "", closeDauer: "", dealValue: "", gezahlt: "",
   zahlungsSpeed: "", zusammenarbeit: 0, ergebnis: 0, problemBewusstsein: "", notizen: "",
-  closeDate: "", onboardingDate: "", projectStartDate: ""
+  closeDate: "", onboardingDate: "", projectStartDate: "", projectEndDate: ""
 });
 
 function scoreClient(c: ICPClient) {
