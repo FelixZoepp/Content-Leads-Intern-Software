@@ -549,6 +549,7 @@ export type Database = {
       tenants: {
         Row: {
           ads_spend_monthly: number | null
+          advisor_id: string | null
           aov_existing_customer: number | null
           aov_new_customer: number | null
           cac_actual: number | null
@@ -612,6 +613,7 @@ export type Database = {
         }
         Insert: {
           ads_spend_monthly?: number | null
+          advisor_id?: string | null
           aov_existing_customer?: number | null
           aov_new_customer?: number | null
           cac_actual?: number | null
@@ -675,6 +677,7 @@ export type Database = {
         }
         Update: {
           ads_spend_monthly?: number | null
+          advisor_id?: string | null
           aov_existing_customer?: number | null
           aov_new_customer?: number | null
           cac_actual?: number | null
@@ -992,7 +995,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "client"
+      app_role: "admin" | "client" | "advisor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1120,7 +1123,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "client"],
+      app_role: ["admin", "client", "advisor"],
     },
   },
 } as const
