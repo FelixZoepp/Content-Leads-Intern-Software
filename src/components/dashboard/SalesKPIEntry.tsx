@@ -14,20 +14,20 @@ interface Props {
 
 const defaultSales = {
   entry_date: new Date().toISOString().split("T")[0],
-  calls_made: 0,
-  calls_reached: 0,
-  calls_interested: 0,
-  appointments: 0,
-  settings_planned: 0,
-  settings_held: 0,
-  closings_planned: 0,
-  closings_held: 0,
-  deals: 0,
-  cash_collected: 0,
-  deal_volume: 0,
-  monthly_retainer: 0,
-  dms_sent: 0,
-  words_spoken: 0, // repurposed as Gesprächszeit in Minuten
+  calls_made: "",
+  calls_reached: "",
+  calls_interested: "",
+  appointments: "",
+  settings_planned: "",
+  settings_held: "",
+  closings_planned: "",
+  closings_held: "",
+  deals: "",
+  cash_collected: "",
+  deal_volume: "",
+  monthly_retainer: "",
+  dms_sent: "",
+  words_spoken: "",
 };
 
 export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
@@ -50,20 +50,20 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
       setExistingId(data.id);
       setForm(prev => ({
         ...prev,
-        calls_made: data.calls_made || 0,
-        calls_reached: data.calls_reached || 0,
-        calls_interested: data.calls_interested || 0,
-        appointments: data.appointments || 0,
-        settings_planned: data.settings_planned || 0,
-        settings_held: data.settings_held || 0,
-        closings_planned: data.closings_planned || 0,
-        closings_held: data.closings_held || 0,
-        deals: data.deals || 0,
-        cash_collected: parseFloat(String(data.cash_collected)) || 0,
-        deal_volume: parseFloat(String(data.deal_volume)) || 0,
-        monthly_retainer: parseFloat(String(data.monthly_retainer)) || 0,
-        dms_sent: data.dms_sent || 0,
-        words_spoken: data.words_spoken || 0,
+        calls_made: data.calls_made ? String(data.calls_made) : "",
+        calls_reached: data.calls_reached ? String(data.calls_reached) : "",
+        calls_interested: data.calls_interested ? String(data.calls_interested) : "",
+        appointments: data.appointments ? String(data.appointments) : "",
+        settings_planned: data.settings_planned ? String(data.settings_planned) : "",
+        settings_held: data.settings_held ? String(data.settings_held) : "",
+        closings_planned: data.closings_planned ? String(data.closings_planned) : "",
+        closings_held: data.closings_held ? String(data.closings_held) : "",
+        deals: data.deals ? String(data.deals) : "",
+        cash_collected: data.cash_collected ? String(data.cash_collected) : "",
+        deal_volume: data.deal_volume ? String(data.deal_volume) : "",
+        monthly_retainer: data.monthly_retainer ? String(data.monthly_retainer) : "",
+        dms_sent: data.dms_sent ? String(data.dms_sent) : "",
+        words_spoken: data.words_spoken ? String(data.words_spoken) : "",
       }));
     } else {
       setExistingId(null);
@@ -71,37 +71,39 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
     }
   };
 
-  const n = (field: string, raw: string, decimal = false) =>
-    setForm(prev => ({ ...prev, [field]: decimal ? (parseFloat(raw) || 0) : (parseInt(raw) || 0) }));
+  const n = (field: string, raw: string) =>
+    setForm(prev => ({ ...prev, [field]: raw }));
+
+  const num = (v: string) => parseFloat(v) || 0;
 
   // Live calculations
-  const reachRate = form.calls_made > 0 ? ((form.calls_reached / form.calls_made) * 100).toFixed(1) : "–";
-  const interestRate = form.calls_reached > 0 ? ((form.calls_interested / form.calls_reached) * 100).toFixed(1) : "–";
-  const settingShowRate = form.settings_planned > 0 ? ((form.settings_held / form.settings_planned) * 100).toFixed(1) : "–";
-  const closingShowRate = form.closings_planned > 0 ? ((form.closings_held / form.closings_planned) * 100).toFixed(1) : "–";
-  const closingRate = form.closings_held > 0 ? ((form.deals / form.closings_held) * 100).toFixed(1) : "–";
+  const reachRate = num(form.calls_made) > 0 ? ((num(form.calls_reached) / num(form.calls_made)) * 100).toFixed(1) : "–";
+  const interestRate = num(form.calls_reached) > 0 ? ((num(form.calls_interested) / num(form.calls_reached)) * 100).toFixed(1) : "–";
+  const settingShowRate = num(form.settings_planned) > 0 ? ((num(form.settings_held) / num(form.settings_planned)) * 100).toFixed(1) : "–";
+  const closingShowRate = num(form.closings_planned) > 0 ? ((num(form.closings_held) / num(form.closings_planned)) * 100).toFixed(1) : "–";
+  const closingRate = num(form.closings_held) > 0 ? ((num(form.deals) / num(form.closings_held)) * 100).toFixed(1) : "–";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     const salesPayload = {
-      calls_made: form.calls_made,
-      calls_reached: form.calls_reached,
-      calls_interested: form.calls_interested,
-      appointments: form.appointments,
-      settings_planned: form.settings_planned,
-      settings_held: form.settings_held,
-      closings: form.closings_held,
-      closings_planned: form.closings_planned,
-      closings_held: form.closings_held,
-      deals: form.deals,
-      cash_collected: form.cash_collected,
-      revenue: form.cash_collected,
-      deal_volume: form.deal_volume,
-      monthly_retainer: form.monthly_retainer,
-      dms_sent: form.dms_sent,
-      words_spoken: form.words_spoken,
+      calls_made: parseInt(form.calls_made) || 0,
+      calls_reached: parseInt(form.calls_reached) || 0,
+      calls_interested: parseInt(form.calls_interested) || 0,
+      appointments: parseInt(form.appointments) || 0,
+      settings_planned: parseInt(form.settings_planned) || 0,
+      settings_held: parseInt(form.settings_held) || 0,
+      closings: parseInt(form.closings_held) || 0,
+      closings_planned: parseInt(form.closings_planned) || 0,
+      closings_held: parseInt(form.closings_held) || 0,
+      deals: parseInt(form.deals) || 0,
+      cash_collected: parseFloat(form.cash_collected) || 0,
+      revenue: parseFloat(form.cash_collected) || 0,
+      deal_volume: parseFloat(form.deal_volume) || 0,
+      monthly_retainer: parseFloat(form.monthly_retainer) || 0,
+      dms_sent: parseInt(form.dms_sent) || 0,
+      words_spoken: parseInt(form.words_spoken) || 0,
     };
 
     let error;
@@ -161,7 +163,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
               <Field id="appointments" label="Termine gelegt" value={form.appointments} onChange={v => n("appointments", v)} />
               <Field id="words_spoken" label="Gesprächszeit (Min.)" value={form.words_spoken} onChange={v => n("words_spoken", v)} />
             </div>
-            {form.calls_made > 0 && (
+            {num(form.calls_made) > 0 && (
               <div className="flex flex-wrap gap-4 text-xs bg-muted/40 rounded-lg px-3 py-2 text-muted-foreground">
                 <span>Erreichungsquote: <strong className="text-foreground">{reachRate}%</strong></span>
                 <span>Interesse-Rate: <strong className="text-foreground">{interestRate}%</strong></span>
@@ -177,10 +179,10 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Field id="settings_planned" label="Settings geplant heute" value={form.settings_planned} onChange={v => n("settings_planned", v)} />
               <Field id="settings_held" label="Settings stattgefunden heute" value={form.settings_held}
-                onChange={v => setForm(p => ({ ...p, settings_held: Math.min(parseInt(v)||0, p.settings_planned) }))} />
+                onChange={v => n("settings_held", v)} />
               <Field id="dms_sent" label="DMs versendet" value={form.dms_sent} onChange={v => n("dms_sent", v)} />
             </div>
-            {form.settings_planned > 0 && (
+            {num(form.settings_planned) > 0 && (
               <div className="flex flex-wrap gap-4 text-xs bg-muted/40 rounded-lg px-3 py-2 text-muted-foreground">
                 <span>Setting Show-Rate: <strong className="text-foreground">{settingShowRate}%</strong></span>
               </div>
@@ -195,16 +197,16 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Field id="closings_planned" label="Closings geplant" value={form.closings_planned} onChange={v => n("closings_planned", v)} />
               <Field id="closings_held" label="Closings stattgefunden" value={form.closings_held}
-                onChange={v => setForm(p => ({ ...p, closings_held: Math.min(parseInt(v)||0, p.closings_planned) }))} />
+                onChange={v => n("closings_held", v)} />
               <Field id="deals" label="Deals abgeschlossen" value={form.deals} onChange={v => n("deals", v)} />
               <Field id="cash_collected" label="Cash Collected" value={form.cash_collected}
-                onChange={v => n("cash_collected", v, true)} decimal prefix="€" />
+                onChange={v => n("cash_collected", v)} decimal prefix="€" />
               <Field id="deal_volume" label="Auftragsvolumen" value={form.deal_volume}
-                onChange={v => n("deal_volume", v, true)} decimal prefix="€" />
+                onChange={v => n("deal_volume", v)} decimal prefix="€" />
               <Field id="monthly_retainer" label="Monatlicher Retainer" value={form.monthly_retainer}
-                onChange={v => n("monthly_retainer", v, true)} decimal prefix="€" />
+                onChange={v => n("monthly_retainer", v)} decimal prefix="€" />
             </div>
-            {form.closings_planned > 0 && (
+            {num(form.closings_planned) > 0 && (
               <div className="flex flex-wrap gap-4 text-xs bg-muted/40 rounded-lg px-3 py-2 text-muted-foreground">
                 <span>Closing Show-Rate: <strong className="text-foreground">{closingShowRate}%</strong></span>
                 <span>Closing-Rate: <strong className="text-foreground">{closingRate}%</strong></span>
@@ -244,7 +246,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
 }
 
 function Field({ id, label, value, onChange, decimal, prefix }: {
-  id: string; label: string; value: number; onChange: (v: string) => void; decimal?: boolean; prefix?: string;
+  id: string; label: string; value: string; onChange: (v: string) => void; decimal?: boolean; prefix?: string;
 }) {
   return (
     <div className="space-y-1.5">
