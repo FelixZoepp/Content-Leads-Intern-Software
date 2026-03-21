@@ -1,32 +1,21 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-import cardMarketing from "@/assets/card-marketing.jpg";
-import cardSales from "@/assets/card-sales.jpg";
-import cardOverview from "@/assets/card-overview.jpg";
-import cardFinance from "@/assets/card-finance.jpg";
-import cardFulfillment from "@/assets/card-fulfillment.jpg";
-import cardAi from "@/assets/card-ai.jpg";
-import cardCsat from "@/assets/card-csat.jpg";
-import cardReports from "@/assets/card-reports.jpg";
-
 interface SectionCard {
   badge: string;
   badgeColor: string;
   title: string;
   path: string;
-  image: string;
 }
 
 const sectionCards: SectionCard[] = [
-  { badge: "KPIs", badgeColor: "hsl(0 85% 55%)", title: "Übersicht & KPIs", path: "/dashboard/overview", image: cardOverview },
-  { badge: "Marketing", badgeColor: "hsl(25 90% 55%)", title: "Reichweite & Content tracken", path: "/dashboard/marketing", image: cardMarketing },
-  { badge: "Sales", badgeColor: "hsl(0 70% 50%)", title: "Pipeline & Deals verfolgen", path: "/dashboard/sales", image: cardSales },
-  { badge: "Fulfillment", badgeColor: "hsl(15 80% 50%)", title: "Projekte & Kundenerfolg", path: "/dashboard/fulfillment", image: cardFulfillment },
-  { badge: "Finanzen", badgeColor: "hsl(38 92% 55%)", title: "Revenue & Kosten im Blick", path: "/dashboard/finance", image: cardFinance },
-  { badge: "KI-Briefing", badgeColor: "hsl(0 85% 55%)", title: "Intelligente Analyse & Insights", path: "/dashboard/ai", image: cardAi },
-  { badge: "Leistungsanalyse", badgeColor: "hsl(10 75% 52%)", title: "Kundenzufriedenheit messen", path: "/dashboard/csat", image: cardCsat },
-  { badge: "Reports", badgeColor: "hsl(25 90% 55%)", title: "Monatsberichte & Export", path: "/dashboard/reports", image: cardReports },
+  { badge: "KPIs", badgeColor: "hsl(0 85% 55%)", title: "Übersicht & KPIs", path: "/dashboard/overview" },
+  { badge: "Marketing", badgeColor: "hsl(25 90% 55%)", title: "Reichweite & Content tracken", path: "/dashboard/marketing" },
+  { badge: "Sales", badgeColor: "hsl(0 70% 50%)", title: "Pipeline & Deals verfolgen", path: "/dashboard/sales" },
+  { badge: "Finanzen", badgeColor: "hsl(38 92% 55%)", title: "Revenue & Kosten im Blick", path: "/dashboard/finance" },
+  { badge: "KI-Briefing", badgeColor: "hsl(0 85% 55%)", title: "Intelligente Analyse & Insights", path: "/dashboard/ai" },
+  { badge: "Leistungsanalyse", badgeColor: "hsl(10 75% 52%)", title: "Kundenzufriedenheit messen", path: "/dashboard/csat" },
+  { badge: "Reports", badgeColor: "hsl(25 90% 55%)", title: "Monatsberichte & Export", path: "/dashboard/reports" },
 ];
 
 export function SectionCards() {
@@ -58,7 +47,7 @@ export function SectionCards() {
             style={{ background: `linear-gradient(90deg, transparent, ${card.badgeColor}66, transparent)` }}
           />
 
-          <div className="relative z-10 p-5 flex flex-col h-full min-h-[260px]">
+          <div className="relative z-10 p-5 flex flex-col h-full min-h-[120px]">
             {/* Badge */}
             <span
               className="text-[11px] font-semibold tracking-wide px-2.5 py-1 rounded-full w-fit mb-3"
@@ -72,19 +61,9 @@ export function SectionCards() {
             </span>
 
             {/* Title */}
-            <h3 className="text-base font-bold text-foreground leading-snug mb-4">
+            <h3 className="text-base font-bold text-foreground leading-snug">
               {card.title}
             </h3>
-
-            {/* Preview Image */}
-            <div className="mt-auto rounded-xl overflow-hidden opacity-70 group-hover:opacity-90 transition-opacity duration-300">
-              <img
-                src={card.image}
-                alt={card.title}
-                className="w-full h-28 object-cover object-top"
-                loading="lazy"
-              />
-            </div>
           </div>
         </motion.button>
       ))}
