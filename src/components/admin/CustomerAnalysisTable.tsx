@@ -414,6 +414,15 @@ export function CustomerAnalysisTable() {
                       </div>
                     )}
 
+                    {/* Berater-Zuweisung */}
+                    <div className="hidden md:block" onClick={(e) => e.stopPropagation()}>
+                      <AdvisorAssignment
+                        tenantId={tenant.id}
+                        currentAdvisorId={tenant.advisor_id}
+                        onUpdate={loadTenants}
+                      />
+                    </div>
+
                     <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
                   </div>
                 </CardContent>
