@@ -62,7 +62,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
         deals: data.deals ? String(data.deals) : "",
         cash_collected: data.cash_collected ? String(data.cash_collected) : "",
         deal_volume: data.deal_volume ? String(data.deal_volume) : "",
-        monthly_retainer: data.monthly_retainer ? String(data.monthly_retainer) : "",
+        
         dms_sent: data.dms_sent ? String(data.dms_sent) : "",
         dms_replies: (data as any).dms_replies ? String((data as any).dms_replies) : "",
         words_spoken: data.words_spoken ? String(data.words_spoken) : "",
