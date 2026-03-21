@@ -472,6 +472,131 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
 }
 
 // ═══════════════════════════════════════════
+// ICP TAB COMPONENT
+// ═══════════════════════════════════════════
+
+function scoreICP(c: any) {
+  let s = 0;
+  if (c.payment_status === "Ja, komplett") s += 25;
+  else if (c.payment_status === "Teilweise") s += 10;
+  else if (c.payment_status === "Läuft noch") s += 15;
+  if (c.payment_speed?.includes("Sofort")) s += 20;
+  else if (c.payment_speed?.includes("Schnell")) s += 15;
+  else if (c.payment_speed?.includes("Normal")) s += 8;
+  else if (c.payment_speed?.includes("Langsam")) s += 3;
+  if (c.close_duration === "1 Setter-Call") s += 20;
+  else if (c.close_duration === "2 Calls") s += 15;
+  else if (c.close_duration === "3 Calls") s += 10;
+  else if (c.close_duration === "4+ Calls") s += 5;
+  s += (c.collaboration_score || 0) * 1.5;
+  s += (c.result_score || 0) * 1.5;
+  if (c.problem_awareness?.includes("Sehr hoch")) s += 15;
+  else if (c.problem_awareness?.includes("Mittel")) s += 8;
+  const dv = parseFloat(c.deal_value) || 0;
+  if (dv >= 3000) s += 10; else if (dv >= 1500) s += 5;
+  return Math.round(s);
+}
+
+function ICPTabContent({ customers }: { customers: any[] }) {
+  const valid = customers.filter(c => c.customer_name && c.industry);
+
+  if (valid.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <UserSearch className="h-8 w-8 mx-auto mb-2 text-muted-foreground opacity-40" />
+        <p className="text-sm text-muted-foreground">Keine ICP-Daten vorhanden</p>
+        <p className="text-xs text-muted-foreground mt-1">Werden beim Onboarding erfasst</p>
+      </div>
+    );
+  }
+
+  const scored = valid.map(c => ({ ...c, score: scoreICP(c) })).sort((a, b) => b.score - a.score);
+  const maxScore = Math.max(...scored.map(s => s.score), 1);
+
+  const topOf = (arr: string[]) => {
+    const m: Record<string, number> = {};
+    arr.filter(Boolean).forEach(v => m[v] = (m[v] || 0) + 1);
+    return Object.entries(m).sort((a, b) => b[1] - a[1]);
+  };
+
+  const branchen = topOf(valid.map(c => c.industry));
+  const quelleTop = topOf(valid.map(c => c.lead_source));
+  const closeTop = topOf(valid.map(c => c.close_duration));
+
+  let totalDeal = 0, dealN = 0, payGood = 0;
+  valid.forEach(c => {
+    const dv = parseFloat(c.deal_value) || 0;
+    if (dv > 0) { totalDeal += dv; dealN++; }
+    if (c.payment_status === "Ja, komplett" || c.has_paid) payGood++;
+  });
+  const avgDeal = dealN > 0 ? Math.round(totalDeal / dealN) : 0;
+  const payRate = valid.length > 0 ? Math.round(payGood / valid.length * 100) : 0;
+
+  const medals = ["🥇", "🥈", "🥉"];
+
+  return (
+    <>
+      <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-1.5">
+        <p className="text-xs font-bold flex items-center gap-1.5"><Target className="h-3.5 w-3.5 text-primary" /> Idealer Wunschkunde</p>
+        {[
+          ["Branche", branchen[0]?.[0] || "—"],
+          ["Ø Deal-Value", `€${avgDeal.toLocaleString("de-DE")}`],
+          ["Beste Quelle", quelleTop[0]?.[0] || "—"],
+          ["Close-Dauer", closeTop[0]?.[0] || "—"],
+          ["Zahlungsquote", `${payGood}/${valid.length} (${payRate}%)`],
+        ].map(([k, v]) => (
+          <div key={k} className="flex justify-between text-xs border-b border-border/30 py-1.5">
+            <span className="text-muted-foreground">{k}</span>
+            <span className="font-medium">{v}</span>
+          </div>
+        ))}
+      </div>
+
+      <Card className="glass-card">
+        <CardHeader className="py-2 px-3">
+          <CardTitle className="text-xs flex items-center gap-1.5"><Trophy className="h-3.5 w-3.5 text-primary" /> Top-Kunden</CardTitle>
+        </CardHeader>
+        <CardContent className="px-3 pb-3">
+          <div className="space-y-1.5">
+            {scored.slice(0, 10).map((c, i) => {
+              const pct = Math.round(c.score / maxScore * 100);
+              return (
+                <div key={c.id} className="flex items-center gap-2 text-xs py-1 border-b border-border/20">
+                  <span className="w-5 text-center">{medals[i] || <span className="text-muted-foreground">{i + 1}</span>}</span>
+                  <span className={`flex-1 truncate ${i < 3 ? "font-bold" : ""}`}>{c.customer_name}</span>
+                  <span className="text-muted-foreground">{c.industry}</span>
+                  <div className="w-10 h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${pct > 70 ? "bg-green-500" : pct > 40 ? "bg-yellow-500" : "bg-destructive"}`} style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="font-mono text-[10px] font-bold w-6 text-right">{c.score}</span>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="glass-card">
+        <CardHeader className="py-2 px-3">
+          <CardTitle className="text-xs">Branchen</CardTitle>
+        </CardHeader>
+        <CardContent className="px-3 pb-3 space-y-1">
+          {branchen.map(([b, count]) => (
+            <div key={b} className="flex items-center gap-2 text-xs">
+              <span className="w-24 truncate">{b}</span>
+              <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="h-full rounded-full bg-primary" style={{ width: `${Math.round((count as number) / valid.length * 100)}%` }} />
+              </div>
+              <span className="font-mono text-[10px] text-primary font-semibold">{count}×</span>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════
 // SUB-COMPONENTS
 // ═══════════════════════════════════════════
 
