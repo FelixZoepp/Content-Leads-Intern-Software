@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Save, TrendingUp, Phone, Target, Handshake } from "lucide-react";
+import { Save, TrendingUp, Phone, Target, Handshake, MessageSquare } from "lucide-react";
 
 interface Props {
   tenantId: string;
@@ -27,6 +27,7 @@ const defaultSales = {
   deal_volume: "",
   monthly_retainer: "",
   dms_sent: "",
+  dms_replies: "",
   words_spoken: "",
 };
 
@@ -63,6 +64,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
         deal_volume: data.deal_volume ? String(data.deal_volume) : "",
         monthly_retainer: data.monthly_retainer ? String(data.monthly_retainer) : "",
         dms_sent: data.dms_sent ? String(data.dms_sent) : "",
+        dms_replies: (data as any).dms_replies ? String((data as any).dms_replies) : "",
         words_spoken: data.words_spoken ? String(data.words_spoken) : "",
       }));
     } else {
@@ -82,6 +84,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
   const settingShowRate = num(form.settings_planned) > 0 ? ((num(form.settings_held) / num(form.settings_planned)) * 100).toFixed(1) : "–";
   const closingShowRate = num(form.closings_planned) > 0 ? ((num(form.closings_held) / num(form.closings_planned)) * 100).toFixed(1) : "–";
   const closingRate = num(form.closings_held) > 0 ? ((num(form.deals) / num(form.closings_held)) * 100).toFixed(1) : "–";
+  const dmReplyRate = num(form.dms_sent) > 0 ? ((num(form.dms_replies) / num(form.dms_sent)) * 100).toFixed(1) : "–";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +106,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
       deal_volume: parseFloat(form.deal_volume) || 0,
       monthly_retainer: parseFloat(form.monthly_retainer) || 0,
       dms_sent: parseInt(form.dms_sent) || 0,
+      dms_replies: parseInt(form.dms_replies) || 0,
       words_spoken: parseInt(form.words_spoken) || 0,
     };
 
@@ -139,7 +143,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
           <Phone className="h-5 w-5 text-primary" />
           Tägliche Sales-KPIs
         </CardTitle>
-        <CardDescription>Erfasse alle Aktivitäten aus Cold Calling, Setting und Closing für heute.</CardDescription>
+        <CardDescription>Erfasse alle Aktivitäten aus Cold Calling, Outreach, Setting und Closing für heute.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -171,16 +175,31 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
             )}
           </section>
 
+          {/* Outreach – DMs */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" /> Outreach – DMs & Nachrichten
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <Field id="dms_sent" label="DMs versendet" value={form.dms_sent} onChange={v => n("dms_sent", v)} />
+              <Field id="dms_replies" label="Antworten erhalten" value={form.dms_replies} onChange={v => n("dms_replies", v)} />
+            </div>
+            {num(form.dms_sent) > 0 && (
+              <div className="flex flex-wrap gap-4 text-xs bg-muted/40 rounded-lg px-3 py-2 text-muted-foreground">
+                <span>Antwort-Quote: <strong className="text-foreground">{dmReplyRate}%</strong></span>
+              </div>
+            )}
+          </section>
+
           {/* Setting */}
           <section className="space-y-3">
             <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
               <Target className="h-4 w-4" /> Opening – Terminierung
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <Field id="settings_planned" label="Settings geplant heute" value={form.settings_planned} onChange={v => n("settings_planned", v)} />
               <Field id="settings_held" label="Settings stattgefunden heute" value={form.settings_held}
                 onChange={v => n("settings_held", v)} />
-              <Field id="dms_sent" label="DMs versendet" value={form.dms_sent} onChange={v => n("dms_sent", v)} />
             </div>
             {num(form.settings_planned) > 0 && (
               <div className="flex flex-wrap gap-4 text-xs bg-muted/40 rounded-lg px-3 py-2 text-muted-foreground">
@@ -219,10 +238,11 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
             <p className="text-xs font-semibold flex items-center gap-2 text-muted-foreground">
               <TrendingUp className="h-3.5 w-3.5" /> Berechnete Kennzahlen (live)
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               {[
                 { label: "Erreichungsquote", value: reachRate, suffix: "%" },
                 { label: "Interesse-Rate", value: interestRate, suffix: "%" },
+                { label: "DM-Antwort-Quote", value: dmReplyRate, suffix: "%" },
                 { label: "Setting Show-Rate", value: settingShowRate, suffix: "%" },
                 { label: "Closing Show-Rate", value: closingShowRate, suffix: "%" },
                 { label: "Closing-Rate", value: closingRate, suffix: "%" },

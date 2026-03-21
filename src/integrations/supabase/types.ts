@@ -501,6 +501,7 @@ export type Database = {
           created_at: string | null
           deal_volume: number | null
           deals: number | null
+          dms_replies: number | null
           dms_sent: number | null
           followers_current: number | null
           id: number
@@ -535,6 +536,7 @@ export type Database = {
           created_at?: string | null
           deal_volume?: number | null
           deals?: number | null
+          dms_replies?: number | null
           dms_sent?: number | null
           followers_current?: number | null
           id?: number
@@ -569,6 +571,7 @@ export type Database = {
           created_at?: string | null
           deal_volume?: number | null
           deals?: number | null
+          dms_replies?: number | null
           dms_sent?: number | null
           followers_current?: number | null
           id?: number

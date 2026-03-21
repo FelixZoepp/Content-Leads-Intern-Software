@@ -27,7 +27,7 @@ export default function MarketingPage() {
           </TabsTrigger>
           <TabsTrigger value="entry" className="rounded-xl gap-2">
             <PlusCircle className="h-4 w-4" />
-            KPIs erfassen
+            Wochen-KPIs erfassen
           </TabsTrigger>
         </TabsList>
 

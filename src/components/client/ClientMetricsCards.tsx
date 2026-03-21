@@ -23,7 +23,6 @@ export function ClientMetricsCards({ metrics, timeRange = "daily" }: Props) {
     return vals.reduce((s, m) => s + parseFloat(m[field]), 0) / vals.length;
   };
 
-  // Funnel conversion rates
   const totalImpressions = sum("impressions");
   const totalLeads = sum("leads_total");
   const totalAppointments = sum("appointments");
@@ -37,7 +36,6 @@ export function ClientMetricsCards({ metrics, timeRange = "daily" }: Props) {
   const cards = [
     { title: "Impressionen", value: totalImpressions, icon: BarChart3, format: "number" },
     { title: "Kommentare", value: sum("comments"), icon: FileText, format: "number" },
-    { title: "DMs gesendet", value: sum("dms_sent"), icon: FileText, format: "number" },
     { title: "Leads", value: totalLeads, icon: Target, format: "number" },
     { title: "MQL", value: sum("leads_qualified"), icon: Target, format: "number" },
     { title: "MQL-Quote", value: avg("lead_quality_rate"), icon: Percent, format: "percent" },
