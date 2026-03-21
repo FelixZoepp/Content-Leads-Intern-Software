@@ -198,7 +198,21 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
             )}
           </section>
 
-          {/* Setting */}
+          {/* Cold Mail Outreach (optional) */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+              <Mail className="h-4 w-4" /> Cold Mail Outreach <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <Field id="cold_emails_sent" label="Cold Mails versendet" value={form.cold_emails_sent} onChange={v => n("cold_emails_sent", v)} />
+              <Field id="cold_emails_replies" label="Antworten erhalten" value={form.cold_emails_replies} onChange={v => n("cold_emails_replies", v)} />
+            </div>
+            {num(form.cold_emails_sent) > 0 && (
+              <div className="flex flex-wrap gap-4 text-xs bg-muted/40 rounded-lg px-3 py-2 text-muted-foreground">
+                <span>Antwort-Quote: <strong className="text-foreground">{coldEmailReplyRate}%</strong></span>
+              </div>
+            )}
+          </section>
           <section className="space-y-3">
             <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
               <Target className="h-4 w-4" /> Opening – Terminierung
