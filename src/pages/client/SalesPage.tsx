@@ -12,9 +12,13 @@ import { salesKPIConfigs, outboundKPIConfigs } from "@/lib/kpiTrackerConfigs";
 function SalesKPICards({ metrics }: { metrics: any[] }) {
   const latest = metrics?.[0];
   if (!latest) return null;
+  const dmReplyRate = latest.dms_sent > 0 && latest.dms_replies != null
+    ? `${((Number(latest.dms_replies) / Number(latest.dms_sent)) * 100).toFixed(1)}%` : "–";
   const cards = [
     { label: "Anwahlen", value: latest.calls_made ?? "–" },
     { label: "Erreichungsquote", value: latest.interest_rate != null ? `${Number(latest.interest_rate).toFixed(1)}%` : "–" },
+    { label: "DMs gesendet", value: latest.dms_sent ?? "–" },
+    { label: "DM-Antwort-Quote", value: dmReplyRate },
     { label: "Setting Show-Rate", value: latest.setting_show_rate != null ? `${Number(latest.setting_show_rate).toFixed(1)}%` : "–" },
     { label: "Closing Show-Rate", value: latest.closing_show_rate != null ? `${Number(latest.closing_show_rate).toFixed(1)}%` : "–" },
     { label: "Closing-Rate", value: latest.closing_rate != null ? `${Number(latest.closing_rate).toFixed(1)}%` : "–" },
