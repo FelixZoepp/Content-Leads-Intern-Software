@@ -206,7 +206,7 @@ function ClientCard({ index, client, update, isOpen, toggle }: {
 
           <div className="pt-2 border-t border-border/50">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">📅 Projekt-Timeline</p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="space-y-1">
                 <Label className="text-[11px]">Close-Datum</Label>
                 <Input type="date" value={client.closeDate} onChange={e => update("closeDate", e.target.value)} className="h-9" />
@@ -219,15 +219,24 @@ function ClientCard({ index, client, update, isOpen, toggle }: {
                 <Label className="text-[11px]">Projekt-Start</Label>
                 <Input type="date" value={client.projectStartDate} onChange={e => update("projectStartDate", e.target.value)} className="h-9" />
               </div>
+              <div className="space-y-1">
+                <Label className="text-[11px]">Projektabschluss</Label>
+                <Input type="date" value={client.projectEndDate} onChange={e => update("projectEndDate", e.target.value)} className="h-9" />
+              </div>
             </div>
             {client.closeDate && client.onboardingDate && (
-              <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                 <span>Close → Onboarding: <strong className="text-foreground">{Math.round((new Date(client.onboardingDate).getTime() - new Date(client.closeDate).getTime()) / 86400000)} Tage</strong></span>
                 {client.projectStartDate && (
                   <span>Onboarding → Projekt: <strong className="text-foreground">{Math.round((new Date(client.projectStartDate).getTime() - new Date(client.onboardingDate).getTime()) / 86400000)} Tage</strong></span>
                 )}
-                {client.projectStartDate && (
-                  <span>Close → Projekt: <strong className="text-foreground">{Math.round((new Date(client.projectStartDate).getTime() - new Date(client.closeDate).getTime()) / 86400000)} Tage</strong></span>
+                {client.projectStartDate && client.projectEndDate && (
+                  <span>Fulfillment-Dauer: <strong className={`${
+                    Math.round((new Date(client.projectEndDate).getTime() - new Date(client.projectStartDate).getTime()) / 86400000) > 60 ? "text-destructive" : "text-foreground"
+                  }`}>{Math.round((new Date(client.projectEndDate).getTime() - new Date(client.projectStartDate).getTime()) / 86400000)} Tage</strong></span>
+                )}
+                {client.closeDate && client.projectEndDate && (
+                  <span>Gesamt (Close → Abschluss): <strong className="text-foreground">{Math.round((new Date(client.projectEndDate).getTime() - new Date(client.closeDate).getTime()) / 86400000)} Tage</strong></span>
                 )}
               </div>
             )}

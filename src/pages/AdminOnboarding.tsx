@@ -298,6 +298,7 @@ export default function AdminOnboarding() {
           close_date: c.closeDate || null,
           onboarding_date: c.onboardingDate || null,
           project_start_date: c.projectStartDate || null,
+          project_end_date: c.projectEndDate || null,
         }));
       if (icpToInsert.length > 0) {
         const { error: icpErr } = await supabase.from("icp_customers").insert(icpToInsert);
