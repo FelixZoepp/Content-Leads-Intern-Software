@@ -262,7 +262,7 @@ function ICPResults({ clients, onBack }: { clients: ICPClient[]; onBack: () => v
   const quelleTop = topCount(valid.map(c => c.leadQuelle));
   const closeTop = topCount(valid.map(c => c.closeDauer));
   let totalDeal = 0, dealN = 0, payGood = 0, payBad = 0;
-  let closeToOnb: number[] = [], onbToProj: number[] = [], closeToProj: number[] = [];
+  let closeToOnb: number[] = [], onbToProj: number[] = [], closeToProj: number[] = [], fulfillmentDur: number[] = [];
   valid.forEach(c => {
     if (c.dealValue) { totalDeal += parseFloat(c.dealValue) || 0; dealN++; }
     if (c.gezahlt === "Ja, komplett") payGood++;
@@ -276,6 +276,9 @@ function ICPResults({ clients, onBack }: { clients: ICPClient[]; onBack: () => v
     if (c.closeDate && c.projectStartDate) {
       closeToProj.push(Math.round((new Date(c.projectStartDate).getTime() - new Date(c.closeDate).getTime()) / 86400000));
     }
+    if (c.projectStartDate && c.projectEndDate) {
+      fulfillmentDur.push(Math.round((new Date(c.projectEndDate).getTime() - new Date(c.projectStartDate).getTime()) / 86400000));
+    }
   });
   const avgDeal = dealN > 0 ? Math.round(totalDeal / dealN) : 0;
   const avgZus = (valid.reduce((s, c) => s + (c.zusammenarbeit || 0), 0) / valid.length).toFixed(1);
@@ -284,6 +287,7 @@ function ICPResults({ clients, onBack }: { clients: ICPClient[]; onBack: () => v
   const avgCloseToOnb = closeToOnb.length > 0 ? Math.round(closeToOnb.reduce((a, b) => a + b, 0) / closeToOnb.length) : null;
   const avgOnbToProj = onbToProj.length > 0 ? Math.round(onbToProj.reduce((a, b) => a + b, 0) / onbToProj.length) : null;
   const avgCloseToProj = closeToProj.length > 0 ? Math.round(closeToProj.reduce((a, b) => a + b, 0) / closeToProj.length) : null;
+  const avgFulfillment = fulfillmentDur.length > 0 ? Math.round(fulfillmentDur.reduce((a, b) => a + b, 0) / fulfillmentDur.length) : null;
 
   const medals = ["🥇", "🥈", "🥉"];
 
