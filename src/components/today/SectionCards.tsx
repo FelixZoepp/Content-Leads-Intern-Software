@@ -1,32 +1,21 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-import cardMarketing from "@/assets/card-marketing.jpg";
-import cardSales from "@/assets/card-sales.jpg";
-import cardOverview from "@/assets/card-overview.jpg";
-import cardFinance from "@/assets/card-finance.jpg";
-import cardFulfillment from "@/assets/card-fulfillment.jpg";
-import cardAi from "@/assets/card-ai.jpg";
-import cardCsat from "@/assets/card-csat.jpg";
-import cardReports from "@/assets/card-reports.jpg";
-
 interface SectionCard {
   badge: string;
   badgeColor: string;
   title: string;
   path: string;
-  image: string;
 }
 
 const sectionCards: SectionCard[] = [
-  { badge: "KPIs", badgeColor: "hsl(0 85% 55%)", title: "Übersicht & KPIs", path: "/dashboard/overview", image: cardOverview },
-  { badge: "Marketing", badgeColor: "hsl(25 90% 55%)", title: "Reichweite & Content tracken", path: "/dashboard/marketing", image: cardMarketing },
-  { badge: "Sales", badgeColor: "hsl(0 70% 50%)", title: "Pipeline & Deals verfolgen", path: "/dashboard/sales", image: cardSales },
-  { badge: "Fulfillment", badgeColor: "hsl(15 80% 50%)", title: "Projekte & Kundenerfolg", path: "/dashboard/fulfillment", image: cardFulfillment },
-  { badge: "Finanzen", badgeColor: "hsl(38 92% 55%)", title: "Revenue & Kosten im Blick", path: "/dashboard/finance", image: cardFinance },
-  { badge: "KI-Briefing", badgeColor: "hsl(0 85% 55%)", title: "Intelligente Analyse & Insights", path: "/dashboard/ai", image: cardAi },
-  { badge: "Leistungsanalyse", badgeColor: "hsl(10 75% 52%)", title: "Kundenzufriedenheit messen", path: "/dashboard/csat", image: cardCsat },
-  { badge: "Reports", badgeColor: "hsl(25 90% 55%)", title: "Monatsberichte & Export", path: "/dashboard/reports", image: cardReports },
+  { badge: "KPIs", badgeColor: "hsl(0 85% 55%)", title: "Übersicht & KPIs", path: "/dashboard/overview" },
+  { badge: "Marketing", badgeColor: "hsl(25 90% 55%)", title: "Reichweite & Content tracken", path: "/dashboard/marketing" },
+  { badge: "Sales", badgeColor: "hsl(0 70% 50%)", title: "Pipeline & Deals verfolgen", path: "/dashboard/sales" },
+  { badge: "Finanzen", badgeColor: "hsl(38 92% 55%)", title: "Revenue & Kosten im Blick", path: "/dashboard/finance" },
+  { badge: "KI-Briefing", badgeColor: "hsl(0 85% 55%)", title: "Intelligente Analyse & Insights", path: "/dashboard/ai" },
+  { badge: "Leistungsanalyse", badgeColor: "hsl(10 75% 52%)", title: "Kundenzufriedenheit messen", path: "/dashboard/csat" },
+  { badge: "Reports", badgeColor: "hsl(25 90% 55%)", title: "Monatsberichte & Export", path: "/dashboard/reports" },
 ];
 
 export function SectionCards() {
