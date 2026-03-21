@@ -6,17 +6,22 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { de } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import {
   BarChart3, Phone, Package, DollarSign, TrendingUp, TrendingDown,
-  Calendar, Users, Target, Activity, ArrowUpRight, ArrowDownRight,
+  Calendar as CalendarIcon, Users, Target, Activity, ArrowUpRight, ArrowDownRight,
   AlertTriangle, CheckCircle2, XCircle, UserSearch, Trophy,
 } from "lucide-react";
 import {
   outboundKPIConfigs, marketingKPIConfigs, salesKPIConfigs, financeKPIConfigs,
 } from "@/lib/kpiTrackerConfigs";
 
-type TimeRange = "daily" | "weekly" | "monthly";
+type TimeRange = "daily" | "weekly" | "monthly" | "custom";
 
 interface Props {
   tenant: any | null;
@@ -97,28 +102,43 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
   const [healthScores, setHealthScores] = useState<any[]>([]);
   const [icpCustomers, setIcpCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     if (tenant && open) loadDetail();
-  }, [tenant, open, timeRange]);
+  }, [tenant, open, timeRange, dateFrom, dateTo]);
 
   const loadDetail = async () => {
     if (!tenant) return;
     setLoading(true);
 
-    const viewMap: Record<TimeRange, string> = {
+    const effectiveRange = timeRange === "custom" ? "daily" : timeRange;
+    const viewMap: Record<string, string> = {
       daily: "v_metrics_daily",
       weekly: "v_metrics_weekly",
       monthly: "v_metrics_monthly",
     };
-    const dateCol = timeRange === "daily" ? "period_date" : "period_start";
-    const limit = timeRange === "daily" ? 30 : timeRange === "weekly" ? 12 : 6;
+    const dateCol = effectiveRange === "daily" ? "period_date" : "period_start";
+    const limit = timeRange === "custom" ? 1000 : effectiveRange === "daily" ? 30 : effectiveRange === "weekly" ? 12 : 6;
 
     const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
 
+    let metricsQuery = supabase.from(viewMap[effectiveRange] as any).select("*").eq("tenant_id", tenant.id)
+      .order(dateCol, { ascending: false });
+
+    if (timeRange === "custom" && dateFrom) {
+      metricsQuery = metricsQuery.gte(dateCol, format(dateFrom, "yyyy-MM-dd"));
+    }
+    if (timeRange === "custom" && dateTo) {
+      metricsQuery = metricsQuery.lte(dateCol, format(dateTo, "yyyy-MM-dd"));
+    }
+    if (timeRange !== "custom") {
+      metricsQuery = metricsQuery.limit(limit);
+    }
+
     const [mRes, fRes, finRes, hRes, icpRes] = await Promise.all([
-      supabase.from(viewMap[timeRange] as any).select("*").eq("tenant_id", tenant.id)
-        .order(dateCol, { ascending: false }).limit(limit),
+      metricsQuery,
       supabase.from("fulfillment_tracking").select("*").eq("tenant_id", tenant.id).maybeSingle(),
       supabase.from("financial_tracking").select("*").eq("tenant_id", tenant.id).eq("period_month", currentMonth).maybeSingle(),
       supabase.from("health_scores").select("*").eq("tenant_id", tenant.id).order("created_at", { ascending: false }).limit(5),
@@ -171,7 +191,7 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
     : null;
   const progress = f?.milestones_total > 0 ? Math.round((f.milestones_completed / f.milestones_total) * 100) : 0;
 
-  const rangeLabel: Record<TimeRange, string> = { daily: "Tage", weekly: "Wochen", monthly: "Monate" };
+  const rangeLabel: Record<TimeRange, string> = { daily: "Tage", weekly: "Wochen", monthly: "Monate", custom: "Einträge" };
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
@@ -219,9 +239,9 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
 
               {/* Time range selector for data tabs */}
               {["summary", "marketing", "sales", "finance"].includes(activeTab) && (
-                <div className="mt-3">
+                <div className="mt-3 space-y-2">
                   <div className="flex items-center gap-1 bg-secondary/50 rounded-xl p-1">
-                    {(["daily", "weekly", "monthly"] as const).map((r) => (
+                    {(["daily", "weekly", "monthly", "custom"] as const).map((r) => (
                       <Button
                         key={r}
                         variant={timeRange === r ? "default" : "ghost"}
@@ -229,11 +249,38 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
                         className={`flex-1 text-xs rounded-lg h-7 ${timeRange === r ? "" : "text-muted-foreground"}`}
                         onClick={() => setTimeRange(r)}
                       >
-                        {r === "daily" ? "📅 Täglich" : r === "weekly" ? "📊 Wöchentlich" : "📈 Monatlich"}
+                        {r === "daily" ? "📅 Täglich" : r === "weekly" ? "📊 Wöchentlich" : r === "monthly" ? "📈 Monatlich" : "📆 Zeitraum"}
                       </Button>
                     ))}
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-1 text-center">
+                  {timeRange === "custom" && (
+                    <div className="flex items-center gap-2">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className={cn("flex-1 justify-start text-left text-xs h-8", !dateFrom && "text-muted-foreground")}>
+                            <CalendarIcon className="mr-1.5 h-3 w-3" />
+                            {dateFrom ? format(dateFrom, "dd.MM.yyyy", { locale: de }) : "Von"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className={cn("p-3 pointer-events-auto")} locale={de} />
+                        </PopoverContent>
+                      </Popover>
+                      <span className="text-xs text-muted-foreground">–</span>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className={cn("flex-1 justify-start text-left text-xs h-8", !dateTo && "text-muted-foreground")}>
+                            <CalendarIcon className="mr-1.5 h-3 w-3" />
+                            {dateTo ? format(dateTo, "dd.MM.yyyy", { locale: de }) : "Bis"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className={cn("p-3 pointer-events-auto")} locale={de} />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  )}
+                  <p className="text-[10px] text-muted-foreground text-center">
                     {metrics.length} {rangeLabel[timeRange]} geladen
                   </p>
                 </div>
