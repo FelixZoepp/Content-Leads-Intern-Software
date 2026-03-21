@@ -152,7 +152,7 @@ export default function AdminDashboard() {
     >
       <Routes>
         <Route index element={<AdminPortfolioPage tenants={tenants} onReload={loadAdminData} />} />
-        <Route path="alerts" element={<AdminAlertsPage alerts={alerts} loadAdminData={loadAdminData} />} />
+        <Route path="alerts" element={<AdminAlertsPage alerts={alerts} tenants={tenants} loadAdminData={loadAdminData} />} />
         <Route path="csat" element={<AdminCSATPage tenants={tenants} />} />
         <Route path="advisor-report" element={<AdminAdvisorReportPage />} />
         <Route path="ai-summary" element={<AdminAISummaryPage />} />
