@@ -6,17 +6,22 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { de } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import {
   BarChart3, Phone, Package, DollarSign, TrendingUp, TrendingDown,
-  Calendar, Users, Target, Activity, ArrowUpRight, ArrowDownRight,
+  Calendar as CalendarIcon, Users, Target, Activity, ArrowUpRight, ArrowDownRight,
   AlertTriangle, CheckCircle2, XCircle, UserSearch, Trophy,
 } from "lucide-react";
 import {
   outboundKPIConfigs, marketingKPIConfigs, salesKPIConfigs, financeKPIConfigs,
 } from "@/lib/kpiTrackerConfigs";
 
-type TimeRange = "daily" | "weekly" | "monthly";
+type TimeRange = "daily" | "weekly" | "monthly" | "custom";
 
 interface Props {
   tenant: any | null;
