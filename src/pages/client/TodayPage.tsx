@@ -190,6 +190,11 @@ export default function TodayPage() {
           </div>
         </motion.div>
 
+        {/* Survey Banner */}
+        {onboardingDate && (
+          <SurveyEngine tenantId={tenantId} onboardingCompletedAt={onboardingDate} />
+        )}
+
         {/* KPI Strip */}
         <motion.div
           className="grid grid-cols-3 md:grid-cols-6 gap-3"
