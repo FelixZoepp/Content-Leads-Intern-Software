@@ -68,6 +68,8 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
         dms_sent: data.dms_sent ? String(data.dms_sent) : "",
         dms_replies: (data as any).dms_replies ? String((data as any).dms_replies) : "",
         words_spoken: data.words_spoken ? String(data.words_spoken) : "",
+        cold_emails_sent: (data as any).cold_emails_sent ? String((data as any).cold_emails_sent) : "",
+        cold_emails_replies: (data as any).cold_emails_replies ? String((data as any).cold_emails_replies) : "",
       }));
     } else {
       setExistingId(null);
