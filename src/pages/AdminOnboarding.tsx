@@ -129,7 +129,8 @@ export default function AdminOnboarding() {
   const totalCosts = useMemo(() => [form.adsSpendMonthly, form.toolsCostsMonthly, form.personnelCostsMonthly, form.deliveryCostsMonthly, form.otherCostsMonthly].reduce((s, v) => s + (parseFloat(v) || 0), 0), [form.adsSpendMonthly, form.toolsCostsMonthly, form.personnelCostsMonthly, form.deliveryCostsMonthly, form.otherCostsMonthly]);
   const profit = totalRevenue - totalCosts;
   const marginPercent = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
-  const aovNewAuto = useMemo(() => { const m = parseFloat(form.aovNewCustomer); if (!isNaN(m) && form.aovNewCustomer) return m; return parseFloat(form.offerPrice) || 0; }, [form.aovNewCustomer, form.offerPrice]);
+  const avgProductPrice = useMemo(() => { const prices = products.filter(p => p.price).map(p => parseFloat(p.price)); return prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0; }, [products]);
+  const aovNewAuto = useMemo(() => { const m = parseFloat(form.aovNewCustomer); if (!isNaN(m) && form.aovNewCustomer) return m; return avgProductPrice; }, [form.aovNewCustomer, avgProductPrice]);
   const aovExistingAuto = useMemo(() => { const m = parseFloat(form.aovExistingCustomer); if (!isNaN(m) && form.aovExistingCustomer) return m; const mrr = parseFloat(form.revenueRecurring) || 0; const ex = parseFloat(form.existingCustomers) || 0; return mrr > 0 && ex > 0 ? Math.round(mrr / ex) : 0; }, [form.aovExistingCustomer, form.revenueRecurring, form.existingCustomers]);
   const newCustomerVolume = useMemo(() => { const c = parseFloat(form.newCustomersMonthly) || 0; return aovNewAuto > 0 && c > 0 ? aovNewAuto * c : 0; }, [aovNewAuto, form.newCustomersMonthly]);
   const existingCustomerVolume = useMemo(() => { const c = parseFloat(form.existingCustomers) || 0; return aovExistingAuto > 0 && c > 0 ? aovExistingAuto * c : 0; }, [aovExistingAuto, form.existingCustomers]);
