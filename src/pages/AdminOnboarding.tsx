@@ -12,8 +12,9 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Loader2, Mail, Building2, Linkedin, BarChart3, Target, ChevronRight, ChevronLeft,
   Sparkles, DollarSign, ShoppingBag, HelpCircle, Users, TrendingUp, Phone, CalendarDays,
-  ArrowLeft, CheckCircle2
+  ArrowLeft, CheckCircle2, UserSearch, Plus, Trash2
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const STEPS = [
   { icon: Mail, label: "Account" },
