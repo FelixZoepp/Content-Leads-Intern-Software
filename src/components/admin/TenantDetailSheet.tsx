@@ -97,7 +97,7 @@ export function TenantDetailSheet({ tenant, open, onClose }: Props) {
   const [timeRange, setTimeRange] = useState<TimeRange>("weekly");
   const [activeTab, setActiveTab] = useState("profil");
   const [metrics, setMetrics] = useState<any[]>([]);
-  const [fulfillment, setFulfillment] = useState<any>(null);
+  
   const [financial, setFinancial] = useState<any>(null);
   const [healthScores, setHealthScores] = useState<any[]>([]);
   const [icpCustomers, setIcpCustomers] = useState<any[]>([]);
