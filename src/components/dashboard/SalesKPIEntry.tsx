@@ -89,6 +89,7 @@ export function SalesKPIEntry({ tenantId, onEntryAdded }: Props) {
   const closingShowRate = num(form.closings_planned) > 0 ? ((num(form.closings_held) / num(form.closings_planned)) * 100).toFixed(1) : "–";
   const closingRate = num(form.closings_held) > 0 ? ((num(form.deals) / num(form.closings_held)) * 100).toFixed(1) : "–";
   const dmReplyRate = num(form.dms_sent) > 0 ? ((num(form.dms_replies) / num(form.dms_sent)) * 100).toFixed(1) : "–";
+  const coldEmailReplyRate = num(form.cold_emails_sent) > 0 ? ((num(form.cold_emails_replies) / num(form.cold_emails_sent)) * 100).toFixed(1) : "–";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
