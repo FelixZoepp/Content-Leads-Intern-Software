@@ -25,26 +25,26 @@ export const InviteEmail = ({
   siteUrl,
   confirmationUrl,
 }: InviteEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="de" dir="ltr">
     <Head />
-    <Preview>You've been invited to join {siteName}</Preview>
+    <Preview>Sie wurden zu ContentLeads eingeladen</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>You've been invited</Heading>
+        <Heading style={h1}>Willkommen bei ContentLeads</Heading>
         <Text style={text}>
-          You've been invited to join{' '}
+          Sie wurden eingeladen, Ihr persönliches Performance-Dashboard auf{' '}
           <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          . Click the button below to accept the invitation and create your
-          account.
+            <strong>ContentLeads</strong>
+          </Link>{' '}
+          zu nutzen. Klicken Sie auf den Button, um Ihren Account zu aktivieren
+          und Ihr Passwort festzulegen.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Accept Invitation
+          Einladung annehmen
         </Button>
         <Text style={footer}>
-          If you weren't expecting this invitation, you can safely ignore this
-          email.
+          Falls Sie diese Einladung nicht erwartet haben, können Sie diese E-Mail
+          ignorieren.
         </Text>
       </Container>
     </Body>
@@ -58,21 +58,21 @@ const container = { padding: '20px 25px' }
 const h1 = {
   fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#000000',
+  color: '#1a1a2e',
   margin: '0 0 20px',
 }
 const text = {
   fontSize: '14px',
-  color: '#55575d',
+  color: '#6b7280',
   lineHeight: '1.5',
   margin: '0 0 25px',
 }
 const link = { color: 'inherit', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#000000',
+  backgroundColor: 'hsl(0, 85%, 55%)',
   color: '#ffffff',
   fontSize: '14px',
-  borderRadius: '8px',
+  borderRadius: '16px',
   padding: '12px 20px',
   textDecoration: 'none',
 }
