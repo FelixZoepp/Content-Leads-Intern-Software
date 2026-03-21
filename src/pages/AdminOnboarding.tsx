@@ -98,10 +98,20 @@ export default function AdminOnboarding() {
 
   // 3-month history: each month has marketing + sales + finance KPIs
   const [history, setHistory] = useState([
-    { label: "Vor 3 Monaten", impressions: "", likes: "", comments: "", newFollowers: "", callsMade: "", callsReached: "", callsInterested: "", leadsTotal: "", leadsQualified: "", appointments: "", settingsPlanned: "", settingsHeld: "", closingsPlanned: "", closingsHeld: "", closings: "", deals: "", revenue: "", cashCollected: "", dealVolume: "" },
-    { label: "Vor 2 Monaten", impressions: "", likes: "", comments: "", newFollowers: "", callsMade: "", callsReached: "", callsInterested: "", leadsTotal: "", leadsQualified: "", appointments: "", settingsPlanned: "", settingsHeld: "", closingsPlanned: "", closingsHeld: "", closings: "", deals: "", revenue: "", cashCollected: "", dealVolume: "" },
-    { label: "Letzter Monat", impressions: "", likes: "", comments: "", newFollowers: "", callsMade: "", callsReached: "", callsInterested: "", leadsTotal: "", leadsQualified: "", appointments: "", settingsPlanned: "", settingsHeld: "", closingsPlanned: "", closingsHeld: "", closings: "", deals: "", revenue: "", cashCollected: "", dealVolume: "" },
+    { label: "Vor 3 Monaten", impressions: "", likes: "", comments: "", newFollowers: "", leadsTotal: "", leadsQualified: "", callsMade: "", callsReached: "", callsInterested: "", appointments: "", settingsPlanned: "", settingsHeld: "", closingsPlanned: "", closingsHeld: "", closings: "", deals: "", revenue: "", dealVolume: "" },
+    { label: "Vor 2 Monaten", impressions: "", likes: "", comments: "", newFollowers: "", leadsTotal: "", leadsQualified: "", callsMade: "", callsReached: "", callsInterested: "", appointments: "", settingsPlanned: "", settingsHeld: "", closingsPlanned: "", closingsHeld: "", closings: "", deals: "", revenue: "", dealVolume: "" },
+    { label: "Letzter Monat", impressions: "", likes: "", comments: "", newFollowers: "", leadsTotal: "", leadsQualified: "", callsMade: "", callsReached: "", callsInterested: "", appointments: "", settingsPlanned: "", settingsHeld: "", closingsPlanned: "", closingsHeld: "", closings: "", deals: "", revenue: "", dealVolume: "" },
   ]);
+
+  // ICP customers
+  interface ICPCustomer { name: string; industry: string; hasPaid: boolean; daysToPayment: string; dealValue: string; }
+  const [icpCustomers, setIcpCustomers] = useState<ICPCustomer[]>([
+    { name: "", industry: "", hasPaid: false, daysToPayment: "", dealValue: "" },
+  ]);
+  const addIcpRow = () => setIcpCustomers(prev => [...prev, { name: "", industry: "", hasPaid: false, daysToPayment: "", dealValue: "" }]);
+  const removeIcpRow = (idx: number) => setIcpCustomers(prev => prev.filter((_, i) => i !== idx));
+  const updateIcp = (idx: number, key: keyof ICPCustomer, val: any) =>
+    setIcpCustomers(prev => prev.map((c, i) => i === idx ? { ...c, [key]: val } : c));
 
   const update = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
   const toggleUnknown = (k: string) => {
