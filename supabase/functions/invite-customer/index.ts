@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const DEFAULT_APP_URL = "https://social-stat-studio.lovable.app";
+const DEFAULT_APP_URL = "https://app.content-leads.de";
 const USER_LOOKUP_PAGE_SIZE = 100;
 
 function isExistingUserError(message?: string | null) {
