@@ -9,9 +9,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Loader2, Building2, Linkedin, BarChart3, Target, ChevronRight, ChevronLeft,
-  Sparkles, DollarSign, ShoppingBag, HelpCircle, Users, TrendingUp
+  Sparkles, DollarSign, ShoppingBag, HelpCircle, Users, TrendingUp, UserSearch
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import ICPAnalysisStep, { emptyICPClient, type ICPClient } from "@/components/admin/ICPAnalysisStep";
 
 interface ProfileSetupProps {
   onComplete: () => void;
