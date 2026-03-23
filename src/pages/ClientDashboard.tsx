@@ -1,19 +1,24 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useNavigate, Routes, Route } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { DashboardDataProvider, useDashboardData } from "@/hooks/useDashboardData";
 
-import TodayPage from "./client/TodayPage";
-import OverviewPage from "./client/OverviewPage";
-import MarketingPage from "./client/MarketingPage";
-import SalesPage from "./client/SalesPage";
+const TodayPage = lazy(() => import("./client/TodayPage"));
+const OverviewPage = lazy(() => import("./client/OverviewPage"));
+const MarketingPage = lazy(() => import("./client/MarketingPage"));
+const SalesPage = lazy(() => import("./client/SalesPage"));
+const FinancePage = lazy(() => import("./client/FinancePage"));
+const AIPage = lazy(() => import("./client/AIPage"));
+const CSATPage = lazy(() => import("./client/CSATPage"));
+const ReportsPage = lazy(() => import("./client/ReportsPage"));
 
-import FinancePage from "./client/FinancePage";
-import AIPage from "./client/AIPage";
-import CSATPage from "./client/CSATPage";
-import ReportsPage from "./client/ReportsPage";
+const SubPageLoader = () => (
+  <div className="flex items-center justify-center py-20">
+    <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+  </div>
+);
 
 function ClientDashboardInner() {
   const navigate = useNavigate();
@@ -21,7 +26,6 @@ function ClientDashboardInner() {
   const { tenant, loading } = useDashboardData();
 
   useEffect(() => {
-    // Only redirect after auth has fully loaded to avoid race conditions
     if (!authLoading && user && tenantId === null) {
       navigate("/onboarding");
     }
@@ -31,17 +35,18 @@ function ClientDashboardInner() {
 
   return (
     <DashboardLayout title="KPI Dashboard" subtitle={tenant?.company_name}>
-      <Routes>
-        <Route index element={<TodayPage />} />
-        <Route path="overview" element={<OverviewPage />} />
-        <Route path="marketing" element={<MarketingPage />} />
-        <Route path="sales" element={<SalesPage />} />
-        
-        <Route path="finance" element={<FinancePage />} />
-        <Route path="ai" element={<AIPage />} />
-        <Route path="csat" element={<CSATPage />} />
-        <Route path="reports" element={<ReportsPage />} />
-      </Routes>
+      <Suspense fallback={<SubPageLoader />}>
+        <Routes>
+          <Route index element={<TodayPage />} />
+          <Route path="overview" element={<OverviewPage />} />
+          <Route path="marketing" element={<MarketingPage />} />
+          <Route path="sales" element={<SalesPage />} />
+          <Route path="finance" element={<FinancePage />} />
+          <Route path="ai" element={<AIPage />} />
+          <Route path="csat" element={<CSATPage />} />
+          <Route path="reports" element={<ReportsPage />} />
+        </Routes>
+      </Suspense>
     </DashboardLayout>
   );
 }
