@@ -197,64 +197,124 @@ export function AdvisorReport() {
       ) : (
         <div className="space-y-4">
           {advisorData.map((advisor, idx) => (
-            <Card key={advisor.user_id} className="glass-card hover:border-primary/20 transition-colors">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary font-bold text-lg">
-                      {idx + 1}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">
-                        {advisor.full_name || "Unbenannt"}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <Badge variant="secondary" className="text-xs gap-1">
-                          <Users className="h-3 w-3" />
-                          {advisor.tenants.length} Kunden
-                        </Badge>
-                        <Badge variant="outline" className="text-xs gap-1">
-                          <FileText className="h-3 w-3" />
-                          {advisor.csatCount} Bewertungen
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-6 text-right">
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-0.5">CSAT Ø</p>
-                      <p className={`text-2xl font-bold ${getCsatColor(advisor.csatAvg)}`}>
-                        {advisor.csatAvg ? advisor.csatAvg.toFixed(1) : "–"}
-                        <span className="text-sm text-muted-foreground font-normal"> / 5</span>
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-0.5">NPS Ø</p>
-                      <p className={`text-2xl font-bold ${advisor.npsAvg >= 7 ? "text-green-400" : advisor.npsAvg >= 5 ? "text-yellow-400" : advisor.npsAvg > 0 ? "text-red-400" : "text-muted-foreground"}`}>
-                        {advisor.npsAvg ? advisor.npsAvg.toFixed(0) : "–"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {advisor.tenants.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-border/30">
-                    <p className="text-xs text-muted-foreground mb-1.5">Zugewiesene Kunden:</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {advisor.tenants.map(t => (
-                        <Badge key={t.id} variant="outline" className="text-xs">
-                          {t.company_name}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <AdvisorCard key={advisor.user_id} advisor={advisor} idx={idx} getCsatColor={getCsatColor} />
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+function AdvisorCard({ advisor, idx, getCsatColor }: { advisor: AdvisorData; idx: number; getCsatColor: (s: number) => string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Card className="glass-card hover:border-primary/20 transition-colors">
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary font-bold text-lg">
+              {idx + 1}
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground">
+                {advisor.full_name || "Unbenannt"}
+              </h3>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <Badge variant="secondary" className="text-xs gap-1">
+                  <Users className="h-3 w-3" />
+                  {advisor.tenants.length} Kunden
+                </Badge>
+                <Badge variant="outline" className="text-xs gap-1">
+                  <FileText className="h-3 w-3" />
+                  {advisor.csatCount} Bewertungen
+                </Badge>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6 text-right">
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5">CSAT Ø</p>
+              <p className={`text-2xl font-bold ${getCsatColor(advisor.csatAvg)}`}>
+                {advisor.csatAvg ? advisor.csatAvg.toFixed(1) : "–"}
+                <span className="text-sm text-muted-foreground font-normal"> / 5</span>
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5">NPS Ø</p>
+              <p className={`text-2xl font-bold ${advisor.npsAvg >= 7 ? "text-green-400" : advisor.npsAvg >= 5 ? "text-yellow-400" : advisor.npsAvg > 0 ? "text-red-400" : "text-muted-foreground"}`}>
+                {advisor.npsAvg ? advisor.npsAvg.toFixed(0) : "–"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {advisor.tenants.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-border/30">
+            <p className="text-xs text-muted-foreground mb-1.5">Zugewiesene Kunden:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {advisor.tenants.map(t => (
+                <Badge key={t.id} variant="outline" className="text-xs">
+                  {t.company_name}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {advisor.responses.length > 0 && (
+          <Collapsible open={open} onOpenChange={setOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-full mt-3 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+                <MessageSquare className="h-3.5 w-3.5" />
+                Einzelne Bewertungen anzeigen
+                {open ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <div className="rounded-lg border border-border/40 overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/30">
+                      <TableHead className="text-xs">Datum</TableHead>
+                      <TableHead className="text-xs">Kunde</TableHead>
+                      <TableHead className="text-xs">Bewerter</TableHead>
+                      <TableHead className="text-xs text-center">CSAT</TableHead>
+                      <TableHead className="text-xs text-center">NPS</TableHead>
+                      <TableHead className="text-xs">Kommentar</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {advisor.responses.map((r, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="text-xs whitespace-nowrap">
+                          {r.created_at ? format(new Date(r.created_at), "dd.MM.yyyy", { locale: de }) : "–"}
+                        </TableCell>
+                        <TableCell className="text-xs font-medium">{r.company_name}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{r.respondent_email || "Anonym"}</TableCell>
+                        <TableCell className="text-center">
+                          {r.csat_1_5 != null ? (
+                            <span className={`text-xs font-semibold ${getCsatColor(r.csat_1_5)}`}>{r.csat_1_5}/5</span>
+                          ) : "–"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {r.nps_0_10 != null ? (
+                            <span className={`text-xs font-semibold ${r.nps_0_10 >= 9 ? "text-green-400" : r.nps_0_10 >= 7 ? "text-yellow-400" : "text-red-400"}`}>{r.nps_0_10}</span>
+                          ) : "–"}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">
+                          {r.comment || "–"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+      </CardContent>
+    </Card>
   );
 }
