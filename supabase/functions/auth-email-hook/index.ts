@@ -217,12 +217,21 @@ async function handleWebhook(req: Request): Promise<Response> {
     )
   }
 
+  const appUrl = "https://app.content-leads.de"
+  const authUrl = new URL(payload.data.url)
+  const hashParams = authUrl.hash.startsWith('#')
+    ? new URLSearchParams(authUrl.hash.slice(1))
+    : new URLSearchParams()
+
+  const actionType = hashParams.get('type') ?? emailType
+  const confirmationUrl = `${appUrl}/set-password#${hashParams.toString() || `type=${actionType}`}`
+
   // Build template props from payload.data (HookData structure)
   const templateProps = {
     siteName: SITE_NAME,
-    siteUrl: `https://${ROOT_DOMAIN}`,
+    siteUrl: appUrl,
     recipient: payload.data.email,
-    confirmationUrl: payload.data.url,
+    confirmationUrl,
     token: payload.data.token,
     email: payload.data.email,
     newEmail: payload.data.new_email,
