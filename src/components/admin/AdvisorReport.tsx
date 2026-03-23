@@ -84,7 +84,7 @@ export function AdvisorReport() {
 
     const { data: csatData } = await supabase
       .from("csat_responses")
-      .select("tenant_id, csat_1_5, nps_0_10")
+      .select("tenant_id, csat_1_5, nps_0_10, respondent_email, comment, created_at")
       .gte("created_at", monthStart.toISOString())
       .lte("created_at", monthEnd.toISOString());
 
@@ -97,6 +97,16 @@ export function AdvisorReport() {
       const csatScores = advisorCsat.filter(c => c.csat_1_5 != null).map(c => c.csat_1_5!);
       const npsScores = advisorCsat.filter(c => c.nps_0_10 != null).map(c => c.nps_0_10!);
 
+      const responses: CsatDetail[] = advisorCsat.map(c => ({
+        tenant_id: c.tenant_id,
+        company_name: advisorTenants.find(t => t.id === c.tenant_id)?.company_name || "–",
+        respondent_email: c.respondent_email,
+        csat_1_5: c.csat_1_5,
+        nps_0_10: c.nps_0_10,
+        comment: c.comment,
+        created_at: c.created_at,
+      }));
+
       return {
         user_id: profile.user_id,
         full_name: profile.full_name,
@@ -104,6 +114,7 @@ export function AdvisorReport() {
         csatAvg: csatScores.length ? csatScores.reduce((a, b) => a + b, 0) / csatScores.length : 0,
         npsAvg: npsScores.length ? npsScores.reduce((a, b) => a + b, 0) / npsScores.length : 0,
         csatCount: advisorCsat.length,
+        responses,
       };
     });
 
