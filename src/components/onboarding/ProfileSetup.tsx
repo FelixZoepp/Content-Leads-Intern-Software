@@ -35,6 +35,8 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const [loading, setLoading] = useState(false);
   const [generatingAnalysis, setGeneratingAnalysis] = useState(false);
   const [unknowns, setUnknowns] = useState<Set<string>>(new Set());
+  const [icpClients, setIcpClients] = useState<ICPClient[]>(Array.from({ length: 10 }, emptyICPClient));
+  const [icpShowResults, setIcpShowResults] = useState(false);
   const [formData, setFormData] = useState({
     // Step 0: Firma
     companyName: "",
