@@ -24,6 +24,7 @@ const STEPS = [
   { icon: ShoppingBag, label: "Angebot" },
   { icon: DollarSign, label: "Finanzen" },
   { icon: Users, label: "Kunden" },
+  { icon: UserSearch, label: "ICP" },
   { icon: TrendingUp, label: "Vertrieb" },
   { icon: BarChart3, label: "KPIs" },
   { icon: Target, label: "Ziele" },
