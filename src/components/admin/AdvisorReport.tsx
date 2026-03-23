@@ -5,9 +5,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, Users, TrendingUp, Download, FileText } from "lucide-react";
+import { Star, Users, TrendingUp, Download, FileText, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { de } from "date-fns/locale";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
+interface CsatDetail {
+  tenant_id: string;
+  company_name: string;
+  respondent_email: string | null;
+  csat_1_5: number | null;
+  nps_0_10: number | null;
+  comment: string | null;
+  created_at: string | null;
+}
 
 interface AdvisorData {
   user_id: string;
@@ -16,6 +28,7 @@ interface AdvisorData {
   csatAvg: number;
   npsAvg: number;
   csatCount: number;
+  responses: CsatDetail[];
 }
 
 export function AdvisorReport() {
