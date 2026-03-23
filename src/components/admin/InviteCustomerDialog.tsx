@@ -16,7 +16,7 @@ const INDUSTRIES = [
   "Handwerk", "Beratung", "Reinigung", "Recruiting", "SaaS / Software",
   "E-Commerce", "Medizin", "Immobilien", "Coaching", "Agentur", "Sonstige",
 ];
-const DURATIONS = ["1 Monat", "3 Monate", "6 Monate", "12 Monate", "16 Monate", "24 Monate"];
+
 
 export function InviteCustomerDialog({ onSuccess }: Props) {
   const [open, setOpen] = useState(false);
