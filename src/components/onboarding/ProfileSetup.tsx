@@ -683,8 +683,8 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         </div>
       )}
 
-      {/* Step 7: Ziele */}
-      {step === 7 && (
+      {/* Step 8: Ziele */}
+      {step === 8 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Ziele & Erwartungen</h3>
           <div className="space-y-1.5">
