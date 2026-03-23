@@ -56,9 +56,7 @@ export function InviteCustomerDialog({ onSuccess }: Props) {
 
       toast({
         title: "Kunde angelegt ✓",
-        description: data.invited
-          ? `Einladungs-E-Mail an ${email} gesendet`
-          : `Kundenkonto für bestehenden Benutzer erstellt`,
+        description: data.message || `Einladungs-E-Mail an ${email} gesendet`,
       });
 
       reset();
