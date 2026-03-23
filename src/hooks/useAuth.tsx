@@ -39,7 +39,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        if (session?.user) {
+      if (session?.user) {
+          setLoading(true);
           loadUserRole(session.user.id).finally(() => setLoading(false));
         } else {
           setUserRole(null);
