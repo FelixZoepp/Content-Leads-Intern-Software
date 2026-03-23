@@ -31,6 +31,12 @@ function ClientDashboardInner() {
     }
   }, [user, tenantId, authLoading]);
 
+  useEffect(() => {
+    if (!loading && tenant && !tenant.onboarding_completed) {
+      navigate("/onboarding");
+    }
+  }, [loading, tenant]);
+
   if (loading) return <DashboardSkeleton />;
 
   return (
