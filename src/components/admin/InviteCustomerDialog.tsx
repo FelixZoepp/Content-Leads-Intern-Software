@@ -26,9 +26,7 @@ export function InviteCustomerDialog({ onSuccess }: Props) {
   const [email, setEmail] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [contactName, setContactName] = useState("");
-  const [industry, setIndustry] = useState("");
-  const [contractDuration, setContractDuration] = useState("");
-  const [offerPrice, setOfferPrice] = useState("");
+  const [industry, setIndustry] = "";
 
   const reset = () => {
     setEmail("");
