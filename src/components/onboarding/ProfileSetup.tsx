@@ -658,8 +658,8 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         </div>
       )}
 
-      {/* Step 6: KPIs */}
-      {step === 6 && (
+      {/* Step 7: KPIs */}
+      {step === 7 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Aktuelle Kennzahlen</h3>
           <p className="text-sm text-muted-foreground">Schätzwerte reichen – oder klicke „Weiß ich nicht".</p>
