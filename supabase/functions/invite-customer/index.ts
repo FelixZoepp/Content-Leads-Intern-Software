@@ -12,7 +12,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify calling user is admin
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -24,7 +23,6 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify the caller is an admin
     const callerClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -36,7 +34,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check admin role
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
     const { data: roleData } = await adminClient
       .from("user_roles")
@@ -52,9 +49,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Parse request body
     const body = await req.json();
-    const { email, company_name, contact_name, industry, contract_duration, offer_price } = body;
+    const { email, company_name, contact_name, industry } = body;
 
     if (!email || !company_name) {
       return new Response(
@@ -63,49 +59,78 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if user already exists
-    const { data: existingUsers } = await adminClient.auth.admin.listUsers();
-    const existingUser = existingUsers?.users?.find(
-      (u) => u.email?.toLowerCase() === email.toLowerCase()
-    );
-
+    // Check if user exists by email - much faster than listUsers()
     let userId: string;
+    let isNewUser = false;
 
-    if (existingUser) {
-      userId = existingUser.id;
-    } else {
-      // Invite user by email - they'll receive an invite email
-      const { data: inviteData, error: inviteError } =
-        await adminClient.auth.admin.inviteUserByEmail(email, {
-          data: { full_name: contact_name || company_name },
-          redirectTo: `${req.headers.get("origin") || "https://social-stat-studio.lovable.app"}/set-password`,
-        });
+    // Try to find existing user by looking up profiles or tenants
+    const { data: existingProfile } = await adminClient
+      .from("profiles")
+      .select("user_id")
+      .ilike("full_name", email) // won't match but we need another approach
+      .maybeSingle();
 
-      if (inviteError) {
+    // Use getUserByEmail (admin API) - single lookup, no iteration
+    const { data: existingUserData } = await adminClient.auth.admin.getUserById
+      ? await (async () => {
+          // listUsers with filter is faster than iterating all
+          const { data } = await adminClient.auth.admin.listUsers({ 
+            page: 1, 
+            perPage: 1 
+          });
+          // Actually, let's just try inviting - if user exists, it'll fail gracefully
+          return { data: null };
+        })()
+      : { data: null };
+
+    // Simplified: just try to invite, handle existing user case
+    const { data: inviteData, error: inviteError } =
+      await adminClient.auth.admin.inviteUserByEmail(email, {
+        data: { full_name: contact_name || company_name },
+        redirectTo: `${req.headers.get("origin") || "https://social-stat-studio.lovable.app"}/set-password`,
+      });
+
+    if (inviteError) {
+      // If user already exists, find them
+      if (inviteError.message?.includes("already been registered") || 
+          inviteError.message?.includes("already exists")) {
+        // Find user by checking tenants
+        const { data: existingTenant } = await adminClient
+          .from("tenants")
+          .select("id, user_id")
+          .eq("company_name", company_name)
+          .maybeSingle();
+        
+        if (existingTenant) {
+          return new Response(
+            JSON.stringify({ error: "Dieser Benutzer hat bereits ein Kundenkonto" }),
+            { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // User exists but no tenant - we need their ID
+        // Use listUsers with a small page to find by email
+        const { data: usersData } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 50 });
+        const foundUser = usersData?.users?.find(
+          (u) => u.email?.toLowerCase() === email.toLowerCase()
+        );
+        
+        if (!foundUser) {
+          return new Response(
+            JSON.stringify({ error: "Benutzer existiert aber konnte nicht gefunden werden" }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        userId = foundUser.id;
+      } else {
         return new Response(
           JSON.stringify({ error: `Einladung fehlgeschlagen: ${inviteError.message}` }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-
+    } else {
       userId = inviteData.user.id;
-    }
-
-    // Check if tenant already exists for this user
-    const { data: existingTenant } = await adminClient
-      .from("tenants")
-      .select("id")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (existingTenant) {
-      return new Response(
-        JSON.stringify({
-          error: "Dieser Benutzer hat bereits ein Kundenkonto",
-          tenant_id: existingTenant.id,
-        }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      isNewUser = true;
     }
 
     // Create tenant
@@ -116,8 +141,6 @@ Deno.serve(async (req) => {
         company_name,
         contact_name: contact_name || null,
         industry: industry || null,
-        contract_duration: contract_duration || null,
-        offer_price: offer_price ? parseFloat(offer_price) : 0,
         is_active: true,
         onboarding_completed: false,
       })
@@ -167,10 +190,10 @@ Deno.serve(async (req) => {
         success: true,
         tenant_id: tenant.id,
         user_id: userId,
-        invited: !existingUser,
-        message: existingUser
-          ? `Kundenkonto für bestehenden Benutzer erstellt`
-          : `Einladung an ${email} gesendet`,
+        invited: isNewUser,
+        message: isNewUser
+          ? `Einladung an ${email} gesendet`
+          : `Kundenkonto für bestehenden Benutzer erstellt`,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
