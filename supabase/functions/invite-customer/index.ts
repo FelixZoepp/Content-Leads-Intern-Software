@@ -6,6 +6,79 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const DEFAULT_APP_URL = "https://social-stat-studio.lovable.app";
+const USER_LOOKUP_PAGE_SIZE = 100;
+
+function isExistingUserError(message?: string | null) {
+  return Boolean(
+    message?.includes("already been registered") ||
+      message?.includes("already exists") ||
+      message?.includes("email_exists")
+  );
+}
+
+async function findUserByEmail(adminClient: ReturnType<typeof createClient>, email: string) {
+  const normalizedEmail = email.toLowerCase();
+
+  for (let page = 1; page <= 20; page++) {
+    const { data, error } = await adminClient.auth.admin.listUsers({
+      page,
+      perPage: USER_LOOKUP_PAGE_SIZE,
+    });
+
+    if (error) throw error;
+
+    const foundUser = data.users.find(
+      (user) => user.email?.toLowerCase() === normalizedEmail
+    );
+
+    if (foundUser) return foundUser;
+    if (data.users.length < USER_LOOKUP_PAGE_SIZE) break;
+  }
+
+  return null;
+}
+
+function dispatchInvitationWebhooks(
+  adminClient: ReturnType<typeof createClient>,
+  payload: { tenant_id: string; company_name: string; email: string; contact_name: string | null }
+) {
+  const task = (async () => {
+    const { data: webhookEndpoints } = await adminClient
+      .from("webhook_endpoints")
+      .select("url")
+      .eq("event_type", "customer_invited")
+      .eq("is_active", true);
+
+    if (!webhookEndpoints?.length) return;
+
+    const webhookPayload = JSON.stringify({
+      event: "customer_invited",
+      timestamp: new Date().toISOString(),
+      data: payload,
+    });
+
+    await Promise.allSettled(
+      webhookEndpoints.map((endpoint) =>
+        fetch(endpoint.url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: webhookPayload,
+          signal: AbortSignal.timeout(4000),
+        })
+      )
+    );
+  })().catch((error) => {
+    console.error("Customer invitation webhooks failed:", error);
+  });
+
+  const runtime = globalThis as typeof globalThis & {
+    EdgeRuntime?: { waitUntil?: (promise: Promise<unknown>) => void };
+  };
+
+  runtime.EdgeRuntime?.waitUntil?.(task);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -51,6 +124,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const { email, company_name, contact_name, industry } = body;
+    const redirectTo = `${req.headers.get("origin") || DEFAULT_APP_URL}/set-password`;
 
     if (!email || !company_name) {
       return new Response(
@@ -59,48 +133,23 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if user exists by email - much faster than listUsers()
     let userId: string;
-    let isNewUser = false;
+    let invitationSent = false;
 
-    // Try to find existing user by looking up profiles or tenants
-    const { data: existingProfile } = await adminClient
-      .from("profiles")
-      .select("user_id")
-      .ilike("full_name", email) // won't match but we need another approach
-      .maybeSingle();
-
-    // Use getUserByEmail (admin API) - single lookup, no iteration
-    const { data: existingUserData } = await adminClient.auth.admin.getUserById
-      ? await (async () => {
-          // listUsers with filter is faster than iterating all
-          const { data } = await adminClient.auth.admin.listUsers({ 
-            page: 1, 
-            perPage: 1 
-          });
-          // Actually, let's just try inviting - if user exists, it'll fail gracefully
-          return { data: null };
-        })()
-      : { data: null };
-
-    // Simplified: just try to invite, handle existing user case
     const { data: inviteData, error: inviteError } =
       await adminClient.auth.admin.inviteUserByEmail(email, {
         data: { full_name: contact_name || company_name },
-        redirectTo: `${req.headers.get("origin") || "https://social-stat-studio.lovable.app"}/set-password`,
+        redirectTo,
       });
 
     if (inviteError) {
-      // If user already exists, find them
-      if (inviteError.message?.includes("already been registered") || 
-          inviteError.message?.includes("already exists")) {
-        // Find user by checking tenants
+      if (isExistingUserError(inviteError.message)) {
         const { data: existingTenant } = await adminClient
           .from("tenants")
           .select("id, user_id")
           .eq("company_name", company_name)
           .maybeSingle();
-        
+
         if (existingTenant) {
           return new Response(
             JSON.stringify({ error: "Dieser Benutzer hat bereits ein Kundenkonto" }),
@@ -108,20 +157,29 @@ Deno.serve(async (req) => {
           );
         }
 
-        // User exists but no tenant - we need their ID
-        // Use listUsers with a small page to find by email
-        const { data: usersData } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 50 });
-        const foundUser = usersData?.users?.find(
-          (u) => u.email?.toLowerCase() === email.toLowerCase()
-        );
-        
-        if (!foundUser) {
+        const existingUser = await findUserByEmail(adminClient, email);
+
+        if (!existingUser) {
           return new Response(
-            JSON.stringify({ error: "Benutzer existiert aber konnte nicht gefunden werden" }),
+            JSON.stringify({ error: "Benutzer existiert, konnte aber nicht geladen werden" }),
             { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
-        userId = foundUser.id;
+
+        const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!);
+        const { error: resetError } = await anonClient.auth.resetPasswordForEmail(email, {
+          redirectTo,
+        });
+
+        if (resetError) {
+          return new Response(
+            JSON.stringify({ error: `Setup-E-Mail fehlgeschlagen: ${resetError.message}` }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        userId = existingUser.id;
+        invitationSent = true;
       } else {
         return new Response(
           JSON.stringify({ error: `Einladung fehlgeschlagen: ${inviteError.message}` }),
@@ -130,7 +188,20 @@ Deno.serve(async (req) => {
       }
     } else {
       userId = inviteData.user.id;
-      isNewUser = true;
+      invitationSent = true;
+    }
+
+    const { data: existingTenantByUser } = await adminClient
+      .from("tenants")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (existingTenantByUser) {
+      return new Response(
+        JSON.stringify({ error: "Dieser Benutzer hat bereits ein Kundenkonto" }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Create tenant
@@ -161,39 +232,23 @@ Deno.serve(async (req) => {
       company_name,
     }, { onConflict: "user_id" });
 
-    // Fire customer_invited webhook
-    const { data: webhookEndpoints } = await adminClient
-      .from("webhook_endpoints")
-      .select("url")
-      .eq("event_type", "customer_invited")
-      .eq("is_active", true);
-
-    if (webhookEndpoints && webhookEndpoints.length > 0) {
-      const webhookPayload = JSON.stringify({
-        event: "customer_invited",
-        timestamp: new Date().toISOString(),
-        data: { tenant_id: tenant.id, company_name, email, contact_name },
-      });
-      for (const ep of webhookEndpoints) {
-        try {
-          await fetch(ep.url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: webhookPayload,
-          });
-        } catch (e) { console.error("Webhook failed:", e); }
-      }
-    }
+    dispatchInvitationWebhooks(adminClient, {
+      tenant_id: tenant.id,
+      company_name,
+      email,
+      contact_name: contact_name || null,
+    });
 
     return new Response(
       JSON.stringify({
         success: true,
         tenant_id: tenant.id,
         user_id: userId,
-        invited: isNewUser,
-        message: isNewUser
-          ? `Einladung an ${email} gesendet`
-          : `Kundenkonto für bestehenden Benutzer erstellt`,
+        invited: !inviteError,
+        email_sent: invitationSent,
+        message: inviteError
+          ? `Setup-E-Mail an ${email} gesendet`
+          : `Einladung an ${email} gesendet`,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
