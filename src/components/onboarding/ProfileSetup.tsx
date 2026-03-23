@@ -9,9 +9,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Loader2, Building2, Linkedin, BarChart3, Target, ChevronRight, ChevronLeft,
-  Sparkles, DollarSign, ShoppingBag, HelpCircle, Users, TrendingUp
+  Sparkles, DollarSign, ShoppingBag, HelpCircle, Users, TrendingUp, UserSearch
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import ICPAnalysisStep, { emptyICPClient, type ICPClient } from "@/components/admin/ICPAnalysisStep";
 
 interface ProfileSetupProps {
   onComplete: () => void;
@@ -23,6 +24,7 @@ const STEPS = [
   { icon: ShoppingBag, label: "Angebot" },
   { icon: DollarSign, label: "Finanzen" },
   { icon: Users, label: "Kunden" },
+  { icon: UserSearch, label: "ICP" },
   { icon: TrendingUp, label: "Vertrieb" },
   { icon: BarChart3, label: "KPIs" },
   { icon: Target, label: "Ziele" },
@@ -33,6 +35,8 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const [loading, setLoading] = useState(false);
   const [generatingAnalysis, setGeneratingAnalysis] = useState(false);
   const [unknowns, setUnknowns] = useState<Set<string>>(new Set());
+  const [icpClients, setIcpClients] = useState<ICPClient[]>(Array.from({ length: 10 }, emptyICPClient));
+  const [icpShowResults, setIcpShowResults] = useState(false);
   const [formData, setFormData] = useState({
     // Step 0: Firma
     companyName: "",
@@ -284,6 +288,35 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
       }
 
       await refreshTenant();
+
+      // Save ICP customers
+      const icpValid = icpClients.filter(c => c.firma && c.branche);
+      if (icpValid.length > 0) {
+        const icpRows = icpValid.map((c, i) => ({
+          tenant_id: data.id,
+          customer_name: c.firma,
+          contact_name: c.name || null,
+          industry: c.branche || null,
+          employee_count: c.mitarbeiter || null,
+          annual_revenue: c.jahresumsatz || null,
+          lead_source: c.leadQuelle || null,
+          close_duration: c.closeDauer || null,
+          deal_value: parseFloat(c.dealValue) || null,
+          payment_status: c.gezahlt || null,
+          payment_speed: c.zahlungsSpeed || null,
+          has_paid: c.gezahlt === "Ja, komplett",
+          collaboration_score: c.zusammenarbeit || 0,
+          result_score: c.ergebnis || 0,
+          problem_awareness: c.problemBewusstsein || null,
+          notes: c.notizen || null,
+          close_date: c.closeDate || null,
+          onboarding_date: c.onboardingDate || null,
+          project_start_date: c.projectStartDate || null,
+          project_end_date: c.projectEndDate || null,
+          sort_order: i,
+        }));
+        await supabase.from("icp_customers").insert(icpRows);
+      }
 
       setGeneratingAnalysis(true);
       try {
@@ -606,8 +639,18 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         </div>
       )}
 
-      {/* Step 5: Vertrieb & Kosten – CAC auto-berechnet */}
+      {/* Step 5: ICP-Analyse */}
       {step === 5 && (
+        <ICPAnalysisStep
+          clients={icpClients}
+          setClients={setIcpClients}
+          showResults={icpShowResults}
+          setShowResults={setIcpShowResults}
+        />
+      )}
+
+      {/* Step 6: Vertrieb & Kosten – CAC auto-berechnet */}
+      {step === 6 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Vertrieb & Personalkosten</h3>
 
@@ -644,8 +687,8 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         </div>
       )}
 
-      {/* Step 6: KPIs */}
-      {step === 6 && (
+      {/* Step 7: KPIs */}
+      {step === 7 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Aktuelle Kennzahlen</h3>
           <p className="text-sm text-muted-foreground">Schätzwerte reichen – oder klicke „Weiß ich nicht".</p>
@@ -669,8 +712,8 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         </div>
       )}
 
-      {/* Step 7: Ziele */}
-      {step === 7 && (
+      {/* Step 8: Ziele */}
+      {step === 8 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Ziele & Erwartungen</h3>
           <div className="space-y-1.5">
