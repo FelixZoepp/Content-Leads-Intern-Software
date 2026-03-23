@@ -11,7 +11,7 @@ import ClientDashboard from "./pages/ClientDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Onboarding from "./pages/Onboarding";
 import SetPassword from "./pages/SetPassword";
-import AdminOnboarding from "./pages/AdminOnboarding";
+
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,14 +57,6 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Onboarding />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/onboarding"
-              element={
-                <ProtectedRoute>
-                  <AdminOnboarding />
                 </ProtectedRoute>
               }
             />
