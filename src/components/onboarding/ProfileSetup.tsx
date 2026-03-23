@@ -289,6 +289,35 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
 
       await refreshTenant();
 
+      // Save ICP customers
+      const icpValid = icpClients.filter(c => c.firma && c.branche);
+      if (icpValid.length > 0) {
+        const icpRows = icpValid.map((c, i) => ({
+          tenant_id: data.id,
+          customer_name: c.firma,
+          contact_name: c.name || null,
+          industry: c.branche || null,
+          employee_count: c.mitarbeiter || null,
+          annual_revenue: c.jahresumsatz || null,
+          lead_source: c.leadQuelle || null,
+          close_duration: c.closeDauer || null,
+          deal_value: parseFloat(c.dealValue) || null,
+          payment_status: c.gezahlt || null,
+          payment_speed: c.zahlungsSpeed || null,
+          has_paid: c.gezahlt === "Ja, komplett",
+          collaboration_score: c.zusammenarbeit || 0,
+          result_score: c.ergebnis || 0,
+          problem_awareness: c.problemBewusstsein || null,
+          notes: c.notizen || null,
+          close_date: c.closeDate || null,
+          onboarding_date: c.onboardingDate || null,
+          project_start_date: c.projectStartDate || null,
+          project_end_date: c.projectEndDate || null,
+          sort_order: i,
+        }));
+        await supabase.from("icp_customers").insert(icpRows);
+      }
+
       setGeneratingAnalysis(true);
       try {
         await supabase.functions.invoke("generate-summary", {
