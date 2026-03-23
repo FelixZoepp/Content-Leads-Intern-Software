@@ -31,8 +31,16 @@ const Landing = () => {
 
   useEffect(() => {
     const hash = window.location.hash;
-    if (hash && (hash.includes("type=recovery") || hash.includes("type=invite") || hash.includes("type=signup"))) {
-      navigate(`/set-password${hash}`, { replace: true });
+    const search = window.location.search;
+    const combinedParams = `${search}${hash}`;
+
+    if (
+      combinedParams.includes("type=recovery") ||
+      combinedParams.includes("type=invite") ||
+      combinedParams.includes("type=signup") ||
+      combinedParams.includes("access_token=")
+    ) {
+      navigate(`/set-password${hash || search}`, { replace: true });
     }
   }, [navigate]);
 
