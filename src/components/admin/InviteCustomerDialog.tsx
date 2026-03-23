@@ -17,7 +17,6 @@ const INDUSTRIES = [
   "E-Commerce", "Medizin", "Immobilien", "Coaching", "Agentur", "Sonstige",
 ];
 
-
 export function InviteCustomerDialog({ onSuccess }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -26,15 +25,13 @@ export function InviteCustomerDialog({ onSuccess }: Props) {
   const [email, setEmail] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [contactName, setContactName] = useState("");
-  const [industry, setIndustry] = "";
+  const [industry, setIndustry] = useState("");
 
   const reset = () => {
     setEmail("");
     setCompanyName("");
     setContactName("");
     setIndustry("");
-    setContractDuration("");
-    setOfferPrice("");
   };
 
   const handleInvite = async () => {
@@ -51,8 +48,6 @@ export function InviteCustomerDialog({ onSuccess }: Props) {
           company_name: companyName.trim(),
           contact_name: contactName.trim() || null,
           industry: industry || null,
-          contract_duration: contractDuration || null,
-          offer_price: offerPrice || null,
         },
       });
 
@@ -94,7 +89,7 @@ export function InviteCustomerDialog({ onSuccess }: Props) {
             Neuen Kunden einladen
           </DialogTitle>
           <DialogDescription>
-            Der Kunde erhält eine E-Mail mit einem Login-Link und kann sofort loslegen.
+            Der Kunde erhält eine E-Mail mit einem Login-Link und durchläuft das Onboarding selbstständig.
           </DialogDescription>
         </DialogHeader>
 
@@ -127,46 +122,23 @@ export function InviteCustomerDialog({ onSuccess }: Props) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Branche</Label>
-              <Select value={industry} onValueChange={setIndustry}>
-                <SelectTrigger><SelectValue placeholder="Wählen" /></SelectTrigger>
-                <SelectContent>
-                  {INDUSTRIES.map((i) => (
-                    <SelectItem key={i} value={i}>{i}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Laufzeit</Label>
-              <Select value={contractDuration} onValueChange={setContractDuration}>
-                <SelectTrigger><SelectValue placeholder="Wählen" /></SelectTrigger>
-                <SelectContent>
-                  {DURATIONS.map((d) => (
-                    <SelectItem key={d} value={d}>{d}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
           <div className="space-y-1.5">
-            <Label>Angebotspreis (€)</Label>
-            <Input
-              type="number"
-              value={offerPrice}
-              onChange={(e) => setOfferPrice(e.target.value)}
-              placeholder="5000"
-            />
+            <Label>Branche</Label>
+            <Select value={industry} onValueChange={setIndustry}>
+              <SelectTrigger><SelectValue placeholder="Wählen" /></SelectTrigger>
+              <SelectContent>
+                {INDUSTRIES.map((i) => (
+                  <SelectItem key={i} value={i}>{i}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Abbrechen</Button>
             <Button onClick={handleInvite} disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Mail className="h-4 w-4 mr-1" />}
-              Einladen & Anlegen
+              Einladen
             </Button>
           </div>
         </div>
