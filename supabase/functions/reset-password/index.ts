@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     // Use anon client to send password reset (no admin needed)
     const client = createClient(supabaseUrl, anonKey);
 
-    const origin = req.headers.get("origin") || "https://social-stat-studio.lovable.app";
+    const origin = req.headers.get("origin") || "https://app.content-leads.de";
     const { error } = await client.auth.resetPasswordForEmail(email, {
       redirectTo: `${origin}/set-password`,
     });
