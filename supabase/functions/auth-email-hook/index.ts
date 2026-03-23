@@ -218,13 +218,12 @@ async function handleWebhook(req: Request): Promise<Response> {
   }
 
   const appUrl = "https://app.content-leads.de"
+  
+  // Use the original Supabase verification URL so the token gets verified server-side.
+  // Just ensure redirect_to points to our custom domain.
   const authUrl = new URL(payload.data.url)
-  const hashParams = authUrl.hash.startsWith('#')
-    ? new URLSearchParams(authUrl.hash.slice(1))
-    : new URLSearchParams()
-
-  const actionType = hashParams.get('type') ?? emailType
-  const confirmationUrl = `${appUrl}/set-password#${hashParams.toString() || `type=${actionType}`}`
+  authUrl.searchParams.set('redirect_to', `${appUrl}/set-password`)
+  const confirmationUrl = authUrl.toString()
 
   // Build template props from payload.data (HookData structure)
   const templateProps = {
