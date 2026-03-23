@@ -610,8 +610,18 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         </div>
       )}
 
-      {/* Step 5: Vertrieb & Kosten – CAC auto-berechnet */}
+      {/* Step 5: ICP-Analyse */}
       {step === 5 && (
+        <ICPAnalysisStep
+          clients={icpClients}
+          setClients={setIcpClients}
+          showResults={icpShowResults}
+          setShowResults={setIcpShowResults}
+        />
+      )}
+
+      {/* Step 6: Vertrieb & Kosten – CAC auto-berechnet */}
+      {step === 6 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Vertrieb & Personalkosten</h3>
 
