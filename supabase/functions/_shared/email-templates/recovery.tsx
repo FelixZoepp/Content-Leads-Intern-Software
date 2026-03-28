@@ -24,20 +24,20 @@ export const RecoveryEmail = ({
 }: RecoveryEmailProps) => (
   <Html lang="de" dir="ltr">
     <Head />
-    <Preview>Passwort zurücksetzen – ContentLeads</Preview>
+    <Preview>Passwort festlegen – ContentLeads</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Passwort zurücksetzen</Heading>
+        <Heading style={h1}>Passwort festlegen</Heading>
         <Text style={text}>
-          Sie haben angefordert, Ihr Passwort für ContentLeads zurückzusetzen.
-          Klicken Sie auf den Button, um ein neues Passwort festzulegen.
+          Klicken Sie auf den Button, um Ihr Passwort für Ihren ContentLeads-Account
+          festzulegen und loszulegen.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Neues Passwort setzen
+          Passwort festlegen
         </Button>
         <Text style={footer}>
-          Falls Sie kein neues Passwort angefordert haben, können Sie diese
-          E-Mail ignorieren. Ihr Passwort bleibt unverändert.
+          Falls Sie diese E-Mail nicht erwartet haben, können Sie sie
+          einfach ignorieren.
         </Text>
       </Container>
     </Body>
