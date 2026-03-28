@@ -121,6 +121,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   useEffect(() => { sessionStorage.setItem(STORAGE_ICP_KEY, JSON.stringify(icpClients)); }, [icpClients]);
   useEffect(() => { sessionStorage.setItem(STORAGE_STEP_KEY, JSON.stringify(step)); }, [step]);
   useEffect(() => { sessionStorage.setItem(STORAGE_KEY + "_unknowns", JSON.stringify([...unknowns])); }, [unknowns]);
+  useEffect(() => { sessionStorage.setItem(STORAGE_KEY + "_products", JSON.stringify(productPalette)); }, [productPalette]);
 
   const update = (key: string, value: string) =>
     setFormData((prev) => ({ ...prev, [key]: value }));
