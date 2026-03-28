@@ -65,7 +65,7 @@ export function useGeneratedAssets() {
   const loadAssets = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("generated_assets")
       .select("*")
       .eq("user_id", user.id)
