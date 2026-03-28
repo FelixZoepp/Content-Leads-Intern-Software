@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Loader2, Building2, Linkedin, BarChart3, Target, ChevronRight, ChevronLeft,
-  Sparkles, DollarSign, ShoppingBag, HelpCircle, Users, TrendingUp, UserSearch
+  Sparkles, DollarSign, ShoppingBag, HelpCircle, Users, TrendingUp, UserSearch, Package
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import ICPAnalysisStep, { emptyICPClient, type ICPClient } from "@/components/admin/ICPAnalysisStep";
@@ -21,7 +21,7 @@ interface ProfileSetupProps {
 const STEPS = [
   { icon: Building2, label: "Firma" },
   { icon: Linkedin, label: "LinkedIn" },
-  { icon: ShoppingBag, label: "Angebot" },
+  { icon: Package, label: "Paket & Produkte" },
   { icon: DollarSign, label: "Finanzen" },
   { icon: Users, label: "Kunden" },
   { icon: UserSearch, label: "ICP" },
@@ -33,6 +33,7 @@ const STEPS = [
 const STORAGE_KEY = "onboarding_form";
 const STORAGE_ICP_KEY = "onboarding_icp";
 const STORAGE_STEP_KEY = "onboarding_step";
+const STORAGE_PRODUCTS_KEY = "onboarding_products";
 
 function loadFromStorage<T>(key: string, fallback: T): T {
   try {
@@ -40,6 +41,16 @@ function loadFromStorage<T>(key: string, fallback: T): T {
     return raw ? JSON.parse(raw) : fallback;
   } catch { return fallback; }
 }
+
+interface ProductEntry {
+  name: string;
+  price: string;
+  type: string; // "einmalig" | "retainer"
+  retainerMonths: string;
+  description: string;
+}
+
+const emptyProduct = (): ProductEntry => ({ name: "", price: "", type: "", retainerMonths: "", description: "" });
 
 export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const [step, setStep] = useState(() => loadFromStorage(STORAGE_STEP_KEY, 0));
@@ -53,6 +64,9 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     loadFromStorage(STORAGE_ICP_KEY, Array.from({ length: 10 }, emptyICPClient))
   );
   const [icpShowResults, setIcpShowResults] = useState(false);
+  const [productPalette, setProductPalette] = useState<ProductEntry[]>(() =>
+    loadFromStorage(STORAGE_PRODUCTS_KEY, [emptyProduct(), emptyProduct(), emptyProduct()])
+  );
   const [formData, setFormData] = useState(() => loadFromStorage(STORAGE_KEY, {
     // Step 0: Firma
     companyName: "",
@@ -66,14 +80,15 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     linkedinFollowersCurrent: "",
     postingFrequency: "",
     linkedinExperience: "",
-    // Step 2: Angebot
+    // Step 2: Standard-Paket
     currentOffer: "",
     offerPrice: "",
-    contractDuration: "",
+    offerType: "",
+    retainerMonths: "",
     closingRate: "",
-    // Step 3: Finanzen (alle Netto)
-    revenueRecurring: "",      // MRR Netto
-    revenueOnetime: "",        // Einmalzahlungen Netto
+    // Step 3: Finanzen
+    revenueRecurring: "",
+    revenueOnetime: "",
     adsSpendMonthly: "",
     toolsCostsMonthly: "",
     personnelCostsMonthly: "",
@@ -83,28 +98,22 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     totalCustomers: "",
     existingCustomers: "",
     newCustomersMonthly: "",
-    aovNewCustomer: "",         // AOV Neukunde → newCustomerVolume wird auto-berechnet
-    aovExistingCustomer: "",    // AOV Bestandskunde → existingCustomerVolume wird auto-berechnet
     paymentDefaultRate: "",
-    // LTV wird auto-berechnet: AOV × Laufzeit-Monate
-    contractDurationMonths: "",  // für LTV-Berechnung
-    // Step 5: Vertrieb & Kosten
+    // Step 6: Vertrieb
     commissionRateActual: "",
     commissionRateTarget: "",
     salesGrossSalary: "",
     salesSideCosts: "",
     fulfillmentGrossSalary: "",
     fulfillmentToolCosts: "",
-    // CAC wird auto-berechnet: Gesamtkosten / Neukunden
-    cacTarget: "",
     costPerCustomerFulfillment: "",
-    // Step 6: KPIs
+    // Step 7: KPIs
     currentLeadsPerMonth: "",
     currentConversionRate: "",
     monthlyBudget: "",
     costPerLead: "",
     costPerAppointment: "",
-    // Step 7: Ziele
+    // Step 8: Ziele
     goalLeadsMonthly: "",
     goalRevenueMonthly: "",
     goalTimeframe: "",
@@ -113,12 +122,12 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const { toast } = useToast();
   const { refreshTenant } = useAuth();
 
-
-  // Persist to sessionStorage on every change
+  // Persist to sessionStorage
   useEffect(() => { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formData)); }, [formData]);
   useEffect(() => { sessionStorage.setItem(STORAGE_ICP_KEY, JSON.stringify(icpClients)); }, [icpClients]);
   useEffect(() => { sessionStorage.setItem(STORAGE_STEP_KEY, JSON.stringify(step)); }, [step]);
   useEffect(() => { sessionStorage.setItem(STORAGE_KEY + "_unknowns", JSON.stringify([...unknowns])); }, [unknowns]);
+  useEffect(() => { sessionStorage.setItem(STORAGE_PRODUCTS_KEY, JSON.stringify(productPalette)); }, [productPalette]);
 
   const update = (key: string, value: string) =>
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -134,6 +143,10 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
       }
       return next;
     });
+  };
+
+  const updateProduct = (index: number, field: keyof ProductEntry, value: string) => {
+    setProductPalette(prev => prev.map((p, i) => i === index ? { ...p, [field]: value } : p));
   };
 
   // ── Auto-berechnete Werte ──────────────────────────────────────────────────
@@ -156,23 +169,17 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const profit = totalRevenue - totalCosts;
   const marginPercent = totalRevenue > 0 ? ((profit / totalRevenue) * 100) : 0;
 
-  // AOV Neukunde: auto aus Angebotspreis (Step 2), überschreibbar
-  const aovNewAuto = useMemo(() => {
-    const manual = parseFloat(formData.aovNewCustomer);
-    if (!isNaN(manual) && formData.aovNewCustomer !== "") return manual;
-    return parseFloat(formData.offerPrice) || 0;
-  }, [formData.aovNewCustomer, formData.offerPrice]);
+  // AOV = Abschlussvolumen (offerPrice)
+  const aovNewAuto = parseFloat(formData.offerPrice) || 0;
 
-  // AOV Bestandskunde: auto aus MRR ÷ Bestandskunden, überschreibbar
+  // AOV Bestandskunde: auto aus MRR ÷ Bestandskunden
   const aovExistingAuto = useMemo(() => {
-    const manual = parseFloat(formData.aovExistingCustomer);
-    if (!isNaN(manual) && formData.aovExistingCustomer !== "") return manual;
     const mrr = parseFloat(formData.revenueRecurring) || 0;
     const existing = parseFloat(formData.existingCustomers) || 0;
     return mrr > 0 && existing > 0 ? Math.round(mrr / existing) : 0;
-  }, [formData.aovExistingCustomer, formData.revenueRecurring, formData.existingCustomers]);
+  }, [formData.revenueRecurring, formData.existingCustomers]);
 
-  // Auftragsvolumen = AOV × Kundenanzahl
+  // Volumes
   const newCustomerVolume = useMemo(() => {
     const count = parseFloat(formData.newCustomersMonthly) || 0;
     return aovNewAuto > 0 && count > 0 ? aovNewAuto * count : 0;
@@ -185,20 +192,20 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
 
   const totalOrderVolume = newCustomerVolume + existingCustomerVolume;
 
-  // LTV = AOV Neukunde (auto) × Laufzeit in Monaten
+  // LTV = AOV × Retainer-Monate (or 1 if Einmalprojekt)
   const ltvCalculated = useMemo(() => {
-    const months = parseFloat(formData.contractDurationMonths) || 0;
+    if (formData.offerType === "einmalig") return aovNewAuto;
+    const months = parseFloat(formData.retainerMonths) || 0;
     return aovNewAuto > 0 && months > 0 ? aovNewAuto * months : 0;
-  }, [aovNewAuto, formData.contractDurationMonths]);
+  }, [aovNewAuto, formData.retainerMonths, formData.offerType]);
 
-  // CAC = Gesamtkosten / Neukunden pro Monat
+  // CAC = Gesamtkosten / Neukunden
   const cacCalculated = useMemo(() => {
-    const costs = totalCosts;
     const sales = parseFloat(formData.salesGrossSalary) || 0;
     const salesSide = parseFloat(formData.salesSideCosts) || 0;
     const fulfillment = parseFloat(formData.fulfillmentGrossSalary) || 0;
     const fulfTools = parseFloat(formData.fulfillmentToolCosts) || 0;
-    const allCosts = costs + sales + salesSide + fulfillment + fulfTools;
+    const allCosts = totalCosts + sales + salesSide + fulfillment + fulfTools;
     const newCusts = parseFloat(formData.newCustomersMonthly) || 0;
     return allCosts > 0 && newCusts > 0 ? Math.round(allCosts / newCusts) : 0;
   }, [totalCosts, formData.salesGrossSalary, formData.salesSideCosts, formData.fulfillmentGrossSalary, formData.fulfillmentToolCosts, formData.newCustomersMonthly]);
@@ -232,6 +239,21 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
 
       const existingTenant = existingTenants?.[0] ?? null;
 
+      // Build contract_duration string
+      const contractDurationStr = formData.offerType === "retainer"
+        ? `Retainer – ${formData.retainerMonths || "?"} Monate`
+        : formData.offerType === "einmalig" ? "Einmalprojekt" : null;
+
+      // Build product_palette JSON
+      const validProducts = productPalette.filter(p => p.name.trim());
+      const productPaletteJson = validProducts.map(p => ({
+        name: p.name,
+        price: parseFloat(p.price) || 0,
+        type: p.type || "einmalig",
+        retainerMonths: p.type === "retainer" ? (parseInt(p.retainerMonths) || 0) : 0,
+        description: p.description,
+      }));
+
       const tenantPayload = {
         company_name: formData.companyName,
         contact_name: formData.contactName || null,
@@ -246,7 +268,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         linkedin_experience: formData.linkedinExperience || null,
         current_offer: formData.currentOffer || null,
         offer_price: val("offerPrice"),
-        contract_duration: formData.contractDuration || null,
+        contract_duration: contractDurationStr,
         closing_rate: val("closingRate"),
         revenue_recurring: val("revenueRecurring"),
         revenue_onetime: val("revenueOnetime"),
@@ -278,19 +300,19 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         fulfillment_gross_salary: valNullable("fulfillmentGrossSalary"),
         fulfillment_tool_costs: valNullable("fulfillmentToolCosts"),
         cac_actual: cacCalculated > 0 ? cacCalculated : null,
-        cac_target: valNullable("cacTarget"),
+        cac_target: null,
         cost_per_customer_fulfillment: valNullable("costPerCustomerFulfillment"),
         goal_leads_monthly: valInt("goalLeadsMonthly"),
         goal_revenue_monthly: val("goalRevenueMonthly"),
         goal_timeframe: formData.goalTimeframe || null,
         primary_goal: formData.primaryGoal || null,
+        product_palette: productPaletteJson.length > 0 ? productPaletteJson : null,
         onboarding_completed: true,
       } as any;
 
       let data: any;
 
       if (existingTenant) {
-        // UPDATE – alle Felder mit den neuen Formulardaten überschreiben
         const { data: updated, error } = await supabase
           .from("tenants")
           .update(tenantPayload)
@@ -300,7 +322,6 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         if (error) throw error;
         data = updated;
       } else {
-        // INSERT neuer Tenant
         const { data: inserted, error } = await supabase
           .from("tenants")
           .insert({ user_id: user.id, ...tenantPayload })
@@ -354,6 +375,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
       sessionStorage.removeItem(STORAGE_ICP_KEY);
       sessionStorage.removeItem(STORAGE_STEP_KEY);
       sessionStorage.removeItem(STORAGE_KEY + "_unknowns");
+      sessionStorage.removeItem(STORAGE_PRODUCTS_KEY);
 
       toast({ title: "Profil gespeichert ✓", description: "Deine Basisdaten wurden gespeichert." });
       setTimeout(() => onComplete(), 500);
@@ -471,31 +493,131 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         </div>
       )}
 
-      {/* Step 2: Angebot */}
+      {/* Step 2: Standard-Paket & Produktpalette */}
       {step === 2 && (
-        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Aktuelles Angebot</h3>
-          <div className="space-y-1.5">
-            <Label className="text-sm">Was verkaufst du? (Offer)</Label>
-            <Textarea value={formData.currentOffer} onChange={(e) => update("currentOffer", e.target.value)} placeholder="z.B. LinkedIn-Marketing-Paket inkl. Content, Lead-Gen, Ads..." rows={3} />
+        <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div>
+            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Dein Standard-Paket</h3>
+            <p className="text-xs text-muted-foreground mt-1">Was ist dein Hauptangebot, das du am häufigsten verkaufst?</p>
           </div>
-          <NumField label="Angebotspreis (Netto)" fieldKey="offerPrice" placeholder="3000" unit="€ netto" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-          <div className="space-y-1.5">
-            <Label className="text-sm">Vertragslaufzeit</Label>
-            <Select value={formData.contractDuration} onValueChange={(v) => update("contractDuration", v)}>
-              <SelectTrigger><SelectValue placeholder="Laufzeit wählen" /></SelectTrigger>
-              <SelectContent>
-                {["Einmalig / Projekt", "1 Monat", "3 Monate", "6 Monate", "12 Monate", "24 Monate"].map((d) => (
-                  <SelectItem key={d} value={d}>{d}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+          <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-sm">Beschreibung deines Angebots</Label>
+              <Textarea value={formData.currentOffer} onChange={(e) => update("currentOffer", e.target.value)} placeholder="z.B. LinkedIn-Marketing-Paket inkl. Content, Lead-Gen, Ads..." rows={2} />
+            </div>
+            <NumField label="Abschlussvolumen (Netto)" fieldKey="offerPrice" placeholder="3000" unit="€ netto" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+            <div className="space-y-1.5">
+              <Label className="text-sm">Art des Angebots</Label>
+              <Select value={formData.offerType} onValueChange={(v) => update("offerType", v)}>
+                <SelectTrigger><SelectValue placeholder="Einmalprojekt oder Retainer?" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="einmalig">Einmalprojekt</SelectItem>
+                  <SelectItem value="retainer">Retainer (monatlich wiederkehrend)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {formData.offerType === "retainer" && (
+              <NumField label="Retainer-Laufzeit" fieldKey="retainerMonths" placeholder="6" unit="Monate" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+            )}
+            <NumField label="Closing-Rate" fieldKey="closingRate" placeholder="25" unit="%" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+
+            {/* Auto-calculated summary */}
+            {(aovNewAuto > 0 || ltvCalculated > 0) && (
+              <div className="p-2 rounded-md border border-primary/20 bg-primary/5 space-y-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📊 Automatisch berechnet</p>
+                <div className="grid grid-cols-2 gap-3 text-center">
+                  {aovNewAuto > 0 && (
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">AOV Neukunde</p>
+                      <p className="text-sm font-bold text-primary">{aovNewAuto.toLocaleString("de-DE")} €</p>
+                    </div>
+                  )}
+                  {ltvCalculated > 0 && (
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">LTV / Kunde</p>
+                      <p className="text-sm font-bold text-primary">{ltvCalculated.toLocaleString("de-DE")} €</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-          <NumField label="Closing-Rate" fieldKey="closingRate" placeholder="25" unit="%" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+
+          {/* Produktpalette */}
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Produktpalette</h3>
+              <p className="text-xs text-muted-foreground mt-1">Hast du verschiedene Pakete/Produkte? Trage bis zu 3 ein (Klein, Mittel, Groß).</p>
+            </div>
+
+            {productPalette.map((product, idx) => {
+              const labels = ["Kleines Paket (z.B. Starter)", "Mittleres Paket (z.B. Professional)", "Großes Paket (z.B. Enterprise)"];
+              return (
+                <div key={idx} className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground">{labels[idx]}</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Produktname</Label>
+                      <Input
+                        value={product.name}
+                        onChange={(e) => updateProduct(idx, "name", e.target.value)}
+                        placeholder={["Starter", "Professional", "Enterprise"][idx]}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Preis (Netto, €)</Label>
+                      <Input
+                        type="number"
+                        value={product.price}
+                        onChange={(e) => updateProduct(idx, "price", e.target.value)}
+                        placeholder={["1500", "3000", "5000"][idx]}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Art</Label>
+                      <Select value={product.type} onValueChange={(v) => updateProduct(idx, "type", v)}>
+                        <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Art wählen" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="einmalig">Einmalprojekt</SelectItem>
+                          <SelectItem value="retainer">Retainer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {product.type === "retainer" && (
+                      <div className="space-y-1">
+                        <Label className="text-xs">Laufzeit (Monate)</Label>
+                        <Input
+                          type="number"
+                          value={product.retainerMonths}
+                          onChange={(e) => updateProduct(idx, "retainerMonths", e.target.value)}
+                          placeholder="6"
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Beschreibung</Label>
+                    <Input
+                      value={product.description}
+                      onChange={(e) => updateProduct(idx, "description", e.target.value)}
+                      placeholder="Was ist im Paket enthalten?"
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {/* Step 3: Finanzen – nur Netto */}
+      {/* Step 3: Finanzen */}
       {step === 3 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Monatliche Finanzen <span className="text-primary font-normal normal-case">(alle Angaben Netto)</span></h3>
@@ -559,11 +681,11 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         </div>
       )}
 
-      {/* Step 4: Kunden – AOV-basiert, LTV auto-berechnet */}
+      {/* Step 4: Kunden – vereinfacht, AOV/LTV werden auto-berechnet */}
       {step === 4 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Kundenstamm & Volumen</h3>
-          <p className="text-sm text-muted-foreground">Auftragsvolumen und LTV werden automatisch berechnet.</p>
+          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Kundenstamm</h3>
+          <p className="text-sm text-muted-foreground">AOV, Auftragsvolumen und LTV werden automatisch berechnet.</p>
 
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">👥 Kundenanzahl</p>
@@ -574,97 +696,52 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
             </div>
           </div>
 
-          <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">💶 Ø-Auftragswert (AOV, Netto)</p>
-            <p className="text-xs text-muted-foreground">Wird automatisch aus Angebotspreis & MRR berechnet – optional überschreibbar.</p>
+          <NumField label="Zahlungsausfallquote" fieldKey="paymentDefaultRate" placeholder="10" unit="%" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
 
-            {/* AOV Neukunde: auto aus offerPrice */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">
-                  AOV Neukunde <span className="text-muted-foreground font-normal text-xs">(€ netto)</span>
-                </label>
-                {!formData.aovNewCustomer && aovNewAuto > 0 && (
-                  <span className="text-[11px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                    Auto: {aovNewAuto.toLocaleString("de-DE")} € (= Angebotspreis)
-                  </span>
+          {/* Auto-berechnete Werte */}
+          {(aovNewAuto > 0 || aovExistingAuto > 0 || ltvCalculated > 0 || totalOrderVolume > 0) && (
+            <div className="p-3 rounded-lg border-2 border-primary/20 bg-primary/5 space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📊 Automatisch berechnet</p>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                {aovNewAuto > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">AOV Neukunde</span>
+                    <span className="font-semibold text-primary">{aovNewAuto.toLocaleString("de-DE")} €</span>
+                  </div>
                 )}
-              </div>
-              <input
-                type="number"
-                step="any"
-                value={formData.aovNewCustomer}
-                onChange={e => update("aovNewCustomer", e.target.value)}
-                placeholder={aovNewAuto > 0 ? String(aovNewAuto) : "3000"}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              />
-              {!formData.aovNewCustomer && aovNewAuto > 0 && (
-                <p className="text-[10px] text-muted-foreground">Aus Schritt 2 (Angebotspreis). Hier überschreiben falls abweichend.</p>
-              )}
-            </div>
-
-            {/* AOV Bestandskunde: auto aus MRR ÷ Bestandskunden */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">
-                  AOV Bestandskunde / Mo. <span className="text-muted-foreground font-normal text-xs">(€ netto)</span>
-                </label>
-                {!formData.aovExistingCustomer && aovExistingAuto > 0 && (
-                  <span className="text-[11px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                    Auto: {aovExistingAuto.toLocaleString("de-DE")} € (MRR ÷ Kunden)
-                  </span>
+                {aovExistingAuto > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">AOV Bestandsk.</span>
+                    <span className="font-semibold text-primary">{aovExistingAuto.toLocaleString("de-DE")} €</span>
+                  </div>
                 )}
-              </div>
-              <input
-                type="number"
-                step="any"
-                value={formData.aovExistingCustomer}
-                onChange={e => update("aovExistingCustomer", e.target.value)}
-                placeholder={aovExistingAuto > 0 ? String(aovExistingAuto) : "833"}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              />
-              {!formData.aovExistingCustomer && aovExistingAuto > 0 && (
-                <p className="text-[10px] text-muted-foreground">Aus MRR ({formData.revenueRecurring}€) ÷ Bestandskunden ({formData.existingCustomers}). Hier überschreiben falls abweichend.</p>
-              )}
-            </div>
-
-            {(newCustomerVolume > 0 || existingCustomerVolume > 0) && (
-              <div className="pt-1 border-t border-border/40 space-y-1">
                 {newCustomerVolume > 0 && (
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Neukundenvolumen ({formData.newCustomersMonthly || "?"} × {aovNewAuto}€)</span>
-                    <span className="font-medium text-foreground">{newCustomerVolume.toLocaleString("de-DE")} €</span>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Neukundenvolumen</span>
+                    <span className="font-semibold">{newCustomerVolume.toLocaleString("de-DE")} €</span>
                   </div>
                 )}
                 {existingCustomerVolume > 0 && (
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Bestandskundenvolumen ({formData.existingCustomers || "?"} × {aovExistingAuto}€)</span>
-                    <span className="font-medium text-foreground">{existingCustomerVolume.toLocaleString("de-DE")} €</span>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Bestandskundenvolumen</span>
+                    <span className="font-semibold">{existingCustomerVolume.toLocaleString("de-DE")} €</span>
                   </div>
                 )}
                 {totalOrderVolume > 0 && (
-                  <div className="flex justify-between text-sm font-semibold pt-1 border-t border-border/40">
-                    <span>Auftragsvolumen gesamt</span>
-                    <span className="text-primary">{totalOrderVolume.toLocaleString("de-DE")} €</span>
+                  <div className="flex justify-between col-span-2 pt-1 border-t border-border/40">
+                    <span className="font-semibold">Auftragsvolumen gesamt</span>
+                    <span className="font-bold text-primary">{totalOrderVolume.toLocaleString("de-DE")} €</span>
+                  </div>
+                )}
+                {ltvCalculated > 0 && (
+                  <div className="flex justify-between col-span-2">
+                    <span className="font-semibold">LTV / Kunde</span>
+                    <span className="font-bold text-primary">{ltvCalculated.toLocaleString("de-DE")} €</span>
                   </div>
                 )}
               </div>
-            )}
-          </div>
-
-          <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">📈 LTV-Berechnung</p>
-            <p className="text-xs text-muted-foreground">LTV = AOV Neukunde × Ø Vertragslaufzeit in Monaten</p>
-            <NumField label="Ø Vertragslaufzeit" fieldKey="contractDurationMonths" placeholder="3" unit="Monate" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-            {ltvCalculated > 0 && (
-              <div className="flex justify-between text-sm font-semibold pt-1 border-t border-border/40">
-                <span>LTV (automatisch)</span>
-                <span className="text-primary">{ltvCalculated.toLocaleString("de-DE")} € / Kunde</span>
-              </div>
-            )}
-          </div>
-
-          <NumField label="Zahlungsausfallquote" fieldKey="paymentDefaultRate" placeholder="10" unit="%" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+            </div>
+          )}
         </div>
       )}
 
@@ -692,7 +769,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
           </div>
 
           <div className="p-3 rounded-lg border border-border/60 bg-muted/30 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">🏢 Personalkosten (Brutto, Netto für dich als Arbeitgeber)</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">🏢 Personalkosten (Brutto)</p>
             <div className="grid grid-cols-2 gap-3">
               <NumField label="Bruttogehalt Vertrieb" fieldKey="salesGrossSalary" placeholder="1175" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
               <NumField label="Nebenkosten Vertrieb" fieldKey="salesSideCosts" placeholder="130" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
@@ -701,18 +778,18 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
             </div>
           </div>
 
-          <div className="p-3 rounded-lg border-2 border-primary/20 bg-primary/5 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">🎯 Customer Acquisition Cost (CAC)</p>
-            <p className="text-xs text-muted-foreground">CAC wird automatisch berechnet: Gesamtkosten ÷ Neukunden / Monat</p>
-            {cacCalculated > 0 && (
+          <NumField label="Kosten / Kunde (Fulfillment)" fieldKey="costPerCustomerFulfillment" placeholder="550" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
+
+          {/* CAC auto-berechnet */}
+          {cacCalculated > 0 && (
+            <div className="p-3 rounded-lg border-2 border-primary/20 bg-primary/5 space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">🎯 Automatisch berechnet</p>
               <div className="flex justify-between text-sm font-semibold">
-                <span>CAC IST (automatisch)</span>
+                <span>CAC (Gesamtkosten ÷ Neukunden)</span>
                 <span className="text-primary">{cacCalculated.toLocaleString("de-DE")} € / Neukunde</span>
               </div>
-            )}
-            <NumField label="CAC SOLL (Zielwert)" fieldKey="cacTarget" placeholder="1680" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-            <NumField label="Kosten / Kunde (Fulfillment)" fieldKey="costPerCustomerFulfillment" placeholder="550" unit="€" formData={formData} unknowns={unknowns} update={update} toggleUnknown={toggleUnknown} />
-          </div>
+            </div>
+          )}
         </div>
       )}
 
