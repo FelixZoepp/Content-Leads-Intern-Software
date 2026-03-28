@@ -45,7 +45,7 @@ export function useDailyTasks(dayNumber: number) {
   }, [loadTasks]);
 
   const toggleTask = async (taskId: string, completed: boolean) => {
-    await supabase
+    await (supabase as any)
       .from("daily_tasks")
       .update({ completed: !completed })
       .eq("id", taskId);
