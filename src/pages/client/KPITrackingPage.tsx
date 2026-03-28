@@ -75,12 +75,12 @@ export default function KPITrackingPage() {
         .maybeSingle();
 
       if (existing) {
-        await supabase
+        await (supabase as any)
           .from("kpi_entries")
           .update({ ...form })
           .eq("id", existing.id);
       } else {
-        await supabase.from("kpi_entries").insert({
+        await (supabase as any).from("kpi_entries").insert({
           user_id: user.id,
           date: todayStr,
           week_start_date: todayStr,

@@ -77,7 +77,7 @@ export default function GeneratingAssets() {
                   }
                 }
                 if (taskRows.length > 0) {
-                  await supabase.from("daily_tasks").insert(taskRows);
+                  await (supabase as any).from("daily_tasks").insert(taskRows);
                 }
               }
             } catch {

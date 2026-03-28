@@ -115,7 +115,7 @@ export function usePhaseProgress() {
     if (!user) return;
     (async () => {
       setLoading(true);
-      const { data } = await supabase
+    const { data } = await (supabase as any)
         .from("daily_tasks")
         .select("day_number, completed")
         .eq("user_id", user.id);

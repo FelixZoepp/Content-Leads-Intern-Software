@@ -139,7 +139,7 @@ export default function ContentCalendarPage() {
 
   const toggleStatus = async (post: ContentPost) => {
     const newStatus = post.status === "published" ? "planned" : "published";
-    await supabase.from("content_posts").update({ status: newStatus }).eq("id", post.id);
+    await (supabase as any).from("content_posts").update({ status: newStatus }).eq("id", post.id);
     loadPosts();
   };
 
