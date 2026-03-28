@@ -30,14 +30,30 @@ const STEPS = [
   { icon: Target, label: "Ziele" },
 ];
 
+const STORAGE_KEY = "onboarding_form";
+const STORAGE_ICP_KEY = "onboarding_icp";
+const STORAGE_STEP_KEY = "onboarding_step";
+
+function loadFromStorage<T>(key: string, fallback: T): T {
+  try {
+    const raw = sessionStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch { return fallback; }
+}
+
 export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => loadFromStorage(STORAGE_STEP_KEY, 0));
   const [loading, setLoading] = useState(false);
   const [generatingAnalysis, setGeneratingAnalysis] = useState(false);
-  const [unknowns, setUnknowns] = useState<Set<string>>(new Set());
-  const [icpClients, setIcpClients] = useState<ICPClient[]>(Array.from({ length: 10 }, emptyICPClient));
+  const [unknowns, setUnknowns] = useState<Set<string>>(() => {
+    const saved = loadFromStorage<string[]>(STORAGE_KEY + "_unknowns", []);
+    return new Set(saved);
+  });
+  const [icpClients, setIcpClients] = useState<ICPClient[]>(() =>
+    loadFromStorage(STORAGE_ICP_KEY, Array.from({ length: 10 }, emptyICPClient))
+  );
   const [icpShowResults, setIcpShowResults] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => loadFromStorage(STORAGE_KEY, {
     // Step 0: Firma
     companyName: "",
     contactName: "",
