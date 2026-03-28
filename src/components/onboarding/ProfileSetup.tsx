@@ -53,6 +53,13 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     loadFromStorage(STORAGE_ICP_KEY, Array.from({ length: 10 }, emptyICPClient))
   );
   const [icpShowResults, setIcpShowResults] = useState(false);
+  const [productPalette, setProductPalette] = useState<Array<{name: string; price: string; duration: string; description: string}>>(() =>
+    loadFromStorage(STORAGE_KEY + "_products", [
+      { name: "", price: "", duration: "", description: "" },
+      { name: "", price: "", duration: "", description: "" },
+      { name: "", price: "", duration: "", description: "" },
+    ])
+  );
   const [formData, setFormData] = useState(() => loadFromStorage(STORAGE_KEY, {
     // Step 0: Firma
     companyName: "",
@@ -66,14 +73,15 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     linkedinFollowersCurrent: "",
     postingFrequency: "",
     linkedinExperience: "",
-    // Step 2: Angebot
+    // Step 2: Standard-Paket
     currentOffer: "",
-    offerPrice: "",
-    contractDuration: "",
+    offerPrice: "",          // Abschlussvolumen netto
+    offerType: "",           // "einmalig" | "retainer"
+    retainerMonths: "",      // Laufzeit in Monaten (nur bei Retainer)
     closingRate: "",
     // Step 3: Finanzen (alle Netto)
-    revenueRecurring: "",      // MRR Netto
-    revenueOnetime: "",        // Einmalzahlungen Netto
+    revenueRecurring: "",
+    revenueOnetime: "",
     adsSpendMonthly: "",
     toolsCostsMonthly: "",
     personnelCostsMonthly: "",
@@ -83,11 +91,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     totalCustomers: "",
     existingCustomers: "",
     newCustomersMonthly: "",
-    aovNewCustomer: "",         // AOV Neukunde → newCustomerVolume wird auto-berechnet
-    aovExistingCustomer: "",    // AOV Bestandskunde → existingCustomerVolume wird auto-berechnet
     paymentDefaultRate: "",
-    // LTV wird auto-berechnet: AOV × Laufzeit-Monate
-    contractDurationMonths: "",  // für LTV-Berechnung
     // Step 5: Vertrieb & Kosten
     commissionRateActual: "",
     commissionRateTarget: "",
@@ -95,8 +99,6 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     salesSideCosts: "",
     fulfillmentGrossSalary: "",
     fulfillmentToolCosts: "",
-    // CAC wird auto-berechnet: Gesamtkosten / Neukunden
-    cacTarget: "",
     costPerCustomerFulfillment: "",
     // Step 6: KPIs
     currentLeadsPerMonth: "",
