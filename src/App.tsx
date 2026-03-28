@@ -13,6 +13,7 @@ const ClientDashboard = lazy(() => import("./pages/ClientDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const SetPassword = lazy(() => import("./pages/SetPassword"));
+const GeneratingAssets = lazy(() => import("./pages/GeneratingAssets"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -59,6 +60,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Onboarding />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/generating"
+                element={
+                  <ProtectedRoute>
+                    <GeneratingAssets />
                   </ProtectedRoute>
                 }
               />

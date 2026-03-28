@@ -6,6 +6,10 @@ import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { DashboardDataProvider, useDashboardData } from "@/hooks/useDashboardData";
 
 const TodayPage = lazy(() => import("./client/TodayPage"));
+const CashflowDashboard = lazy(() => import("./client/CashflowDashboard"));
+const AssetPage = lazy(() => import("./client/AssetPage"));
+const KPITrackingPage = lazy(() => import("./client/KPITrackingPage"));
+const ContentCalendarPage = lazy(() => import("./client/ContentCalendarPage"));
 const OverviewPage = lazy(() => import("./client/OverviewPage"));
 const MarketingPage = lazy(() => import("./client/MarketingPage"));
 const SalesPage = lazy(() => import("./client/SalesPage"));
@@ -43,7 +47,11 @@ function ClientDashboardInner() {
     <DashboardLayout title="KPI Dashboard" subtitle={tenant?.company_name}>
       <Suspense fallback={<SubPageLoader />}>
         <Routes>
-          <Route index element={<TodayPage />} />
+          <Route index element={<CashflowDashboard />} />
+          <Route path="today" element={<TodayPage />} />
+          <Route path="assets/:assetType" element={<AssetPage />} />
+          <Route path="kpis" element={<KPITrackingPage />} />
+          <Route path="calendar" element={<ContentCalendarPage />} />
           <Route path="overview" element={<OverviewPage />} />
           <Route path="marketing" element={<MarketingPage />} />
           <Route path="sales" element={<SalesPage />} />
