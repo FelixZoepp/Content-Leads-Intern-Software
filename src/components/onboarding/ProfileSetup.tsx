@@ -349,6 +349,12 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
       } catch { /* non-blocking */ }
       setGeneratingAnalysis(false);
 
+      // Clear persisted onboarding data
+      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_ICP_KEY);
+      sessionStorage.removeItem(STORAGE_STEP_KEY);
+      sessionStorage.removeItem(STORAGE_KEY + "_unknowns");
+
       toast({ title: "Profil gespeichert ✓", description: "Deine Basisdaten wurden gespeichert." });
       setTimeout(() => onComplete(), 500);
     } catch (error: any) {
