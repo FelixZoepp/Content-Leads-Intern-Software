@@ -42,7 +42,7 @@ export default function AssetPage() {
   const loadAsset = useCallback(async () => {
     if (!user || !assetKey) return;
     setLoading(true);
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("generated_assets")
       .select("content")
       .eq("user_id", user.id)
