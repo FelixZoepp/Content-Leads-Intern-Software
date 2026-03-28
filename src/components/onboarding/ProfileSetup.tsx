@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,14 +30,30 @@ const STEPS = [
   { icon: Target, label: "Ziele" },
 ];
 
+const STORAGE_KEY = "onboarding_form";
+const STORAGE_ICP_KEY = "onboarding_icp";
+const STORAGE_STEP_KEY = "onboarding_step";
+
+function loadFromStorage<T>(key: string, fallback: T): T {
+  try {
+    const raw = sessionStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch { return fallback; }
+}
+
 export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => loadFromStorage(STORAGE_STEP_KEY, 0));
   const [loading, setLoading] = useState(false);
   const [generatingAnalysis, setGeneratingAnalysis] = useState(false);
-  const [unknowns, setUnknowns] = useState<Set<string>>(new Set());
-  const [icpClients, setIcpClients] = useState<ICPClient[]>(Array.from({ length: 10 }, emptyICPClient));
+  const [unknowns, setUnknowns] = useState<Set<string>>(() => {
+    const saved = loadFromStorage<string[]>(STORAGE_KEY + "_unknowns", []);
+    return new Set(saved);
+  });
+  const [icpClients, setIcpClients] = useState<ICPClient[]>(() =>
+    loadFromStorage(STORAGE_ICP_KEY, Array.from({ length: 10 }, emptyICPClient))
+  );
   const [icpShowResults, setIcpShowResults] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => loadFromStorage(STORAGE_KEY, {
     // Step 0: Firma
     companyName: "",
     contactName: "",
@@ -93,9 +109,16 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     goalRevenueMonthly: "",
     goalTimeframe: "",
     primaryGoal: "",
-  });
+  }));
   const { toast } = useToast();
   const { refreshTenant } = useAuth();
+
+
+  // Persist to sessionStorage on every change
+  useEffect(() => { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formData)); }, [formData]);
+  useEffect(() => { sessionStorage.setItem(STORAGE_ICP_KEY, JSON.stringify(icpClients)); }, [icpClients]);
+  useEffect(() => { sessionStorage.setItem(STORAGE_STEP_KEY, JSON.stringify(step)); }, [step]);
+  useEffect(() => { sessionStorage.setItem(STORAGE_KEY + "_unknowns", JSON.stringify([...unknowns])); }, [unknowns]);
 
   const update = (key: string, value: string) =>
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -325,6 +348,12 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
         });
       } catch { /* non-blocking */ }
       setGeneratingAnalysis(false);
+
+      // Clear persisted onboarding data
+      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_ICP_KEY);
+      sessionStorage.removeItem(STORAGE_STEP_KEY);
+      sessionStorage.removeItem(STORAGE_KEY + "_unknowns");
 
       toast({ title: "Profil gespeichert ✓", description: "Deine Basisdaten wurden gespeichert." });
       setTimeout(() => onComplete(), 500);
