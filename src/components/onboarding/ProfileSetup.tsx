@@ -109,7 +109,7 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     goalRevenueMonthly: "",
     goalTimeframe: "",
     primaryGoal: "",
-  });
+  }));
   const { toast } = useToast();
   const { refreshTenant } = useAuth();
 
