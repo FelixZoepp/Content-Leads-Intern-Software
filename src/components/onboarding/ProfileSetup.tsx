@@ -113,6 +113,13 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const { toast } = useToast();
   const { refreshTenant } = useAuth();
 
+
+  // Persist to sessionStorage on every change
+  useEffect(() => { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formData)); }, [formData]);
+  useEffect(() => { sessionStorage.setItem(STORAGE_ICP_KEY, JSON.stringify(icpClients)); }, [icpClients]);
+  useEffect(() => { sessionStorage.setItem(STORAGE_STEP_KEY, JSON.stringify(step)); }, [step]);
+  useEffect(() => { sessionStorage.setItem(STORAGE_KEY + "_unknowns", JSON.stringify([...unknowns])); }, [unknowns]);
+
   const update = (key: string, value: string) =>
     setFormData((prev) => ({ ...prev, [key]: value }));
 
