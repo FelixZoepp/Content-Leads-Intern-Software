@@ -116,12 +116,12 @@ export default function ContentCalendarPage() {
     try {
       const dateStr = format(selectedDate, "yyyy-MM-dd");
       if (editPost) {
-        await supabase
+        await (supabase as any)
           .from("content_posts")
           .update({ topic, caption: caption || null, scheduled_date: dateStr })
           .eq("id", editPost.id);
       } else {
-        await supabase.from("content_posts").insert({
+        await (supabase as any).from("content_posts").insert({
           user_id: user.id,
           scheduled_date: dateStr,
           topic,
