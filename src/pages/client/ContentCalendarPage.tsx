@@ -50,14 +50,14 @@ export default function ContentCalendarPage() {
     setLoading(true);
     const start = format(startOfMonth(currentMonth), "yyyy-MM-dd");
     const end = format(endOfMonth(currentMonth), "yyyy-MM-dd");
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("content_posts")
       .select("*")
       .eq("user_id", user.id)
       .gte("scheduled_date", start)
       .lte("scheduled_date", end)
       .order("scheduled_date");
-    setPosts(data || []);
+    setPosts((data as ContentPost[]) || []);
     setLoading(false);
   }, [user, currentMonth]);
 
@@ -116,12 +116,12 @@ export default function ContentCalendarPage() {
     try {
       const dateStr = format(selectedDate, "yyyy-MM-dd");
       if (editPost) {
-        await supabase
+        await (supabase as any)
           .from("content_posts")
           .update({ topic, caption: caption || null, scheduled_date: dateStr })
           .eq("id", editPost.id);
       } else {
-        await supabase.from("content_posts").insert({
+        await (supabase as any).from("content_posts").insert({
           user_id: user.id,
           scheduled_date: dateStr,
           topic,
@@ -139,7 +139,7 @@ export default function ContentCalendarPage() {
 
   const toggleStatus = async (post: ContentPost) => {
     const newStatus = post.status === "published" ? "planned" : "published";
-    await supabase.from("content_posts").update({ status: newStatus }).eq("id", post.id);
+    await (supabase as any).from("content_posts").update({ status: newStatus }).eq("id", post.id);
     loadPosts();
   };
 

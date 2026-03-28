@@ -50,7 +50,7 @@ export default function GeneratingAssets() {
           }
 
           // Save to generated_assets
-          await supabase.from("generated_assets").insert({
+          await (supabase as any).from("generated_assets").insert({
             user_id: user.id,
             asset_type: asset.key,
             content: data.content,
@@ -77,7 +77,7 @@ export default function GeneratingAssets() {
                   }
                 }
                 if (taskRows.length > 0) {
-                  await supabase.from("daily_tasks").insert(taskRows);
+                  await (supabase as any).from("daily_tasks").insert(taskRows);
                 }
               }
             } catch {

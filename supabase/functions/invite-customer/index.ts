@@ -17,7 +17,7 @@ function isExistingUserError(message?: string | null) {
   );
 }
 
-async function findUserByEmail(adminClient: ReturnType<typeof createClient>, email: string) {
+async function findUserByEmail(adminClient: any, email: string) {
   const normalizedEmail = email.toLowerCase();
 
   for (let page = 1; page <= 20; page++) {
@@ -252,9 +252,9 @@ Deno.serve(async (req) => {
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err) {
+  } catch (err: unknown) {
     return new Response(
-      JSON.stringify({ error: `Server error: ${err.message}` }),
+      JSON.stringify({ error: `Server error: ${(err as Error).message}` }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

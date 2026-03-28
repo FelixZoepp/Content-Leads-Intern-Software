@@ -30,7 +30,7 @@ export function useDailyTasks(dayNumber: number) {
   const loadTasks = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("daily_tasks")
       .select("*")
       .eq("user_id", user.id)
@@ -45,7 +45,7 @@ export function useDailyTasks(dayNumber: number) {
   }, [loadTasks]);
 
   const toggleTask = async (taskId: string, completed: boolean) => {
-    await supabase
+    await (supabase as any)
       .from("daily_tasks")
       .update({ completed: !completed })
       .eq("id", taskId);
@@ -65,7 +65,7 @@ export function useGeneratedAssets() {
   const loadAssets = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("generated_assets")
       .select("*")
       .eq("user_id", user.id)
@@ -115,7 +115,7 @@ export function usePhaseProgress() {
     if (!user) return;
     (async () => {
       setLoading(true);
-      const { data } = await supabase
+    const { data } = await (supabase as any)
         .from("daily_tasks")
         .select("day_number, completed")
         .eq("user_id", user.id);

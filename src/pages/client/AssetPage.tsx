@@ -42,7 +42,7 @@ export default function AssetPage() {
   const loadAsset = useCallback(async () => {
     if (!user || !assetKey) return;
     setLoading(true);
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("generated_assets")
       .select("content")
       .eq("user_id", user.id)
@@ -83,7 +83,7 @@ export default function AssetPage() {
       const generatedContent = data.content;
 
       // Upsert into generated_assets
-      const { data: existing } = await supabase
+      const { data: existing } = await (supabase as any)
         .from("generated_assets")
         .select("id")
         .eq("user_id", user.id)
@@ -91,12 +91,12 @@ export default function AssetPage() {
         .maybeSingle();
 
       if (existing) {
-        await supabase
+        await (supabase as any)
           .from("generated_assets")
           .update({ content: generatedContent, updated_at: new Date().toISOString() })
           .eq("id", existing.id);
       } else {
-        await supabase.from("generated_assets").insert({
+        await (supabase as any).from("generated_assets").insert({
           user_id: user.id,
           asset_type: assetKey,
           content: generatedContent,
