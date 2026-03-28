@@ -67,7 +67,7 @@ export default function KPITrackingPage() {
     setSaving(true);
     try {
       // Check if today's entry exists
-      const { data: existing } = await supabase
+      const { data: existing } = await (supabase as any)
         .from("kpi_entries")
         .select("id")
         .eq("user_id", user.id)
