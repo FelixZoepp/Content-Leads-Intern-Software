@@ -50,14 +50,14 @@ export default function ContentCalendarPage() {
     setLoading(true);
     const start = format(startOfMonth(currentMonth), "yyyy-MM-dd");
     const end = format(endOfMonth(currentMonth), "yyyy-MM-dd");
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("content_posts")
       .select("*")
       .eq("user_id", user.id)
       .gte("scheduled_date", start)
       .lte("scheduled_date", end)
       .order("scheduled_date");
-    setPosts(data || []);
+    setPosts((data as ContentPost[]) || []);
     setLoading(false);
   }, [user, currentMonth]);
 
