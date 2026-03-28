@@ -30,7 +30,7 @@ export function useDailyTasks(dayNumber: number) {
   const loadTasks = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("daily_tasks")
       .select("*")
       .eq("user_id", user.id)
