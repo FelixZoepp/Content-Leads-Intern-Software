@@ -45,7 +45,7 @@ export default function KPITrackingPage() {
   // Pre-fill from today's entry if exists
   useEffect(() => {
     if (!user) return;
-    supabase
+    (supabase as any)
       .from("kpi_entries")
       .select("*")
       .eq("user_id", user.id)
