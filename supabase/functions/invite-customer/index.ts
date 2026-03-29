@@ -28,8 +28,8 @@ async function findUserByEmail(adminClient: ReturnType<typeof createClient>, ema
 
     if (error) throw error;
 
-    const foundUser = data.users.find(
-      (user) => user.email?.toLowerCase() === normalizedEmail
+    const foundUser = (data.users as any[]).find(
+      (user: any) => user.email?.toLowerCase() === normalizedEmail
     );
 
     if (foundUser) return foundUser;
