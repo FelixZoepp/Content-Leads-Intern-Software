@@ -208,33 +208,61 @@ Exakt 9-Elemente-Struktur einhalten. Deutsch, direkt, polarisierend.`,
       userPrompt = prompt
     }
 
+    // Try Anthropic API directly first, fallback to Lovable AI Gateway
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")
-    if (!ANTHROPIC_API_KEY) {
-      throw new Error("ANTHROPIC_API_KEY not configured")
-    }
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-5-20241022",
-        max_tokens: 4000,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: userPrompt }]
+    let content = ""
+
+    if (ANTHROPIC_API_KEY) {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01"
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-5-20241022",
+          max_tokens: 4000,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: "user", content: userPrompt }]
+        })
       })
-    })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Anthropic API error: ${response.status} - ${errorText}`)
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Anthropic API error: ${response.status} - ${errorText}`)
+      }
+
+      const data = await response.json()
+      content = data.content?.[0]?.text || ""
+    } else if (LOVABLE_API_KEY) {
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-preview",
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: userPrompt },
+          ],
+        }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Lovable AI error: ${response.status} - ${errorText}`)
+      }
+
+      const data = await response.json()
+      content = data.choices?.[0]?.message?.content || ""
+    } else {
+      throw new Error("No AI API key configured. Set ANTHROPIC_API_KEY or LOVABLE_API_KEY in Edge Function secrets.")
     }
-
-    const data = await response.json()
-    const content = data.content?.[0]?.text || ""
 
     return new Response(
       JSON.stringify({ content, assetType }),
