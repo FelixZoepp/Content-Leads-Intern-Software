@@ -232,7 +232,7 @@ Deno.serve(async (req) => {
       company_name,
     }, { onConflict: "user_id" });
 
-    dispatchInvitationWebhooks(adminClient, {
+    dispatchInvitationWebhooks(adminClient as any, {
       tenant_id: tenant.id,
       company_name,
       email,

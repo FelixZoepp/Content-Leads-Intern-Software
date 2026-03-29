@@ -21,8 +21,8 @@ const EMAIL_SUBJECTS: Record<string, string> = {
   invite: 'Willkommen bei ContentLeads – Passwort festlegen',
   magiclink: 'Dein Login-Link – ContentLeads',
   recovery: 'Passwort festlegen – ContentLeads',
-  email_change: 'Confirm your new email',
-  reauthentication: 'Your verification code',
+  email_change: 'Neue E-Mail bestätigen – ContentLeads',
+  reauthentication: 'Dein Bestätigungscode – ContentLeads',
 }
 
 // Template mapping
