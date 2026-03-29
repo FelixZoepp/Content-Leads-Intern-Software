@@ -59,7 +59,7 @@ function dispatchInvitationWebhooks(
     });
 
     await Promise.allSettled(
-      webhookEndpoints.map((endpoint) =>
+      (webhookEndpoints as any[]).map((endpoint: any) =>
         fetch(endpoint.url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
