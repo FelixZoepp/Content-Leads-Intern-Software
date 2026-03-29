@@ -17,7 +17,7 @@ function isExistingUserError(message?: string | null) {
   );
 }
 
-async function findUserByEmail(adminClient: any, email: string) {
+async function findUserByEmail(adminClient: ReturnType<typeof createClient>, email: string) {
   const normalizedEmail = email.toLowerCase();
 
   for (let page = 1; page <= 20; page++) {
