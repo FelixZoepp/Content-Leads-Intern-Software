@@ -27,6 +27,7 @@ interface ContentPost {
   topic: string;
   caption: string | null;
   status: string;
+  post_type: string;
 }
 
 export default function ContentCalendarPage() {
@@ -42,6 +43,7 @@ export default function ContentCalendarPage() {
   // Form state
   const [topic, setTopic] = useState("");
   const [caption, setCaption] = useState("");
+  const [postType, setPostType] = useState<"content" | "lead">("content");
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -76,6 +78,7 @@ export default function ContentCalendarPage() {
     setEditPost(null);
     setTopic("");
     setCaption("");
+    setPostType("content");
     setModalOpen(true);
   };
 
@@ -84,6 +87,7 @@ export default function ContentCalendarPage() {
     setEditPost(post);
     setTopic(post.topic);
     setCaption(post.caption || "");
+    setPostType((post.post_type as "content" | "lead") || "content");
     setModalOpen(true);
   };
 
@@ -100,7 +104,7 @@ export default function ContentCalendarPage() {
         userProfile = data || {};
       }
       const { data, error } = await supabase.functions.invoke("generate-asset", {
-        body: { assetType: "linkedin_caption", userProfile, customPrompt: topic },
+        body: { assetType: "caption_generator", userProfile, customPrompt: `Post-Typ: ${postType === "lead" ? "Lead-Post mit CTA" : "Content-Post"}\nThema: ${topic}` },
       });
       if (error) throw error;
       setCaption(data.content);
@@ -118,7 +122,7 @@ export default function ContentCalendarPage() {
       if (editPost) {
         await (supabase as any)
           .from("content_posts")
-          .update({ topic, caption: caption || null, scheduled_date: dateStr })
+          .update({ topic, caption: caption || null, scheduled_date: dateStr, post_type: postType })
           .eq("id", editPost.id);
       } else {
         await (supabase as any).from("content_posts").insert({
@@ -126,6 +130,7 @@ export default function ContentCalendarPage() {
           scheduled_date: dateStr,
           topic,
           caption: caption || null,
+          post_type: postType,
         });
       }
       toast({ title: "Gespeichert" });
@@ -227,6 +232,8 @@ export default function ContentCalendarPage() {
                           className={`text-[9px] px-1 py-0.5 rounded truncate cursor-pointer ${
                             post.status === "published"
                               ? "bg-green-500/15 text-green-400"
+                              : post.post_type === "lead"
+                              ? "bg-amber-500/15 text-amber-400"
                               : "bg-[#534AB7]/15 text-[#534AB7]"
                           }`}
                         >
@@ -312,14 +319,41 @@ export default function ContentCalendarPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
-            <div>
-              <Label className="text-xs">Thema</Label>
-              <Input
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="z.B. 5 Fehler bei der Kaltakquise"
-                className="mt-1"
-              />
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <Label className="text-xs">Thema</Label>
+                <Input
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  placeholder="z.B. 5 Fehler bei der Kaltakquise"
+                  className="mt-1"
+                />
+              </div>
+              <div className="w-32">
+                <Label className="text-xs">Post-Typ</Label>
+                <div className="flex gap-1 mt-1">
+                  <button
+                    onClick={() => setPostType("content")}
+                    className={`flex-1 text-xs py-2 rounded-lg border transition-colors ${
+                      postType === "content"
+                        ? "bg-[#534AB7]/15 text-[#534AB7] border-[#534AB7]/30"
+                        : "border-border text-muted-foreground hover:bg-secondary/50"
+                    }`}
+                  >
+                    Content
+                  </button>
+                  <button
+                    onClick={() => setPostType("lead")}
+                    className={`flex-1 text-xs py-2 rounded-lg border transition-colors ${
+                      postType === "lead"
+                        ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                        : "border-border text-muted-foreground hover:bg-secondary/50"
+                    }`}
+                  >
+                    Lead
+                  </button>
+                </div>
+              </div>
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">

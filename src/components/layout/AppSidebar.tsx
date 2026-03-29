@@ -27,6 +27,7 @@ import {
   CalendarDays,
   Settings,
   Map,
+  Target,
 } from "lucide-react";
 import {
   Sidebar,
@@ -49,15 +50,19 @@ const clientNavOverview = [
 ];
 
 const clientNavAssets = [
+  { title: "Positionierung", icon: Target, path: "/dashboard/assets/positionierung" },
   { title: "LinkedIn Profil", icon: Linkedin, path: "/dashboard/assets/linkedin-profil" },
   { title: "Outreach DMs", icon: Send, path: "/dashboard/assets/outreach-dms" },
   { title: "Cold Mails", icon: Mail, path: "/dashboard/assets/cold-mails" },
+  { title: "Mail-Sequenz", icon: Mail, path: "/dashboard/assets/mail-sequenz" },
   { title: "Funnel & Texte", icon: Megaphone, path: "/dashboard/assets/funnel" },
-  { title: "Leadmagnet 1 (ToFu)", icon: BookOpen, path: "/dashboard/assets/leadmagnet-1" },
-  { title: "Leadmagnet 2 (MoFu)", icon: FileCheck, path: "/dashboard/assets/leadmagnet-2" },
-  { title: "Leadmagnet 3 (BoFu)", icon: FileText, path: "/dashboard/assets/leadmagnet-3" },
+  { title: "LM 1 (ToFu)", icon: BookOpen, path: "/dashboard/assets/leadmagnet-1" },
+  { title: "LM 2 (MoFu)", icon: FileCheck, path: "/dashboard/assets/leadmagnet-2" },
+  { title: "LM 3 (BoFu)", icon: FileText, path: "/dashboard/assets/leadmagnet-3" },
   { title: "Opening-Skript", icon: Mic, path: "/dashboard/assets/opening-skript" },
+  { title: "Setting-Skript", icon: Phone, path: "/dashboard/assets/setting-skript" },
   { title: "Closing-Skript", icon: Handshake, path: "/dashboard/assets/closing-skript" },
+  { title: "LinkedIn Captions", icon: FileText, path: "/dashboard/assets/linkedin-captions" },
 ];
 
 const clientNavTracking = [

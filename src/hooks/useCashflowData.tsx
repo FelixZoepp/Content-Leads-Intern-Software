@@ -15,7 +15,7 @@ export function useCashflowDay() {
     const day = Math.max(1, Math.min(90, Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1));
     setDayNumber(day);
     if (day <= 21) setPhase("setup");
-    else if (day <= 56) setPhase("kontinuität");
+    else if (day <= 63) setPhase("kontinuität");
     else setPhase("vertrieb");
   }, [user]);
 
@@ -128,8 +128,8 @@ export function usePhaseProgress() {
         };
         setProgress({
           phase1: calc(1, 21),
-          phase2: calc(22, 56),
-          phase3: calc(57, 90),
+          phase2: calc(22, 63),
+          phase3: calc(64, 90),
         });
       }
       setLoading(false);
@@ -141,15 +141,19 @@ export function usePhaseProgress() {
 
 export const ASSET_TYPES = [
   { key: "fahrplan", label: "90-Tage Fahrplan", path: "/dashboard/assets/fahrplan" },
+  { key: "positionierung", label: "Positionierung", path: "/dashboard/assets/positionierung" },
   { key: "linkedin_profil", label: "LinkedIn Profil", path: "/dashboard/assets/linkedin-profil" },
   { key: "outreach_dms", label: "Outreach DMs", path: "/dashboard/assets/outreach-dms" },
   { key: "cold_mails", label: "Cold Mails", path: "/dashboard/assets/cold-mails" },
+  { key: "mail_sequenz", label: "Mail-Sequenz", path: "/dashboard/assets/mail-sequenz" },
   { key: "funnel", label: "Funnel & Texte", path: "/dashboard/assets/funnel" },
   { key: "leadmagnet_1", label: "Leadmagnet 1 (ToFu)", path: "/dashboard/assets/leadmagnet-1" },
   { key: "leadmagnet_2", label: "Leadmagnet 2 (MoFu)", path: "/dashboard/assets/leadmagnet-2" },
   { key: "leadmagnet_3", label: "Leadmagnet 3 (BoFu)", path: "/dashboard/assets/leadmagnet-3" },
   { key: "opening_skript", label: "Opening-Skript", path: "/dashboard/assets/opening-skript" },
+  { key: "setting_skript", label: "Setting-Skript", path: "/dashboard/assets/setting-skript" },
   { key: "closing_skript", label: "Closing-Skript", path: "/dashboard/assets/closing-skript" },
+  { key: "linkedin_captions", label: "LinkedIn Captions", path: "/dashboard/assets/linkedin-captions" },
 ] as const;
 
 export type AssetTypeKey = (typeof ASSET_TYPES)[number]["key"];

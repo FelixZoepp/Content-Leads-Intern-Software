@@ -14,15 +14,19 @@ import { ASSET_TYPES, type AssetTypeKey } from "@/hooks/useCashflowData";
 // Map URL slugs to asset type keys
 const slugToKey: Record<string, AssetTypeKey> = {
   fahrplan: "fahrplan",
+  positionierung: "positionierung",
   "linkedin-profil": "linkedin_profil",
   "outreach-dms": "outreach_dms",
   "cold-mails": "cold_mails",
+  "mail-sequenz": "mail_sequenz",
   funnel: "funnel",
   "leadmagnet-1": "leadmagnet_1",
   "leadmagnet-2": "leadmagnet_2",
   "leadmagnet-3": "leadmagnet_3",
   "opening-skript": "opening_skript",
+  "setting-skript": "setting_skript",
   "closing-skript": "closing_skript",
+  "linkedin-captions": "linkedin_captions",
 };
 
 export default function AssetPage() {

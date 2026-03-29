@@ -59,25 +59,32 @@ export default function GeneratingAssets() {
           // If it's the fahrplan, parse and save daily tasks
           if (asset.key === "fahrplan") {
             try {
-              // Try to extract JSON from the content
-              const jsonMatch = data.content.match(/\{[\s\S]*"weeks"[\s\S]*\}/);
+              const jsonMatch = data.content.match(/\{[\s\S]*"wochen"[\s\S]*\}/);
               if (jsonMatch) {
                 const plan = JSON.parse(jsonMatch[0]);
                 const taskRows: any[] = [];
-                for (const week of plan.weeks || []) {
-                  for (const day of week.days || []) {
-                    for (const task of day.tasks || []) {
+                const dayNames = ["mo", "di", "mi", "do", "fr"];
+                for (const woche of plan.wochen || []) {
+                  const weekNum = woche.woche || 1;
+                  const aufgaben = woche.aufgaben || {};
+                  dayNames.forEach((dayKey, idx) => {
+                    const dayNumber = (weekNum - 1) * 5 + idx + 1;
+                    const tasks = aufgaben[dayKey] || [];
+                    for (const taskText of tasks) {
                       taskRows.push({
                         user_id: user.id,
-                        day_number: day.day,
-                        task_text: task.text,
-                        category: task.category || "allgemein",
+                        day_number: Math.min(dayNumber, 90),
+                        task_text: typeof taskText === "string" ? taskText : taskText.text || String(taskText),
+                        category: woche.phase || "allgemein",
                       });
                     }
-                  }
+                  });
                 }
                 if (taskRows.length > 0) {
-                  await (supabase as any).from("daily_tasks").insert(taskRows);
+                  // Insert in batches of 50 to avoid payload limits
+                  for (let i = 0; i < taskRows.length; i += 50) {
+                    await (supabase as any).from("daily_tasks").insert(taskRows.slice(i, i + 50));
+                  }
                 }
               }
             } catch {

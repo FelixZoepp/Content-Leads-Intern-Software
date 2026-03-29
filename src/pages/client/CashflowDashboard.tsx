@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   CheckCircle2, Circle, MessageSquare, Mail, Calendar, FileText,
-  TrendingUp, Percent, Target, Briefcase, Loader2
+  TrendingUp, Percent, Target, Briefcase, Loader2, Dumbbell, ExternalLink
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -17,9 +17,9 @@ import {
 } from "@/hooks/useCashflowData";
 
 const phaseLabels = {
-  setup: "Phase 1: Setup",
-  kontinuität: "Phase 2: Kontinuität",
-  vertrieb: "Phase 3: Vertrieb",
+  setup: "Phase 1: Setup (Tag 1-21)",
+  kontinuität: "Phase 2: Execution (Tag 22-63)",
+  vertrieb: "Phase 3: Optimierung (Tag 64-90)",
 } as const;
 
 const phaseColors = {
@@ -191,11 +191,43 @@ export default function CashflowDashboard() {
         </motion.div>
       </div>
 
-      {/* Phase Progress */}
+      {/* Daily Training */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
+        className="rounded-xl border border-[#534AB7]/30 bg-[#534AB7]/5 p-5"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-[#534AB7]/15 flex items-center justify-center">
+              <Dumbbell className="h-5 w-5 text-[#534AB7]" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">Tägliches Vertriebstraining</h2>
+              <p className="text-xs text-muted-foreground">Übe Einwandbehandlung mit KI-Roleplay</p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            className="bg-[#534AB7] hover:bg-[#4339a0]"
+            onClick={() => {
+              const icp = "einem potenziellen Kunden";
+              const url = `https://claude.ai/new?q=${encodeURIComponent(`Du bist ein schwieriger ${icp} der sagt "Zu teuer". Ich übe mein Closing-Skript. Fang das Gespräch an und gib mir nach meiner Antwort Feedback.`)}`;
+              window.open(url, "_blank");
+            }}
+          >
+            Training starten
+            <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
+          </Button>
+        </div>
+      </motion.div>
+
+      {/* Phase Progress */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
         className="rounded-xl border border-border/50 bg-card p-5"
       >
         <h2 className="text-sm font-semibold text-foreground mb-4">Phasen-Fortschritt</h2>
@@ -207,8 +239,8 @@ export default function CashflowDashboard() {
           <div className="space-y-4">
             {[
               { label: "Phase 1: Setup (Tag 1-21)", value: progress.phase1, color: "bg-blue-500" },
-              { label: "Phase 2: Kontinuität (Tag 22-56)", value: progress.phase2, color: "bg-amber-500" },
-              { label: "Phase 3: Vertrieb (Tag 57-90)", value: progress.phase3, color: "bg-green-500" },
+              { label: "Phase 2: Execution (Tag 22-63)", value: progress.phase2, color: "bg-amber-500" },
+              { label: "Phase 3: Optimierung (Tag 64-90)", value: progress.phase3, color: "bg-green-500" },
             ].map((p) => (
               <div key={p.label} className="space-y-1.5">
                 <div className="flex items-center justify-between">
