@@ -17,7 +17,7 @@ function isExistingUserError(message?: string | null) {
   );
 }
 
-async function findUserByEmail(adminClient: any, email: string) {
+async function findUserByEmail(adminClient: ReturnType<typeof createClient>, email: string) {
   const normalizedEmail = email.toLowerCase();
 
   for (let page = 1; page <= 20; page++) {
@@ -28,8 +28,8 @@ async function findUserByEmail(adminClient: any, email: string) {
 
     if (error) throw error;
 
-    const foundUser = data.users.find(
-      (user) => user.email?.toLowerCase() === normalizedEmail
+    const foundUser = (data.users as any[]).find(
+      (user: any) => user.email?.toLowerCase() === normalizedEmail
     );
 
     if (foundUser) return foundUser;
@@ -59,7 +59,7 @@ function dispatchInvitationWebhooks(
     });
 
     await Promise.allSettled(
-      webhookEndpoints.map((endpoint) =>
+      (webhookEndpoints as any[]).map((endpoint: any) =>
         fetch(endpoint.url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -232,7 +232,7 @@ Deno.serve(async (req) => {
       company_name,
     }, { onConflict: "user_id" });
 
-    dispatchInvitationWebhooks(adminClient, {
+    dispatchInvitationWebhooks(adminClient as any, {
       tenant_id: tenant.id,
       company_name,
       email,
