@@ -17,7 +17,7 @@ const corsHeaders = {
 }
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
+  signup: 'E-Mail bestätigen – ContentLeads',
   invite: 'Willkommen bei ContentLeads – Passwort festlegen',
   magiclink: 'Your login link',
   recovery: 'Passwort festlegen – ContentLeads',
